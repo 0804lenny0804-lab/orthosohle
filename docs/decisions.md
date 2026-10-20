@@ -41,3 +41,11 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 **Grund:** Nutzer meldet unvereinbarte leere Ordner und fordert eine übersichtliche, vollständig nutzbare Arbeitsgrundlage. Frühere geplante Zielstrukturen hatten noch keinen tatsächlichen Codeinhalt.
 
 **Konsequenz:** Ersetzt die bisherigen konkreten Zielpfade und das separate architecture-Dokument; fachliche Grenzen bleiben in AGENTS und der Analyse erhalten. Neue Module/Hardwareablagen erst bei ihrer Umsetzung anlegen. CSV ist der einzige Backlog, Manifest das einzige Dateiinventar; generierte Markdownkopie, leere Zeiterfassung und doppelte Inventarliste entfallen. Originalquellen und Quellinhalt bleiben unverändert. Einstieg über README mit tatsächlichen Befehlen und erstem C03-Arbeitsauftrag. Keine Produktmigration oder neue Funktion behaupten.
+
+## 20.10.2026 – Produktziel und Arzt-/Patientenmodell (akzeptierte Kernvorgaben)
+
+**Entscheidung:** Software auf Basis der bisherigen App umfassend zu einem produktreifen Frontend-/Backendsystem mit Arzt-/Patientenkonten, Sicherheit und DSGVO-Vorkehrungen weiterentwickeln. Nutzer bestätigt: Patient nimmt Einladung eines geprüften Arztes an; Arzt legt medizinische Belastungsgrenze fest, Patient sieht und bestätigt die Geräteübernahme; iPhone und Android sind Ziel der ersten Produktversion.
+
+**Grund:** Ausdrücklicher neuer Produktauftrag und Antworten auf die drei Kernfragen.
+
+**Konsequenz:** Konkrete Anforderungen und offene Detailentscheidungen werden in [requirements.md](requirements.md) gepflegt. Ziel ist keine Behauptung aktueller Einsatzreife. Einsatzform, Behandlermodell, Datenweg, Freigaben und Aufwand sind noch zu klären; alten Semesterbacklog nicht ungeprüft als ausreichenden Produktplan übernehmen. Kein Framework-, Hosting- oder Hardwarewechsel beschlossen.

@@ -4,7 +4,7 @@
 
 1. [Arbeitsregeln](AGENTS.md) lesen.
 2. [Projektkontext](docs/context.md) öffnen: aufbereitetes Wissen, Iststand und nächster Schritt.
-3. Eine Aufgabe aus dem [Backlog](docs/backlog.csv) bearbeiten; bei Bedarf [Code-Einstieg](code/README.md) oder [Detailanalyse](docs/analysis.md) lesen.
+3. Für den aktuellen Softwareauftrag [Anforderungen und Meilensteine](docs/requirements.md) lesen. Umsetzungsaufgaben im [Backlog](docs/backlog.csv) führen; bei Bedarf [Code-Einstieg](code/README.md) oder [Detailanalyse](docs/analysis.md) lesen.
 
 ## Struktur
 
@@ -18,6 +18,7 @@ code/                Tatsächlich vorhandener Code mit Startanleitung
 docs/                Projektwissen und Arbeitsunterlagen
   context.md         Ziel, Iststand, offene Fragen und aktuelle Übergabe
   decisions.md       Relevante Entscheidungen mit Gründen
+  requirements.md    Produktanforderungen und Softwaremeilensteine
   backlog.csv        Aufgaben mit Priorität, Abhängigkeiten und Abnahme
   analysis.md        Ausführliche Bestandsaufnahme und Semesterplanung
   sources/           Originalunterlagen und Ponytail-Quellennotiz
@@ -39,16 +40,11 @@ git diff --check
 
 Die Prüfung kontrolliert Dateien/Links, Backlog-Abhängigkeiten und 300/600-Stunden-Budget sowie den unveränderten Originalcode. Der [Code-Einstieg](code/README.md) beschreibt den gesonderten Node-Build und lokalen Betrieb.
 
-## Erster konkreter Arbeitsauftrag
+## Aktueller Arbeitsauftrag
 
-**C03: Hardwarebestand und Firmwarestand abgleichen**, als erster kleiner Schritt:
+**Softwareanforderungen klären, dann Umsetzung planen.** [requirements.md](docs/requirements.md) enthält das Ärzte-/Patientenprodukt mit Abnahmekriterien und Meilensteinen M0–M8. Arzt-Einladung, medizinische Planhoheit und iPhone/Android sind bestätigt; Einsatzform, Betreuungsumfang und Uploadverhalten noch offen. Danach M0 abschließen, Umfang schätzen und passende kleine Umsetzungsaufgaben in den bestehenden Backlog übernehmen. Keine bereits erfolgte Produkt-/Sicherheitsfreigabe behaupten.
 
-- Tatsächlich vorhandenes Board, Sensor, HX711, Versorgung und Verkabelung erfassen.
-- Geflashten Sketch und Bibliotheks-/Boardversionen feststellen; Unsicherheiten ausdrücklich offenlassen.
-- Ergebnis zunächst im Abschnitt „Hardwarebestand“ des Projektkontexts festhalten. Erst bei echten Fotos, Pinplänen oder einer Stückliste eine eigene Hardwareablage anlegen.
-- Abnahme: dokumentierter aktueller Bestand mit Quelle/Foto/Beobachtung. Die ältere Hausarbeit allein erfüllt diese Abnahme nicht. Danach C05 zur BLE-Topologie.
-
-Unabhängig davon kann C02 die Migration des vorhandenen Codes vorbereiten; [Codeübersicht](code/README.md) und bekannte Fehler beachten. Nicht mehrere Produktbaustellen gleichzeitig eröffnen.
+Technisch parallel nötig: C03 tatsächlichen Hardware-/Firmwarebestand und C05 BLE-Rollen prüfen. Dafür den Hardwareabschnitt des [Projektkontexts](docs/context.md) anhand realer Teile/Revisionen, Pins/Spannungen und Firmwarequellen ergänzen; ältere Hausarbeit allein reicht nicht. Code-Start und bekannte Grenzen stehen im [Code-Einstieg](code/README.md).
 
 ## Anderes Gerät / GitHub
 

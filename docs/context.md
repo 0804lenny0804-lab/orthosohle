@@ -6,9 +6,13 @@ Aktualisiert: 20.10.2026. Mit [AGENTS.md](../AGENTS.md) lesen; Details über die
 
 OrthoSohle soll eine vorgegebene Teilbelastung als kalibrierte kg-Belastung kontrollierbar machen. Ein eigenständiges Armband soll aktuelle Werte anzeigen, lokal eine persistente Grenze prüfen und bei Überschreitung vibrieren. Warnung unabhängig von Smartphone und Internet. Fehlende, ungültige oder veraltete Werte brauchen einen klaren Störungsstatus; sie sind kein sicherer Nullwert.
 
-Prioritäten: **Armband zuerst, Web-App danach**, Integration und Abschluss laufend berücksichtigen. Bestehende Sohle als Datenquelle nutzen; nur notwendige Mess-/Kommunikationskorrekturen, kein Sensor-Redesign. Smartwatch nur begrenzter PoC nach Kapazität. Forschungs-/Beta-Prototyp; vollständige Beinlast, Genauigkeit und klinische Sicherheit sind nicht nachgewiesen.
+Prioritäten: **Armband zuerst, Web-App danach**, Integration und Abschluss laufend berücksichtigen. Bestehende Sohle als Datenquelle nutzen; nur notwendige Mess-/Kommunikationskorrekturen, kein Sensor-Redesign. Smartwatch nur begrenzter PoC nach Kapazität. Ziel ist jetzt ein produktreifes Ärzte-/Patientensystem; der tatsächliche Stand bleibt ein Forschungs-/Beta-Prototyp. Vollständige Beinlast, Genauigkeit und klinische Sicherheit sind nicht nachgewiesen; produktiver/medizinischer Einsatz benötigt eigene Abnahme und Freigabe.
 
-Zwei Personen, 15.10.2026–28.01.2027: 600 echte Personenstunden. Normierte 300-Stunden-Sicht: Armband 135, App 90, Planung 30, Integration 30, Hausarbeit/Media Night 15. Abschlussbudget knapp. Hochschulanforderungen, Abgabetermin und separates Media-Night-Datum noch bestätigen. Vorgeschlagene Meilensteine: 20.11. Tischprototyp, 18.12. lokale Warnung, 12.01. integrierte Sitzung, 21.01. Stabilisierung; keine bestätigten Hochschultermine.
+Zwei Personen, 15.10.2026–28.01.2027: 600 echte Personenstunden. Normierte 300-Stunden-Sicht: Armband 135, App 90, Planung 30, Integration 30, Hausarbeit/Media Night 15. Die bisherige Appschätzung deckt das zusätzliche Ärzteportal und vollständige Produkt-/Betriebsfreigaben nicht belastbar ab; nach Anforderungsklärung neu schätzen, keine Produktfreigabe zum Semesterende zusagen. Abschlussbudget knapp. Hochschulanforderungen, Abgabetermin und separates Media-Night-Datum noch bestätigen. Vorgeschlagene Meilensteine: 20.11. Tischprototyp, 18.12. lokale Warnung, 12.01. integrierte Sitzung, 21.01. Stabilisierung; keine bestätigten Hochschultermine.
+
+## Bestätigtes Softwareziel
+
+Software auf Basis der alten App umfassend überarbeiten: getrennte Arzt-/Patientenfunktionen, vollständiges Frontend/Backend, Sicherheit, Datenschutz und betreibbarer Produktstand. Patient bestätigt Einladung eines geprüften Arztes; Arzt legt medizinische Belastungsgrenze fest, Patient sieht/bestätigt Geräteübernahme; erste Produktversion für iPhone und Android. Technisches Geräte-ACK bleibt zusätzlich nötig. Katalog, offene Detailentscheidungen und Meilensteine stehen ausschließlich in [requirements.md](requirements.md); Vorschläge dort sind noch keine implementierten oder sämtlich akzeptierten Funktionen.
 
 ## Tatsächlich verfügbar
 
@@ -38,6 +42,7 @@ Historisch laut Hausarbeit: Arduino Nano 33 BLE, HX711, KERN CK 30-Y1 und PowerB
 |---|---|
 | Arbeitsablauf, DRY/Ponytail, Git und Dokumentationspflege | [AGENTS.md](../AGENTS.md) |
 | Codepfade, Installations-/Startbefehle und Grenzen | [code/README.md](../code/README.md) |
+| Produktanforderungen, Rollenabläufe und Freigabemeilensteine | [requirements.md](requirements.md) |
 | Aufgaben, Status, Verantwortliche, Aufwand und Abnahme | [backlog.csv](backlog.csv) |
 | Ausführliche Ist-/Gap-Analyse, Architektur und Semesterplan | [analysis.md](analysis.md) |
 | Relevante Beschlüsse und Gründe | [decisions.md](decisions.md) |
@@ -48,9 +53,9 @@ Referenzprüfungen 20.10.: Produktionsbuild inkl. Service Worker und isolierter 
 
 ## Übergabe und unmittelbar nächste Arbeit
 
-Die bisher spekulativen Apps-/Firmware-/Hardware-/Vertrags-/Testordner wurden entfernt. Tatsächlicher Code steht unter code/, Wissen unter docs/, Werkzeuge unter scripts/. Doppeltes Quellinventar und generierte Backlogansicht entfallen; CSV und Manifest sind jeweils maßgeblich. Originalquellen und alle 51 Quelldateien bleiben erhalten. Repo-Checks und zugehörige Tests vor jedem Abschluss ausführen, Ergebnis im Abschlussbericht nennen.
+Aktiver Auftrag ist die Software-Anforderungsklärung. [requirements.md](requirements.md) erfasst Rollen, Onboarding, Betreuungsrechte, Plan-/Geräteversionen, Datenweg, Sicherheit/DSGVO, Betrieb und Meilensteine M0–M8. Noch keine Softwarefunktion implementiert und alter Semesterbacklog noch nicht auf erweiterten Produktumfang umgeschätzt.
 
-**Jetzt startklar:** C03 Hardwarebestand anhand realer Beobachtungen erfassen; konkreter Auftrag und Abnahme in der Root-README. Danach C05 BLE-Rollen prüfen. Unabhängig möglich: C02 einen echten Codebereich reproduzierbar migrieren, danach B01–B03 Datenfehler beheben. Für diese Arbeiten nötige fehlende Hardwareinformationen erfragen; keine Firmware/Bauteilwahl erraten.
+Nächster Schritt: Einsatzform, Anzahl behandelnder Ärzte und Uploadverhalten klären, danach M0 abgrenzen, M1 als Machbarkeitsspitze für beide Smartphoneplattformen vorbereiten und konkrete Aufgaben schätzen. Der Hardwarebestand C03 und BLE-Rollen C05 bleiben dafür wichtige technische Eingangsdaten; keine Datenwege/Komponenten erfinden. Bisherige Ordnerbereinigung ist abgeschlossen, kein weiterer Strukturumbau nötig.
 
 ## Git und Zusammenarbeit auf mehreren Geräten
 

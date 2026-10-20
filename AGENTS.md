@@ -24,6 +24,7 @@ Gilt ausschließlich für dieses Repository. Aktuelle Nutzeraufträge und überg
 | Arbeitsregeln | Diese AGENTS.md |
 | Wissen, belegter Iststand, offene Fragen und letzte Übergabe | docs/context.md |
 | Dauerhafte Entscheidung mit Datum, Grund und Konsequenz | docs/decisions.md |
+| Produktanforderungen und Meilenstein-Abnahme | docs/requirements.md |
 | Aufgaben, Verantwortliche, Status, Schätzung und Abnahme | docs/backlog.csv |
 | Umfangreiche Bestandsaufnahme / Originale / Prüfbelege | docs/analysis.md / docs/sources / docs/checks |
 | Code, ausführbare Einstiegsschritte und Herkunft | code/; Übersicht in code/README.md |

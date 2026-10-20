@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BUDGET = {'A': 135, 'B': 90, 'C': 30, 'D': 30, 'E': 15}
 REQUIRED = [
     'README.md', 'AGENTS.md', '.gitignore', 'docs/context.md', 'docs/decisions.md',
+    'docs/requirements.md',
     'docs/analysis.md', 'docs/checks/baseline.md', 'docs/checks/api-results.json',
     'docs/sources/README.md', 'docs/sources/ORTHOSOHLE_CODEX_CONTEXT.md',
     'docs/sources/Hausarbeit_Orthosohle.pdf', 'docs/sources/ponytail.md',
