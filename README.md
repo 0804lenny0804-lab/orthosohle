@@ -19,6 +19,7 @@ docs/                Projektwissen und Arbeitsunterlagen
   context.md         Ziel, Iststand, offene Fragen und aktuelle Übergabe
   decisions.md       Relevante Entscheidungen mit Gründen
   requirements.md    Produktanforderungen und Softwaremeilensteine
+  watch-compatibility.md  Eigenes vorgemerktes Watch-Folgeprojekt
   backlog.csv        Aufgaben mit Priorität, Abhängigkeiten und Abnahme
   analysis.md        Ausführliche Bestandsaufnahme und Semesterplanung
   sources/           Originalunterlagen und Ponytail-Quellennotiz
@@ -42,7 +43,7 @@ Die Prüfung kontrolliert Dateien/Links, Backlog-Abhängigkeiten und 300/600-Stu
 
 ## Aktueller Arbeitsauftrag
 
-**Softwareanforderungen klären, dann Umsetzung planen.** [requirements.md](docs/requirements.md) enthält das Ärzte-/Patientenprodukt mit Abnahmekriterien und Meilensteinen M0–M8. Arzt-Einladung, medizinische Planhoheit und iPhone/Android sind bestätigt; Einsatzform, Betreuungsumfang und Uploadverhalten noch offen. Danach M0 abschließen, Umfang schätzen und passende kleine Umsetzungsaufgaben in den bestehenden Backlog übernehmen. Keine bereits erfolgte Produkt-/Sicherheitsfreigabe behaupten.
+**Softwareanforderungen klären, dann Umsetzung planen.** [requirements.md](docs/requirements.md) enthält das Ärzte-/Patientenprodukt mit Abnahmekriterien und Meilensteinen M0–M8. Arzt-Einladung, medizinische Planhoheit, iPhone/Android, beaufsichtigter Pilot und ein verantwortlicher Arzt mit Arztwechsel sind bestätigt; Waveshare ESP32-S3-Touch-LCD-1.28 ist die Hardwarebasis des Warnarmbands. Uploadverhalten und konkreter unabhängiger Armbandpfad sind noch nachzuweisen. Weitere Smartwatches sind im [Folgeprojekt WATCH](docs/watch-compatibility.md) vorgemerkt. Danach M0 abschließen, Umfang schätzen und passende kleine Umsetzungsaufgaben in den bestehenden Backlog übernehmen. Keine bereits erfolgte Produkt-/Sicherheitsfreigabe behaupten.
 
 Technisch parallel nötig: C03 tatsächlichen Hardware-/Firmwarebestand und C05 BLE-Rollen prüfen. Dafür den Hardwareabschnitt des [Projektkontexts](docs/context.md) anhand realer Teile/Revisionen, Pins/Spannungen und Firmwarequellen ergänzen; ältere Hausarbeit allein reicht nicht. Code-Start und bekannte Grenzen stehen im [Code-Einstieg](code/README.md).
 

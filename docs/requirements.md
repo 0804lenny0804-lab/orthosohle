@@ -1,6 +1,6 @@
 # Softwareanforderungen und Produktmeilensteine
 
-Stand: 20.10.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe und kein Nachweis einer produktiven/medizinischen Einsatzfähigkeit. Zielauftrag: auf der alten App aufbauen, Frontend und Backend umfassend überarbeiten, Arzt-/Patientenkonten und Sicherheits-/DSGVO-Vorkehrungen ergänzen. Bestätigte Kernentscheidungen stehen in Abschnitt 2; weitere Detailfunktionen unten sind begründete Vorschläge, bis sie abgestimmt sind. Keine Hardware-, Provider- oder Frameworkentscheidung getroffen.
+Stand: 20.10.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe und kein Nachweis einer produktiven/medizinischen Einsatzfähigkeit. Zielauftrag: auf der alten App aufbauen, Frontend und Backend umfassend überarbeiten, Arzt-/Patientenkonten und Sicherheits-/DSGVO-Vorkehrungen ergänzen. Bestätigte Kernentscheidungen stehen in Abschnitt 2; weitere Detailfunktionen unten sind begründete Vorschläge, bis sie abgestimmt sind. Hardwarebasis des eigenständigen Armbands ist auf Nutzerentscheidung Waveshare ESP32-S3-Touch-LCD-1.28; weitere Komponenten, Provider und Frameworkänderungen sind nicht ausgewählt.
 
 ## 1. Was „produktreif“ hier konkret bedeutet
 
@@ -8,7 +8,7 @@ Das Ziel ist ein betreibbares Gesamtsystem mit sicheren, nachvollziehbaren Nutze
 
 **Bestätigt durch Nutzerauftrag:** alte App als funktionale Basis, umfassende Überarbeitung, Arzt und Patient mit jeweils eigenen Funktionen, vollständiges Frontend/Backend, Sicherheit und Datenschutz als Produktanforderungen. Die lokale unabhängige Warnkette bleibt aus dem bisherigen Projektrahmen maßgeblich.
 
-**Noch festzulegen:** vorgesehener Einsatz (Demo, beaufsichtigter Pilot oder reguläre Patientenanwendung), Verantwortlicher/Betreiber, Zielmärkte, vorgesehene Nutzer, klinischer Zweck und Aussagen zur Verlässlichkeit. EU-MDR-Einordnung, einschlägige Entwicklungs-/Risikomanagementanforderungen und notwendige Nachweise fachlich bestimmen; keine Klasse/Zulassung ohne Prüfung behaupten. Echte Gesundheitsdaten oder Patientenbetrieb erst nach den dafür erforderlichen Freigaben.
+**Einsatzfolge bestätigt:** beaufsichtigter Pilot zuerst, regulärer Einsatz nach erforderlicher Freigabe. Ein Pilot ist keine pauschale Ausnahme von Sicherheits-, Datenschutz- oder sonstigen anwendbaren Voraussetzungen. **Noch festzulegen:** Verantwortlicher/Betreiber, konkretes Pilotsetting, Zielmärkte, vorgesehene Nutzer, klinischer Zweck und Aussagen zur Verlässlichkeit. EU-MDR-Einordnung, einschlägige Entwicklungs-/Risikomanagementanforderungen und notwendige Nachweise fachlich bestimmen; keine Klasse/Zulassung ohne Prüfung behaupten. Echte Gesundheitsdaten oder Patientenbetrieb erst nach den dafür erforderlichen Freigaben.
 
 Der alte 300/600-Stunden-Plan bleibt als bisherige Semesterplanung erhalten. Das zusätzliche Ärzteportal und die vollständige Betriebs-/Freigabearbeit sind darin **nicht belastbar geschätzt**. Für das neue Produktziel Umfang und Aufwand neu schätzen; weder ein marktreifes System noch dessen medizinische Freigabe für den 28.01.2027 zusagen. Semesterlieferung und anschließende Produktfreigabe nach der Klärung ausdrücklich zuordnen.
 
@@ -21,10 +21,20 @@ Vom Nutzer am 20.10.2026 bestätigt:
 | Arzt-/Patientenzuordnung | Patient bestätigt Einladung eines geprüften Arztes | Arztprüfung vor Einladung; explizite Beziehungsaktivierung statt Zugriff allein durch Kenntnis einer E-Mail |
 | Medizinische Belastungsgrenze | Arzt legt fest, Patient sieht und bestätigt die Geräteübernahme | Patient kann medizinischen Wert nicht frei überschreiben; jede Änderung mit Autor/Version |
 | Erste Smartphoneplattformen | iPhone und Android | Datenweg auf beiden Plattformen nachweisen; Web-Bluetooth allein nicht als allgemeine Lösung voraussetzen |
+| Erste Einsatzform | Beaufsichtigter Pilot, regulärer Einsatz erst nach Freigabe | Pilotumfang, Betreuung und eigene Abnahme definieren |
+| Behandlerzahl | Genau ein verantwortlicher Arzt pro Patient; Arztwechsel unterstützt | Keine gleichzeitig gleichberechtigten Behandler in Version 1; Zuständigkeitswechsel historisieren |
+| Lokaler Messdatenweg | Sohle schickt Messwerte an das Handy | Diesen BLE-Pfad für beide Smartphoneplattformen prüfen; Backend-Übertragung ist ein zweiter Schritt |
+| Eigenständiges Armband | Waveshare ESP32-S3-Touch-LCD-1.28 als Hardwarebasis | Eigene Firmware für Anzeige/lokale Warnung; exakte Revision, Akku/Ladung, Haptik und BLE-Pfad noch nachweisen |
 
 Patientenbestätigung und technische Gerätebestätigung unterscheiden: Die App darf einen Plan erst als am Armband angewendet anzeigen, wenn das tatsächliche Gerät die richtige Version bestätigt. Eine Benutzeraktion allein reicht nicht. Verhalten bei ausstehender Bestätigung oder abgelaufenem Plan muss festgelegt werden.
 
-Aktuell zur Klärung gestellt: erste Einsatzform (Demo, beaufsichtigter Pilot, reguläre Versorgung); ein oder mehrere behandelnde Ärzte; manuelle/Foreground-Synchronisierung oder dauerhafter Hintergrund-/Direktupload. Weitere Fragen danach: Praxismodell/Vertretung, konkrete Arztprüfung, Datennutzung nach Betreuungsende, Offlinedauer/Puffergröße, Geräteteilung, Hostingbudget und Supportverantwortung. Noch keine dieser Optionen ist beschlossen.
+**Arztwechsel:** Neue Betreuung erst nach definiertem Einladungs-/Bestätigungsablauf aktivieren, alten Zugriff nach Regel beenden und zu jedem Zeitpunkt höchstens einen verantwortlichen Arzt führen. Historischen Plan samt Autor erhalten; Entscheidung über weitere Gültigkeit des Plans während des Wechsels ausdrücklich treffen. Keine ungefragte Übernahme alter ärztlicher Zugriffsrechte.
+
+**Datenweg auseinanderhalten:** Sohle → Handy (lokaler Empfang per BLE) ist der bestätigte Ausgangspunkt. Handy → Backend (Internetübertragung) ermöglicht gespeicherte Sitzungen und Arztzugriff. Offen ist, wann dieser zweite Schritt passiert: während aktiver App, zusätzlich im Hintergrund oder nach Offlinephasen. Eine Offline-Queue auf dem Handy kann nur bereits empfangene Daten sichern; Messungen ohne BLE-Empfänger benötigen Speicher am Messgerät/Armband oder müssen als Lücke kenntlich bleiben. Keinen Gerätepuffer aus der früheren Frage als beschlossen ableiten.
+
+**Unabhängiges Armband:** Der bestätigte Handyempfang hebt die bisherige lokale Warnanforderung nicht auf. Direkter Armbandempfang, Parallelverbindung oder anderer lokaler Pfad sind weiterhin nachzuweisen. Das Waveshare-Gerät ist jetzt als Hardwarebasis des unabhängigen Warnarmbands bestätigt. Zusätzliche gängige Smartwatches stehen im [Folgeprojekt WATCH](watch-compatibility.md); nicht ungeprüft Sohle → Handy → Uhr als autonome Warnkette ausgeben. Ein ESP32-Board mit Touchdisplay ist kein Nachweis von Motor, Akku, fertigem Gehäuse oder zuverlässiger Warnfunktion.
+
+Weitere offene Fragen: konkrete Arztprüfung, Zugriffs-/Aufbewahrungsregeln nach Arztwechsel, gültiger Plan während des Wechsels, Uploadzeitpunkt, Offlinedauer/Puffergrenzen, Geräteteilung, Praxismodell, Hostingbudget und Support.
 
 ## 3. Vorgeschlagene Kernabläufe
 
@@ -60,6 +70,7 @@ Alle IDs sind Produktanforderungen, **keine bereits implementierten Funktionen**
 | ACC-04 | Schutz | MFA für Arztkonten, gesicherte Wiederherstellung, Login-/Reset-Ratenbegrenzung | MFA-Verlust hat nachvollziehbaren Recoveryweg ohne Umgehung der Identitätsprüfung |
 | REL-01 | Betreuung | Einladungen mit Ablauf/Einmalnutzung, ausdrückliche Zuordnung und Liste aktiver Beziehungen | Einladung kann nicht mehrfach oder von falscher Identität übernommen werden |
 | REL-02 | Betreuung | Datenzugriff nur für erlaubte Beziehung; Beendigung/Sperrung nachvollziehbar | Arzt A erhält nie Daten von Patient B ohne zulässige Zuordnung; Entzug greift serverseitig einschließlich vorhandener Sessions |
+| REL-03 | Arztwechsel | Höchstens ein verantwortlicher Arzt; Wechsel nachvollziehbar und ohne Rechteübernahme | Gleichzeitige/erneute Einladungsannahmen schaffen keine zwei aktiven Verantwortlichen; alter Zugriff und Plangültigkeit nach festgelegtem Wechselmodell geprüft |
 | PAT-01 | Patient | Startansicht mit Plan, bestätigter Grenze, Geräte-/Uploadstatus und eindeutigen Hinweisen | Kein Gerät/keine Daten erscheint nicht als 0 kg oder „alles sicher“ |
 | PAT-02 | Patient | Eigene Sitzungen, Verlauf, Überschreitungen, Qualität und Feedback | Eine eigene Sitzung lässt sich nach erneutem Login samt Verlauf wieder öffnen |
 | DOC-01 | Arzt | Patientenübersicht mit Suche und Betreuungsstatus | Keine global durchsuchbare Patientenliste; Suchergebnisse auf erlaubte Beziehungen beschränkt |
@@ -146,16 +157,16 @@ Die Reihenfolge ist eine Arbeitsstruktur, **keine terminierte/geschätzte Zusage
 | Meilenstein | Ergebnis | Abnahme und Abhängigkeit |
 |---|---|---|
 | M0 – Ziel und Rechte verbindlich | Einsatzgrenze, Rollen, Betreuung, Planhoheit, Plattformen, Datenverantwortung und Kernumfang entschieden | Antworten/Entscheidungen dokumentiert, kritische Risiken und messbare Zielwerte benannt; Grundlage aller weiteren Pakete |
-| M1 – Technische Machbarkeit und früher Durchstich | Datenweg Sohle/Armband/Gateway auf Zielgeräten und Abgleich alte App | Gültig/stale/Überbereich sowie Plan-ACK mit synthetischen/Prüfdaten demonstriert; Hardware-/Browserblocker benannt, M0 vorausgesetzt |
+| M1 – Technische Machbarkeit und früher Durchstich | Bestätigten Pfad Sohle → Handy auf iPhone/Android sowie unabhängigen Armbandpfad prüfen und alte App abgleichen | Gültig/stale/Überbereich sowie Plan-ACK mit synthetischen/Prüfdaten demonstriert; Hardware-/Browserblocker benannt, M0 vorausgesetzt |
 | M2 – Sichere Konten und Betreuungsrechte | Registrierung/Login/Reset/MFA, Arztprüfung, Einladung, Zuordnung und Entzug | Zwei Ärzte/zwei Patienten gegeneinander getestet, keine Rechteeskalation; M0 und gewählte Auth-Integration |
 | M3 – Versionierter Plan und Gerätebindung | Pläne, Historie, Gerätebesitz und bestätigte Grenzwertübernahme | Offline-/Neustart-/Entzugs-/Wechselfälle geprüft; keine falsche Erfolgsmeldung; M1/M2 |
 | M4 – Geschützter Sitzungsdatenweg | Schema/Migration, Upload, Puffer/Retry, Sitzung/Planbezug und Audit | Echte Testsession erneut abrufbar, Duplikate/Lücken/Zeitzonen geprüft, Restore erster Datenbasis; M1/M2 und Planvertrag aus M3 |
 | M5 – Patienten- und Ärzteoberfläche | Vollständige Kernabläufe für beide Rollen, mobile und zugängliche Darstellung | Onboarding bis Verlauf/Export pro Rolle durchführbar; Fehler-/Leerezustände geprüft; M2–M4 |
 | M6 – Datenschutz und Produktionsbetrieb | Rechte-/Löschprozesse, Verträge/Informationen, getrennte Umgebungen, Monitoring/Backup/Updateablauf | Verantwortlichkeiten benannt, Restore und Incidentübung, Datenschutzreview; kontinuierlich ab M0 vorbereiten, M2–M5 für Ende-zu-Ende-Abnahme |
 | M7 – Gesamtabnahme | Funktion, Sicherheitsreview, Last-/Bedien-/Hardwaretests und dokumentierte Grenzen | Kritische Befunde geschlossen oder Freigabe blockiert, Rückverfolgbarkeit Anforderung → Test → Ergebnis; M1–M6 |
-| M8 – Einsatzfreigabe | Entscheidung für genau den vorgesehenen Einsatz | Erforderliche fachliche/regulatorische und Datenschutz-/Betriebsnachweise liegen vor; technische Fertigstellung allein reicht nicht; M7 |
+| M8 – Einsatzfreigabe | Zuerst Freigabe für den definierten beaufsichtigten Pilot; spätere reguläre Freigabe getrennt | Erforderliche fachliche/regulatorische und Datenschutz-/Betriebsnachweise für den jeweiligen Einsatz liegen vor; technische Fertigstellung allein reicht nicht; M7 |
 
-Hausarbeit/Media Night bleiben eigene Semesterlieferungen mit früh laufender Belegsammlung und klar markiertem Testdaten-Fallback. Welcher Meilenstein bis Semesterende belastbar erreichbar ist, nach Aufwandsschätzung entscheiden. Smartwatch, KI-Auswertung, Chat, Terminplanung, Abrechnung und automatische Therapieempfehlungen nur bei explizitem Folgeauftrag und belegtem Bedarf ergänzen.
+Hausarbeit/Media Night bleiben eigene Semesterlieferungen mit früh laufender Belegsammlung und klar markiertem Testdaten-Fallback. Welcher Meilenstein bis Semesterende belastbar erreichbar ist, nach Aufwandsschätzung entscheiden. Smartwatch-Kompatibilität ist als eigenes [Folgeprojekt WATCH](watch-compatibility.md) vorgemerkt, für weitere Plattformen wie watchOS/Wear OS; Aufwand und unterstützte Modelle sind noch nicht entschieden. Das Waveshare-Armband bleibt dagegen Hauptprojekt und höchste Priorität. KI-Auswertung, Chat, Terminplanung, Abrechnung und automatische Therapieempfehlungen nur bei explizitem Folgeauftrag und belegtem Bedarf ergänzen.
 
 ## 11. So wird daraus ein umsetzbarer Backlog
 

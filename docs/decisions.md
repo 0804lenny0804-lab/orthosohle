@@ -49,3 +49,11 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 **Grund:** Ausdrücklicher neuer Produktauftrag und Antworten auf die drei Kernfragen.
 
 **Konsequenz:** Konkrete Anforderungen und offene Detailentscheidungen werden in [requirements.md](requirements.md) gepflegt. Ziel ist keine Behauptung aktueller Einsatzreife. Einsatzform, Behandlermodell, Datenweg, Freigaben und Aufwand sind noch zu klären; alten Semesterbacklog nicht ungeprüft als ausreichenden Produktplan übernehmen. Kein Framework-, Hosting- oder Hardwarewechsel beschlossen.
+
+## 20.10.2026 – Pilot, Arztwechsel und Watch-Folgeprojekt (akzeptierte Abgrenzung)
+
+**Entscheidung:** Beaufsichtigter Pilot zuerst, reguläre Versorgung nach Freigabe; genau ein verantwortlicher Arzt je Patient mit unterstütztem Arztwechsel. Nutzer bestätigt den lokalen Pfad Sohle → Handy und bestimmt Waveshare ESP32-S3-Touch-LCD-1.28 als Hardwarebasis des eigenständigen Warnarmbands. Kompatibilität mit weiteren gängigen Smartwatches wird als eigenes Folgeprojekt vorgemerkt.
+
+**Grund:** Antworten auf Einsatz-/Betreuungsfragen und ausdrücklicher Auftrag zur Vormerkung der Watch-Kompatibilität.
+
+**Konsequenz:** Kernanforderungen angepasst, [WATCH](watch-compatibility.md) als eigene abrufbare Beschreibung gesichert. Waveshare ist Hauptprojekt/Armbandbasis. Noch keine Entscheidung über Handy-Backend-Upload, Hintergrundbetrieb, Gerätepuffer oder konkrete zusätzliche Watchmodelle. Kein neuer Chat/Remote/Repo angelegt und keine Watch-Kompatibilität behauptet.
