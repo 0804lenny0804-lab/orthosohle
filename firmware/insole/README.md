@@ -12,4 +12,4 @@ Bestehende Messung erhalten; notwendige Schnittstellen-/Statuskorrekturen. Kein 
 
 Historischer Sketch: reference/orthopaul/local-comm/frontend/src/components/arduinocode.ino. Nächste Schritte C03/C04, später A07/A08. Board und Bibliotheken vor Build pinnen.
 
-Es gelten die Root-AGENTS.md, CONTRIBUTING.md und docs/architecture.md.
+Es gelten die Root-AGENTS.md und docs/architecture.md.

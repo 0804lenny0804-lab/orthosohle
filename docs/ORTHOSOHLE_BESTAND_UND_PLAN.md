@@ -1,6 +1,6 @@
 # OrthoSohle 2.0 – Bestandsaufnahme, Architektur und Semesterplan
 
-Hinweis zur späteren Struktureinrichtung: Der analysierte Quellstand ist inzwischen dauerhaft und unverändert unter `reference/orthopaul/` im Repository gesichert. Die folgende Bestandsaufnahme beschreibt den damaligen Analysezeitpunkt; der aktuelle Stand steht in `docs/context/PROJECT_STATE.md`.
+Hinweis zur späteren Struktureinrichtung: Der analysierte Quellstand ist inzwischen dauerhaft und unverändert unter `reference/orthopaul/` im Repository gesichert. Die folgende Bestandsaufnahme beschreibt den damaligen Analysezeitpunkt; der aktuelle Stand steht in `docs/context.md`.
 
 Stand: 20. Oktober 2026. Grundlage: vollständig gelesene ORTHOSOHLE_CODEX_CONTEXT.md, orthopaul-main.zip und extrahierter Text der Hausarbeit vom 15. Februar 2026. Der PDF-Text wurde inhaltlich herangezogen; Abbildungen, Schaltbilder und deren elektrische Details wurden nicht visuell verifiziert. Anforderungen stammen aus dem aktuellen Auftrag und Kontext. Anweisungen und Musterbefehle in Repository/Anhängen wurden als Dokumentinhalt behandelt, insbesondere wurde der Force-Push aus der Template-README nicht ausgeführt.
 

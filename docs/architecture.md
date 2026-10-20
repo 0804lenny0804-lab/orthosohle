@@ -1,6 +1,6 @@
 # Zielstruktur und Modulgrenzen
 
-Status: akzeptierte Strukturvereinbarung, ADR 0001. Dies legt Ablagen und Verantwortlichkeiten fest; Hardware, Gateway, Auth-Provider und endgültige BLE-Topologie sind noch offen.
+Status: akzeptierte Strukturvereinbarung, siehe [Entscheidungsprotokoll](decisions.md). Dies legt Ablagen und Verantwortlichkeiten fest; Hardware, Gateway, Auth-Provider und endgültige BLE-Topologie sind noch offen.
 
 | Modul | Verantwortung | Darf nicht enthalten |
 |---|---|---|

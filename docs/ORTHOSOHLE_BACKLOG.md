@@ -2,7 +2,7 @@
 
 Maßgeblich ist ORTHOSOHLE_BACKLOG.csv. Diese Ansicht wird mit `python3 scripts/check_project.py --write-backlog` erzeugt; nicht separat bearbeiten.
 
-Ausgangsplanung: 20.10.2026. Alle Statusänderungen brauchen belegte Abnahme. Planungsstunden × 2 ergeben tatsächliche Personenstunden als Schätzung; geleistete Einzelzeiten separat in docs/context/WORK_LOG.csv erfassen. Aufgaben mit mehr als 4 Planungsstunden vor Beginn in kleinere Arbeitsschritte teilen.
+Ausgangsplanung: 20.10.2026. Alle Statusänderungen brauchen belegte Abnahme. Planungsstunden × 2 ergeben tatsächliche Personenstunden als Schätzung; geleistete Einzelzeiten separat in docs/WORK_LOG.csv erfassen. Aufgaben mit mehr als 4 Planungsstunden vor Beginn in kleinere Arbeitsschritte teilen.
 
 A = Armband, B = Web-App, C = Analyse/Planung, D = Integration, E = Abschluss. Zuständigkeit je Aufgabe festlegen. Watch ist optional; Abschlussbudget nach Hochschulklärung neu schätzen.
 

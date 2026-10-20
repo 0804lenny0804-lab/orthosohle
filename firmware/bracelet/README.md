@@ -12,4 +12,4 @@ Lokale Warnung, BLE-Empfang, Messvalidierung, Display, persistente Grenze und En
 
 Nächste Schritte C03/C05/C06 und A01/A03. Keine Firmware-Buildbefehle vorhanden. Vor Gerätebetrieb Pins, Spannungen und Treiber dokumentieren.
 
-Es gelten die Root-AGENTS.md, CONTRIBUTING.md und docs/architecture.md.
+Es gelten die Root-AGENTS.md und docs/architecture.md.

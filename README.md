@@ -1,40 +1,47 @@
 # OrthoSohle 2.0
 
-Semesterprojekt für eine intelligente Messsohle mit eigenständigem BLE-Warnarmband und ergänzender Web-App. Höchste Priorität: lokale kg-Anzeige und haptische Warnung am Armband. Laufzeit 15.10.2026–28.01.2027, zwei Personen, 600 tatsächliche Personenstunden; normierte Planung: 300 Stunden.
+Gemeinsame Arbeitsgrundlage für das Semesterprojekt OrthoSohle. Projektwissen und aktueller Stand: [docs/context.md](docs/context.md).
 
-## Einstieg
+## In einem neuen Chat oder auf einem anderen Gerät
 
-1. [Arbeitsregeln](AGENTS.md) und [Zusammenarbeit](CONTRIBUTING.md) lesen.
-2. [Aktuellen Projektstatus](docs/context/PROJECT_STATE.md) lesen.
-3. [Architektur und Modulgrenzen](docs/architecture.md) sowie die betroffene Modul-README öffnen.
-4. Aufgabe aus dem [Backlog](docs/ORTHOSOHLE_BACKLOG.md) wählen.
+1. Repository-Ordner öffnen, `git status --short --branch` und `git log -5 --oneline` prüfen.
+2. [AGENTS.md](AGENTS.md) und [Projektkontext einschließlich Übergabe](docs/context.md) lesen.
+3. Nur die betroffene Modul-README, [Architektur](docs/architecture.md), [Aufgabe](docs/ORTHOSOHLE_BACKLOG.md) und relevante [Entscheidungen](docs/decisions.md) nachladen.
 
-## Repository-Stand
-
-Dieses Repository enthält Projektgerüst, Regeln, Planung und den unveränderten historischen Quellstand unter `reference/orthopaul`. Die Produktmodule unter `apps/` und `firmware/` sind vorbereitet, noch nicht implementiert. Der Referenzcode ist laut ZIP-Analyse ein Vue-/Express-/SQLite-Prototyp mit Arduino-Sketch. Seine Migration erfolgt in eigenen Aufgaben; ein ZIP-Import erhält keine GitLab-Historie.
+## Ablagen
 
 ```text
-apps/web/             Web-App: Vue/Vite, Zielmodul
-apps/api/             Backend: Express/SQLite, Zielmodul
-firmware/bracelet/    Lokale Armband-Firmware, Zielmodul
+AGENTS.md             Verbindliche Arbeitsregeln, DRY und Ponytail-Grundsätze
+README.md             Einstieg und Wegweiser
+docs/
+  context.md          Aufbereitetes Wissen, Iststand, offene Fragen, Übergabe
+  decisions.md        Relevante Entscheidungen mit Begründung
+  architecture.md     Fachliche Modulgrenzen
+  references/         Originalunterlagen und Quellen
+  testing/            Tatsächliche Prüfnachweise
+  ORTHOSOHLE_*        Vorhandene Analyse, Backlog und Ergebnisse
+  WORK_LOG.csv        Tatsächliche Einzelzeiten
+apps/web/             Web-App (Zielmodul, noch nicht migriert)
+apps/api/             Backend (Zielmodul, noch nicht migriert)
+firmware/bracelet/    Eigenständiges Warnarmband (noch nicht implementiert)
 firmware/insole/      Notwendige Anpassungen der bestehenden Sohle
-contracts/            Versionierte BLE-/API-Verträge und Beispieldaten
-hardware/             BOM, Pinpläne, Gehäuse und Aufbaudokumentation
-tests/system/         Gemeinsame Ende-zu-Ende-Prüfungen
+contracts/            Versionierte BLE-/API-Verträge
+hardware/             BOM, Pinpläne und Gehäuse
+tests/system/         Modulübergreifende Prüfungen
 scripts/              Repository-Werkzeuge
-docs/                 Kontext, Entscheidungen, Planung und Prüfnachweise
-reference/orthopaul/  Unveränderter Quellstand aus orthopaul-main.zip
+reference/orthopaul/  Unveränderter historischer Code aus der ZIP
 ```
 
-## Repository prüfen
+## Prüfen
 
-Voraussetzung für die Gerüstprüfung: Python 3.9+ und Git, keine Anwendungsabhängigkeiten.
+Python 3.9+ genügt für die Repositoryprüfung, keine zusätzlichen Pakete:
 
 ```bash
 python3 scripts/check_project.py
+python3 -m unittest discover -s scripts -p 'test_*.py'
 git diff --check
 ```
 
-Die GitLab-CI-Konfiguration führt dieselbe Gerüstprüfung aus; eine Remote-Pipeline wurde noch nicht gestartet. Für die Produktmodule existieren noch keine Build-/Startbefehle. Der historische Prototyp hat eigene package.json-Dateien; konkrete geprüfte Schritte stehen in [Referenzbetrieb](docs/testing/REFERENCE_BASELINE.md). Ein erfolgreicher Referenzbuild bestätigt keine funktionierende medizinische Warnkette.
+Backlog nur in der CSV bearbeiten; Markdown mit `python3 scripts/check_project.py --write-backlog` erzeugen. Produktmodule haben noch keine ausführbaren Builds. Für den historischen Prototyp existiert ein [Prüfkontext](docs/testing/REFERENCE_BASELINE.md).
 
-[Dokumentationsindex](docs/README.md) · [Ist-Analyse](docs/ORTHOSOHLE_BESTAND_UND_PLAN.md) · [Quellen](docs/references/README.md)
+GitHub-Synchronisierung ist noch nicht eingerichtet. Dateien werden erst mit Commit/Push und Clone/Pull zwischen Geräten übertragen; Chats, lokale DB und Zugangsdaten bleiben getrennt. Details zum aktuellen Git-Stand und Gerätewechsel stehen im Projektkontext.

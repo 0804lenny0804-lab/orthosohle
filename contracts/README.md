@@ -12,4 +12,4 @@ BLE-Payloads/API: Version, Einheit, Byte-Reihenfolge, Wertebereich, Zeitbasis, S
 
 Legacy: Service 12345678-1234-1234-1234-1234567890ab, Characteristic 12345678-1234-1234-1234-1234567890cd; Float32 little endian, READ/NOTIFY. Keine Sequenz, Gerätezeit oder Qualität. Änderungen koordiniert versionieren; C06 ist die nächste Aufgabe.
 
-Es gelten die Root-AGENTS.md, CONTRIBUTING.md und docs/architecture.md.
+Es gelten die Root-AGENTS.md und docs/architecture.md.

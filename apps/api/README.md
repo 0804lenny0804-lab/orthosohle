@@ -12,4 +12,4 @@ Authentifizierung, Besitzprüfung, validierte API und Datenhaltung; Migrationen 
 
 Historische Basis: reference/orthopaul/local-comm/server. Nächster Schritt C02, danach B01/B05. Keine Build-/Startbefehle für dieses Zielmodul vorhanden.
 
-Es gelten die Root-AGENTS.md, CONTRIBUTING.md und docs/architecture.md.
+Es gelten die Root-AGENTS.md und docs/architecture.md.

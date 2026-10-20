@@ -12,15 +12,11 @@ from urllib.parse import unquote
 ROOT = Path(__file__).resolve().parents[1]
 BUDGET = {'A': 135, 'B': 90, 'C': 30, 'D': 30, 'E': 15}
 REQUIRED = [
-    'README.md', 'AGENTS.md', 'CONTRIBUTING.md', '.gitignore', '.gitlab-ci.yml',
-    'docs/README.md', 'docs/architecture.md', 'docs/context/PROJECT_STATE.md',
-    'docs/context/WORK_LOG.csv', 'docs/decisions/0001-project-structure-and-workflow.md',
-    'docs/decisions/TEMPLATE.md', 'docs/testing/TEMPLATE.md',
+    'README.md', 'AGENTS.md', '.gitignore', 'docs/context.md', 'docs/decisions.md',
+    'docs/architecture.md', 'docs/WORK_LOG.csv',
     'docs/testing/REFERENCE_BASELINE.md', 'docs/references/README.md',
     'docs/references/ORTHOSOHLE_CODEX_CONTEXT.md', 'docs/references/Hausarbeit_Orthosohle.pdf',
-    'docs/report/README.md', 'docs/media-night/README.md',
-    '.gitlab/issue_templates/Task.md', '.gitlab/merge_request_templates/Default.md',
-    'reference/README.md', 'reference/manifest.json',
+    'docs/references/ponytail.md', 'reference/README.md', 'reference/manifest.json',
 ] + [p + '/README.md' for p in [
     'apps/web', 'apps/api', 'firmware/bracelet', 'firmware/insole',
     'contracts', 'hardware', 'tests/system',
@@ -34,7 +30,7 @@ def render_backlog(rows):
         '`python3 scripts/check_project.py --write-backlog` erzeugt; nicht separat bearbeiten.', '',
         'Ausgangsplanung: 20.10.2026. Alle Statusänderungen brauchen belegte Abnahme. '
         'Planungsstunden × 2 ergeben tatsächliche Personenstunden als Schätzung; '
-        'geleistete Einzelzeiten separat in docs/context/WORK_LOG.csv erfassen. '
+        'geleistete Einzelzeiten separat in docs/WORK_LOG.csv erfassen. '
         'Aufgaben mit mehr als 4 Planungsstunden vor Beginn in kleinere Arbeitsschritte teilen.', '',
         'A = Armband, B = Web-App, C = Analyse/Planung, D = Integration, E = Abschluss. '
         'Zuständigkeit je Aufgabe festlegen. Watch ist optional; Abschlussbudget nach Hochschulklärung neu schätzen.', '',
@@ -136,9 +132,11 @@ def check(write_backlog=False):
         errors.append(f'Referenzmanifest nicht prüfbar: {exc}')
 
     # Check local inline Markdown file links in maintained docs, excluding historical source text.
-    maintained = [ROOT / name for name in ['README.md', 'AGENTS.md', 'CONTRIBUTING.md']]
+    maintained = [ROOT / name for name in ['README.md', 'AGENTS.md']]
     maintained += [p for p in (ROOT / 'docs').rglob('*.md') if 'references' not in p.parts]
-    maintained += [ROOT / 'reference/README.md']
+    maintained += [ROOT / 'reference/README.md', ROOT / 'docs/references/README.md', ROOT / 'docs/references/ponytail.md']
+    for directory in ['apps', 'firmware', 'contracts', 'hardware', 'tests']:
+        maintained += list((ROOT / directory).rglob('*.md'))
     for path in maintained:
         if not path.exists():
             continue

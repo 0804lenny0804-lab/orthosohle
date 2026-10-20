@@ -12,4 +12,4 @@ UI, Messstatus und Verläufe; Transport/API von Komponenten trennen. Details in 
 
 Historische Basis: reference/orthopaul/local-comm/frontend. Nächster Schritt C02, danach B01/B02. Keine Buildbefehle für dieses Zielmodul vorhanden.
 
-Es gelten die Root-AGENTS.md, CONTRIBUTING.md und docs/architecture.md.
+Es gelten die Root-AGENTS.md und docs/architecture.md.

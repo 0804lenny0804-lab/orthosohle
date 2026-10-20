@@ -10,6 +10,6 @@ Sohle → Armband → Gateway → Sitzung im Web, Ausfall/Neustart/Überbereich,
 
 ## Einstieg und Prüfung
 
-Prüfberichte unter docs/testing mit Vorlage ablegen. Ein späterer Test-Runner braucht dokumentierte Voraussetzungen und Befehle; derzeit ist nur der Repository-Checker ausführbar.
+Prüfberichte unter docs/testing mit Datum, Quellstand, Aufbau, Erwartung, Beobachtung und Grenzen ablegen. Ein späterer Test-Runner braucht dokumentierte Voraussetzungen und Befehle; derzeit ist nur der Repository-Checker ausführbar.
 
-Es gelten die Root-AGENTS.md, CONTRIBUTING.md und docs/architecture.md.
+Es gelten die Root-AGENTS.md und docs/architecture.md.
