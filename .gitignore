@@ -1,0 +1,30 @@
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+build/
+.pio/
+.venv/
+__pycache__/
+*.pyc
+*.log
+# Local settings and credentials; examples remain versioned
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+# Local measurements, database contents and backups
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+data/local/
+artifacts/local/
+# Machine-local files
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

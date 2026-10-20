@@ -1,0 +1,8 @@
+stages:
+  - validate
+
+project-agreements:
+  stage: validate
+  image: python:3.12-slim
+  script:
+    - python3 scripts/check_project.py

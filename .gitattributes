@@ -1,0 +1,4 @@
+* text=auto eol=lf
+# Preserve historical source bytes and whitespace exactly as received.
+reference/orthopaul/** -text -whitespace
+*.pdf -text

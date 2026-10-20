@@ -1,0 +1,51 @@
+{
+  "limit_write_without_auth": {
+    "status": 200,
+    "body": {
+      "success": true
+    }
+  },
+  "limit_read_shape": {
+    "status": 200,
+    "body": {
+      "limit_value": {
+        "limit_value": 20
+      }
+    }
+  },
+  "negative_limit_write": {
+    "status": 200,
+    "body": {
+      "success": true
+    }
+  },
+  "peak_write_without_auth": {
+    "status": 200,
+    "body": {
+      "ok": true
+    }
+  },
+  "peaks_read_without_auth": {
+    "status": 200,
+    "body": [
+      {
+        "id": 1,
+        "peak_value": 12,
+        "timestamp": "2026-10-20T12:00:00.000Z",
+        "day": "2026-10-20"
+      }
+    ]
+  },
+  "run_start_without_auth": {
+    "status": 200,
+    "body": {
+      "runId": 1
+    }
+  },
+  "run_end_missing_id": {
+    "status": 200,
+    "body": {
+      "success": true
+    }
+  }
+}

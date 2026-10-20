@@ -1,0 +1,55 @@
+Quelle: orthopaul-main.zip
+SHA256: ba091c4521071c18ebb50a91d7fa1bef9ae31a26fb1216e2e6175ea2a3ec5590
+
+Dateien:
+orthopaul-main/.gitignore	1349 Bytes
+orthopaul-main/README.md	6157 Bytes
+orthopaul-main/local-comm/frontend/.gitattributes	19 Bytes
+orthopaul-main/local-comm/frontend/.gitignore	8 Bytes
+orthopaul-main/local-comm/frontend/.prettierrc.json	120 Bytes
+orthopaul-main/local-comm/frontend/.vscode/extensions.json	77 Bytes
+orthopaul-main/local-comm/frontend/README.md	1026 Bytes
+orthopaul-main/local-comm/frontend/index.html	638 Bytes
+orthopaul-main/local-comm/frontend/jsconfig.json	116 Bytes
+orthopaul-main/local-comm/frontend/package-lock.json	258400 Bytes
+orthopaul-main/local-comm/frontend/package.json	654 Bytes
+orthopaul-main/local-comm/frontend/public/favicon.ico	4286 Bytes
+orthopaul-main/local-comm/frontend/public/pwa__icons/icon-192.png	11681 Bytes
+orthopaul-main/local-comm/frontend/public/pwa__icons/icon-512.png	46704 Bytes
+orthopaul-main/local-comm/frontend/public/pwa__icons/maskable-512.png	49871 Bytes
+orthopaul-main/local-comm/frontend/public/pwa__manifest.webmanifest	644 Bytes
+orthopaul-main/local-comm/frontend/src/App.vue	9959 Bytes
+orthopaul-main/local-comm/frontend/src/api.js	170 Bytes
+orthopaul-main/local-comm/frontend/src/components/Bluetooth.vue	4045 Bytes
+orthopaul-main/local-comm/frontend/src/components/LimitConfig.vue	8705 Bytes
+orthopaul-main/local-comm/frontend/src/components/LiveChart.vue	2300 Bytes
+orthopaul-main/local-comm/frontend/src/components/MeasurementTable.vue	2159 Bytes
+orthopaul-main/local-comm/frontend/src/components/RunFeedbackWindow.vue	9554 Bytes
+orthopaul-main/local-comm/frontend/src/components/SimulationControl.vue	3793 Bytes
+orthopaul-main/local-comm/frontend/src/components/Toastwarning.vue	3977 Bytes
+orthopaul-main/local-comm/frontend/src/components/arduinocode.ino	1948 Bytes
+orthopaul-main/local-comm/frontend/src/components/history/HistoryRangeSelect.vue	860 Bytes
+orthopaul-main/local-comm/frontend/src/components/history/HistoryStats.vue	407 Bytes
+orthopaul-main/local-comm/frontend/src/components/history/HistoryView.vue	2436 Bytes
+orthopaul-main/local-comm/frontend/src/components/history/OutlierTable.vue	1832 Bytes
+orthopaul-main/local-comm/frontend/src/components/history/PeakChart.vue	7069 Bytes
+orthopaul-main/local-comm/frontend/src/components/history/RunHistoryTable.vue	2409 Bytes
+orthopaul-main/local-comm/frontend/src/components/history/StepChart.vue	1818 Bytes
+orthopaul-main/local-comm/frontend/src/components/stepcounter.vue	1123 Bytes
+orthopaul-main/local-comm/frontend/src/components/stepdetector.js	3395 Bytes
+orthopaul-main/local-comm/frontend/src/main.js	848 Bytes
+orthopaul-main/local-comm/frontend/src/pwa__/pwa__push.js	1386 Bytes
+orthopaul-main/local-comm/frontend/src/pwa__/pwa__registerSW.js	351 Bytes
+orthopaul-main/local-comm/frontend/src/pwa__/pwa__sw.js	1901 Bytes
+orthopaul-main/local-comm/frontend/vite.config.js	1276 Bytes
+orthopaul-main/local-comm/package-lock.json	89 Bytes
+orthopaul-main/local-comm/server/db.js	4771 Bytes
+orthopaul-main/local-comm/server/package-lock.json	95940 Bytes
+orthopaul-main/local-comm/server/package.json	558 Bytes
+orthopaul-main/local-comm/server/pwa__dailySummary.js	3454 Bytes
+orthopaul-main/local-comm/server/pwa__push.js	2731 Bytes
+orthopaul-main/local-comm/server/pwa__routes_push.js	1504 Bytes
+orthopaul-main/local-comm/server/server.js	13907 Bytes
+orthopaul-main/local-comm/server/sql/init_step_loads.sql	224 Bytes
+orthopaul-main/package-lock.json	23933 Bytes
+orthopaul-main/package.json	316 Bytes
