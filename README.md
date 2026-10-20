@@ -1,40 +1,35 @@
 # OrthoSohle 2.0
 
-Gemeinsame Arbeitsgrundlage für das Semesterprojekt OrthoSohle. Projektwissen und aktueller Stand: [docs/context.md](docs/context.md).
+## Hier anfangen
 
-## In einem neuen Chat oder auf einem anderen Gerät
+1. [Arbeitsregeln](AGENTS.md) lesen.
+2. [Projektkontext](docs/context.md) öffnen: aufbereitetes Wissen, Iststand und nächster Schritt.
+3. Eine Aufgabe aus dem [Backlog](docs/backlog.csv) bearbeiten; bei Bedarf [Code-Einstieg](code/README.md) oder [Detailanalyse](docs/analysis.md) lesen.
 
-1. Repository-Ordner öffnen, `git status --short --branch` und `git log -5 --oneline` prüfen.
-2. [AGENTS.md](AGENTS.md) und [Projektkontext einschließlich Übergabe](docs/context.md) lesen.
-3. Nur die betroffene Modul-README, [Architektur](docs/architecture.md), [Aufgabe](docs/ORTHOSOHLE_BACKLOG.md) und relevante [Entscheidungen](docs/decisions.md) nachladen.
-
-## Ablagen
+## Struktur
 
 ```text
-AGENTS.md             Verbindliche Arbeitsregeln, DRY und Ponytail-Grundsätze
-README.md             Einstieg und Wegweiser
-docs/
-  context.md          Aufbereitetes Wissen, Iststand, offene Fragen, Übergabe
-  decisions.md        Relevante Entscheidungen mit Begründung
-  architecture.md     Fachliche Modulgrenzen
-  references/         Originalunterlagen und Quellen
-  testing/            Tatsächliche Prüfnachweise
-  ORTHOSOHLE_*        Vorhandene Analyse, Backlog und Ergebnisse
-  WORK_LOG.csv        Tatsächliche Einzelzeiten
-apps/web/             Web-App (Zielmodul, noch nicht migriert)
-apps/api/             Backend (Zielmodul, noch nicht migriert)
-firmware/bracelet/    Eigenständiges Warnarmband (noch nicht implementiert)
-firmware/insole/      Notwendige Anpassungen der bestehenden Sohle
-contracts/            Versionierte BLE-/API-Verträge
-hardware/             BOM, Pinpläne und Gehäuse
-tests/system/         Modulübergreifende Prüfungen
-scripts/              Repository-Werkzeuge
-reference/orthopaul/  Unveränderter historischer Code aus der ZIP
+AGENTS.md            Arbeitsregeln – einzige maßgebliche Regeldatei
+README.md            Dieser Einstieg
+code/                Tatsächlich vorhandener Code mit Startanleitung
+  README.md          Codeübersicht, Installation, Betrieb und Grenzen
+  manifest.json      Herkunft und Prüfsummen des Originalcodes
+  orthopaul/         Unveränderte Codegrundlage aus GitLab-ZIP
+docs/                Projektwissen und Arbeitsunterlagen
+  context.md         Ziel, Iststand, offene Fragen und aktuelle Übergabe
+  decisions.md       Relevante Entscheidungen mit Gründen
+  backlog.csv        Aufgaben mit Priorität, Abhängigkeiten und Abnahme
+  analysis.md        Ausführliche Bestandsaufnahme und Semesterplanung
+  sources/           Originalunterlagen und Ponytail-Quellennotiz
+  checks/            Tatsächlich ausgeführte Prüfungen und Ergebnisse
+scripts/             Repositoryprüfung und deren Tests
 ```
 
-## Prüfen
+Es gibt keine leeren Produktmodule. Neue Ordner entstehen erst mit echtem Code oder tatsächlichen Unterlagen. Der bestehende Code bleibt zunächst vollständig unter code/orthopaul; zukünftige Module werden bei ihrer ersten Umsetzung unter code/ angelegt. Kein Code wurde durch diese Bereinigung als produktfähig erklärt.
 
-Python 3.9+ genügt für die Repositoryprüfung, keine zusätzlichen Pakete:
+## Arbeitsgrundlage prüfen
+
+Voraussetzungen: Git und Python 3.9+, keine zusätzlichen Python-Pakete. Im Repository-Root ausführen:
 
 ```bash
 python3 scripts/check_project.py
@@ -42,6 +37,19 @@ python3 -m unittest discover -s scripts -p 'test_*.py'
 git diff --check
 ```
 
-Backlog nur in der CSV bearbeiten; Markdown mit `python3 scripts/check_project.py --write-backlog` erzeugen. Produktmodule haben noch keine ausführbaren Builds. Für den historischen Prototyp existiert ein [Prüfkontext](docs/testing/REFERENCE_BASELINE.md).
+Die Prüfung kontrolliert Dateien/Links, Backlog-Abhängigkeiten und 300/600-Stunden-Budget sowie den unveränderten Originalcode. Der [Code-Einstieg](code/README.md) beschreibt den gesonderten Node-Build und lokalen Betrieb.
 
-GitHub-Synchronisierung ist noch nicht eingerichtet. Dateien werden erst mit Commit/Push und Clone/Pull zwischen Geräten übertragen; Chats, lokale DB und Zugangsdaten bleiben getrennt. Details zum aktuellen Git-Stand und Gerätewechsel stehen im Projektkontext.
+## Erster konkreter Arbeitsauftrag
+
+**C03: Hardwarebestand und Firmwarestand abgleichen**, als erster kleiner Schritt:
+
+- Tatsächlich vorhandenes Board, Sensor, HX711, Versorgung und Verkabelung erfassen.
+- Geflashten Sketch und Bibliotheks-/Boardversionen feststellen; Unsicherheiten ausdrücklich offenlassen.
+- Ergebnis zunächst im Abschnitt „Hardwarebestand“ des Projektkontexts festhalten. Erst bei echten Fotos, Pinplänen oder einer Stückliste eine eigene Hardwareablage anlegen.
+- Abnahme: dokumentierter aktueller Bestand mit Quelle/Foto/Beobachtung. Die ältere Hausarbeit allein erfüllt diese Abnahme nicht. Danach C05 zur BLE-Topologie.
+
+Unabhängig davon kann C02 die Migration des vorhandenen Codes vorbereiten; [Codeübersicht](code/README.md) und bekannte Fehler beachten. Nicht mehrere Produktbaustellen gleichzeitig eröffnen.
+
+## Anderes Gerät / GitHub
+
+GitHub ist noch nicht verbunden; Ziel-URL und Zugang fehlen. Nach tatsächlicher Einrichtung Repository klonen, diese README und AGENTS.md lesen, Projektkontext laden und die oben genannten Prüfungen ausführen. Beim Gerätewechsel: auf dem ersten Gerät bewusst committen/pushen, auf dem zweiten lokalen Status prüfen und den passenden Branch mit fetch/pull --ff-only aktualisieren. Kein Überschreiben divergierter Arbeit. Chatverläufe, lokale DB, Zugangsdaten, installierte Pakete und Prozesse werden nicht über Git synchronisiert.

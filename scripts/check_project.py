@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Check project agreements; optionally regenerate the Markdown backlog from CSV."""
-import argparse
+"""Check documentation, backlog and original source integrity without extra packages."""
 import csv
 import hashlib
 import json
@@ -13,51 +12,19 @@ ROOT = Path(__file__).resolve().parents[1]
 BUDGET = {'A': 135, 'B': 90, 'C': 30, 'D': 30, 'E': 15}
 REQUIRED = [
     'README.md', 'AGENTS.md', '.gitignore', 'docs/context.md', 'docs/decisions.md',
-    'docs/architecture.md', 'docs/WORK_LOG.csv',
-    'docs/testing/REFERENCE_BASELINE.md', 'docs/references/README.md',
-    'docs/references/ORTHOSOHLE_CODEX_CONTEXT.md', 'docs/references/Hausarbeit_Orthosohle.pdf',
-    'docs/references/ponytail.md', 'reference/README.md', 'reference/manifest.json',
-] + [p + '/README.md' for p in [
-    'apps/web', 'apps/api', 'firmware/bracelet', 'firmware/insole',
-    'contracts', 'hardware', 'tests/system',
-]]
+    'docs/analysis.md', 'docs/checks/baseline.md', 'docs/checks/api-results.json',
+    'docs/sources/README.md', 'docs/sources/ORTHOSOHLE_CODEX_CONTEXT.md',
+    'docs/sources/Hausarbeit_Orthosohle.pdf', 'docs/sources/ponytail.md',
+    'code/README.md', 'code/manifest.json',
+]
 
 
-def render_backlog(rows):
-    text = [
-        '# OrthoSohle 2.0 – Semesterbacklog', '',
-        'Maßgeblich ist ORTHOSOHLE_BACKLOG.csv. Diese Ansicht wird mit '
-        '`python3 scripts/check_project.py --write-backlog` erzeugt; nicht separat bearbeiten.', '',
-        'Ausgangsplanung: 20.10.2026. Alle Statusänderungen brauchen belegte Abnahme. '
-        'Planungsstunden × 2 ergeben tatsächliche Personenstunden als Schätzung; '
-        'geleistete Einzelzeiten separat in docs/WORK_LOG.csv erfassen. '
-        'Aufgaben mit mehr als 4 Planungsstunden vor Beginn in kleinere Arbeitsschritte teilen.', '',
-        'A = Armband, B = Web-App, C = Analyse/Planung, D = Integration, E = Abschluss. '
-        'Zuständigkeit je Aufgabe festlegen. Watch ist optional; Abschlussbudget nach Hochschulklärung neu schätzen.', '',
-        '| ID | Prio | Aufgabe | Plan-h / Personen-h | Abhängig von | Abnahme | Status | Verantwortlich | Nachweis |',
-        '|---|---|---|---|---|---|---|---|---|',
-    ]
-    def escape(value):
-        return str(value).replace('|', r'\|').replace('\n', ' ')
-    for row in rows:
-        values = [row['ID'], row['Prioritaet'], row['Aufgabe'],
-                  f"{row['Planungsstunden']} / {row['Personenstunden']}",
-                  row['Abhaengigkeiten'], row['Abnahmekriterium'], row['Status'],
-                  row['Verantwortlich'] or 'Offen', row['Nachweis'] or '—']
-        text.append('| ' + ' | '.join(map(escape, values)) + ' |')
-    text += ['', '**Summe: 300 Planungsstunden / 600 Personenstunden.**', '',
-             'Budget: A 135/270, B 90/180, C 30/60, D 30/60, E 15/30. '
-             'Keine zusätzliche Reserve enthalten. Eine genehmigte Neuplanung muss CSV, '
-             'Budgetvorgaben im Checker und Projektstatus gemeinsam ändern.']
-    return '\n'.join(text) + '\n'
-
-
-def check(write_backlog=False):
+def check():
     errors = []
     for item in REQUIRED:
         if not (ROOT / item).is_file():
             errors.append(f'Pflichtdatei fehlt: {item}')
-    csv_path = ROOT / 'docs/ORTHOSOHLE_BACKLOG.csv'
+    csv_path = ROOT / 'docs/backlog.csv'
     try:
         with csv_path.open(newline='') as stream:
             rows = list(csv.DictReader(stream))
@@ -102,18 +69,12 @@ def check(write_backlog=False):
             visit(rid)
         if totals != BUDGET:
             errors.append(f'Budget weicht ab: {totals}; vereinbart: {BUDGET}')
-        expected = render_backlog(rows)
-        md_path = ROOT / 'docs/ORTHOSOHLE_BACKLOG.md'
-        if write_backlog and not errors:
-            md_path.write_text(expected)
-        elif not md_path.exists() or md_path.read_text() != expected:
-            errors.append('Backlog-Markdown veraltet; --write-backlog ausführen')
     except (OSError, KeyError, ValueError) as exc:
         errors.append(f'Backlog nicht prüfbar: {exc}')
 
     try:
-        manifest = json.loads((ROOT / 'reference/manifest.json').read_text())
-        ref = ROOT / 'reference/orthopaul'
+        manifest = json.loads((ROOT / 'code/manifest.json').read_text())
+        ref = ROOT / 'code/orthopaul'
         original = manifest['files']
         for name, expected_hash in original.items():
             path = ref / name
@@ -132,11 +93,9 @@ def check(write_backlog=False):
         errors.append(f'Referenzmanifest nicht prüfbar: {exc}')
 
     # Check local inline Markdown file links in maintained docs, excluding historical source text.
-    maintained = [ROOT / name for name in ['README.md', 'AGENTS.md']]
-    maintained += [p for p in (ROOT / 'docs').rglob('*.md') if 'references' not in p.parts]
-    maintained += [ROOT / 'reference/README.md', ROOT / 'docs/references/README.md', ROOT / 'docs/references/ponytail.md']
-    for directory in ['apps', 'firmware', 'contracts', 'hardware', 'tests']:
-        maintained += list((ROOT / directory).rglob('*.md'))
+    maintained = [ROOT / name for name in ['README.md', 'AGENTS.md', 'code/README.md']]
+    maintained += [p for p in (ROOT / 'docs').rglob('*.md') if 'sources' not in p.parts]
+    maintained += [ROOT / 'docs/sources/README.md', ROOT / 'docs/sources/ponytail.md']
     for path in maintained:
         if not path.exists():
             continue
@@ -157,7 +116,4 @@ def check(write_backlog=False):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--write-backlog', action='store_true', help='Markdown-Ansicht aus CSV erzeugen')
-    args = parser.parse_args()
-    sys.exit(check(args.write_backlog))
+    sys.exit(check())

@@ -32,4 +32,12 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 
 **Grund:** Expliziter Nutzerauftrag und gelesene Originalquelle.
 
-**Konsequenz:** Kleinste vollständige Änderung, Wiederverwendung und bedarfsgerechte Prüfungen in AGENTS.md festgeschrieben; [Quellennotiz](references/ponytail.md) hält Herkunft und Auswahl fest. Prüfungen, Validierung und Hardwarekalibrierung dürfen nicht für Kürze entfallen.
+**Konsequenz:** Kleinste vollständige Änderung, Wiederverwendung und bedarfsgerechte Prüfungen in AGENTS.md festgeschrieben; [Quellennotiz](sources/ponytail.md) hält Herkunft und Auswahl fest. Prüfungen, Validierung und Hardwarekalibrierung dürfen nicht für Kürze entfallen.
+
+## 20.10.2026 – Nur tatsächlichen Bestand als Ordner führen (akzeptiert)
+
+**Entscheidung:** Root auf code/, docs/ und scripts/ sowie AGENTS/README reduzieren. Ursprünglichen Referenzcode bytegleich nach code/orthopaul verschieben. Platzhalter für Apps, Firmware, Verträge, Hardware und Systemtests entfernen. Dokumente einheitlich benennen: context, decisions, backlog, analysis; Quellen unter sources, Nachweise unter checks.
+
+**Grund:** Nutzer meldet unvereinbarte leere Ordner und fordert eine übersichtliche, vollständig nutzbare Arbeitsgrundlage. Frühere geplante Zielstrukturen hatten noch keinen tatsächlichen Codeinhalt.
+
+**Konsequenz:** Ersetzt die bisherigen konkreten Zielpfade und das separate architecture-Dokument; fachliche Grenzen bleiben in AGENTS und der Analyse erhalten. Neue Module/Hardwareablagen erst bei ihrer Umsetzung anlegen. CSV ist der einzige Backlog, Manifest das einzige Dateiinventar; generierte Markdownkopie, leere Zeiterfassung und doppelte Inventarliste entfallen. Originalquellen und Quellinhalt bleiben unverändert. Einstieg über README mit tatsächlichen Befehlen und erstem C03-Arbeitsauftrag. Keine Produktmigration oder neue Funktion behaupten.

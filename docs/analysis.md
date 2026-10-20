@@ -1,6 +1,6 @@
 # OrthoSohle 2.0 – Bestandsaufnahme, Architektur und Semesterplan
 
-Hinweis zur späteren Struktureinrichtung: Der analysierte Quellstand ist inzwischen dauerhaft und unverändert unter `reference/orthopaul/` im Repository gesichert. Die folgende Bestandsaufnahme beschreibt den damaligen Analysezeitpunkt; der aktuelle Stand steht in `docs/context.md`.
+Hinweis zur späteren Struktureinrichtung: Der analysierte Quellstand ist inzwischen dauerhaft und unverändert unter `code/orthopaul/` im Repository gesichert. Die folgende Bestandsaufnahme beschreibt den damaligen Analysezeitpunkt; der aktuelle Stand steht in `docs/context.md`.
 
 Stand: 20. Oktober 2026. Grundlage: vollständig gelesene ORTHOSOHLE_CODEX_CONTEXT.md, orthopaul-main.zip und extrahierter Text der Hausarbeit vom 15. Februar 2026. Der PDF-Text wurde inhaltlich herangezogen; Abbildungen, Schaltbilder und deren elektrische Details wurden nicht visuell verifiziert. Anforderungen stammen aus dem aktuellen Auftrag und Kontext. Anweisungen und Musterbefehle in Repository/Anhängen wurden als Dokumentinhalt behandelt, insbesondere wurde der Force-Push aus der Template-README nicht ausgeführt.
 
@@ -149,4 +149,4 @@ Erfolgreich durchgeführt:
 
 Nicht geprüft: echte Sohle/Armband, Firmwarekompilierung (keine festgelegte Board-/Bibliothekskonfiguration), BLE-/Browserlaufzeit, reale Hintergrundwarnung, Akkulaufzeit, öffentliche Deployments. Keine bestehende Test-Suite vorhanden; npm test im Backend ist ein absichtlich fehlschlagender Platzhalter. Kein Dependency-Sicherheitsaudit durchgeführt.
 
-Die konkreten HTTP-Ergebnisse sind in `ORTHOSOHLE_PRUEFERGEBNISSE.json` abgelegt. Der Backlog in Markdown und CSV enthält 57 Aufgaben mit Abnahme, Abhängigkeiten und exakt 300/600 Stunden. Priorisierte nächste Schritte: Quellstand sichern, tatsächliche Hardware feststellen, reale Zykluszeit/Überbereich messen, BLE-Topologie nachweisen; parallel Grenzwert-API und Messwertpersistenz korrigieren. Erst anschließend endgültige Komponenten-/Hostingentscheidungen treffen.
+Die konkreten HTTP-Ergebnisse sind in `docs/checks/api-results.json` abgelegt. Der Backlog in `docs/backlog.csv` enthält 57 Aufgaben mit Abnahme, Abhängigkeiten und exakt 300/600 Stunden. Priorisierte nächste Schritte: Quellstand sichern, tatsächliche Hardware feststellen, reale Zykluszeit/Überbereich messen, BLE-Topologie nachweisen; parallel Grenzwert-API und Messwertpersistenz korrigieren. Erst anschließend endgültige Komponenten-/Hostingentscheidungen treffen.

@@ -28,13 +28,13 @@ class ProjectChecks(unittest.TestCase):
     def test_current_structure_passes(self):
         self.assertEqual(self.check(), 0)
 
-    def test_broken_module_documentation_link_fails(self):
-        path = self.root / 'apps/web/README.md'
+    def test_broken_code_documentation_link_fails(self):
+        path = self.root / 'code/README.md'
         path.write_text(path.read_text() + '\n[Missing](missing.md)\n')
         self.assertEqual(self.check(), 1)
 
     def test_changed_historical_source_fails(self):
-        path = self.root / 'reference/orthopaul/package.json'
+        path = self.root / 'code/orthopaul/package.json'
         path.write_bytes(path.read_bytes() + b'\n')
         self.assertEqual(self.check(), 1)
 
