@@ -1,28 +1,44 @@
-# Folgeprojekt WATCH – Kompatibilität mit gängigen Smartwatches
+# Arbeitsbereich WATCH – Apple-Watch-Client und weitere Plattformen
 
-Stand: 20.10.2026. **Eigenes Folgeprojekt, vorgemerkt und nicht implementiert.** Auftrag: OrthoSohle später mit weiteren gängigen Smartwatches nutzbar machen. Kein neuer Codex-Chat und kein zusätzliches Repository angelegt; diese Datei ist die maßgebliche Projektbeschreibung.
+Stand: 20.10.2026. **Von Beginn an mitgeplant, noch nicht implementiert oder als kompatibel nachgewiesen.** Nutzer bestätigt verfügbare Testgeräte: iPhone, Android-Handy, Waveshare-Armband und Apple Watch. Daraus ergibt sich Apple Watch als erste konkret zu prüfende zusätzliche Watchplattform. Wear OS bleibt eine spätere Erweiterung ohne zugesagte Modellunterstützung.
 
-## Abgrenzung zum Hauptprojekt
+## Abgrenzung und gemeinsame Grundlage
 
-Das **Waveshare ESP32-S3-Touch-LCD-1.28 ist die bestätigte Hardwarebasis des eigenständigen Warnarmbands** und gehört zum Hauptprojekt. Dessen Anforderungen stehen in [requirements.md](requirements.md). Es ist kein optionaler zusätzlicher Watch-Client und wird hier nicht erneut spezifiziert.
+Das Waveshare ESP32-S3-Touch-LCD-1.28 ist die Hardwarebasis des eigenständigen Warnarmbands. Seine lokale Warnkette steht in [requirements.md](requirements.md). WATCH ist ein eigener Arbeitsbereich desselben Produkts: gemeinsam spezifizieren, früh auf Apple Watch testen und mit Handy-App/Backend abstimmen. Die frühere Einordnung ausschließlich als späteres Folgeprojekt ist damit abgelöst.
 
-Dieses Folgeprojekt betrifft andere Plattformen, insbesondere später auszuwählende Apple-Watch-/watchOS- und Wear-OS-Geräte. „Gängige Smartwatches“ ist keine Zusage für jedes Modell. Unterstützte Modelle, OS-Versionen und Funktionen werden einzeln nachgewiesen. Keine zusätzliche Entwicklung oder Budgetzusage innerhalb des bisherigen Semesterplans. Der bisherige Smartwatch-PoC B16 bleibt Teil der alten Planung und ist bei der Neuplanung durch die klare Kern-/Folgeprojektgrenze zu ersetzen, nicht zusätzlich parallel auszuführen.
+Gemeinsame Daten-/Planversionen, Nutzer-/Gerätezuordnung und Datenschutzanforderungen aus der Produktspezifikation wiederverwenden. Kein zweites Backend, keine eigene Patientenverwaltung und keine parallel gepflegten Therapiepläne. watchOS benötigt plattformspezifische Anbindung; ein eigener Client ist nicht durch responsive Webdarstellung ersetzt. Ein Client darf vom Handy abhängen, muss das aber sichtbar machen. Er ersetzt die eigenständige Waveshare-Warnfunktion nicht ohne ausdrückliche neue Entscheidung.
 
-## Ziel und Wiederverwendung
+## Bestand und offene Voraussetzungen
 
-Je unterstützter Plattform festlegen, ob sie aktuelle kg-Werte, Status/Grenzwert und haptisches Feedback anzeigen bzw. ausgeben soll. Lokalen BLE-Empfang, Smartphone-Companion und Backendzugriff unterscheiden. „Anzeige kompatibel“ bedeutet noch keine unabhängige zuverlässige Warnung ohne Handy. Native watchOS-/Wear-OS-Clients sind nicht durch responsive Webdarstellung gelöst.
+| Gerät / Voraussetzung | Aktueller Kenntnisstand |
+|---|---|
+| iPhone | Laut Nutzer verfügbar; Modell und iOS-Version offen |
+| Android-Handy | Laut Nutzer verfügbar; Modell und Android-Version offen |
+| Apple Watch | Laut Nutzer verfügbar; Modell, watchOS-Version und Kopplung mit dem Test-iPhone offen |
+| Waveshare-Armband | Laut Nutzer verfügbar; exakte Boardrevision und Zusatzhardware ungeprüft |
+| macOS/Xcode | Laut Nutzer kein Zugang zu macOS; native Apple-Build-/Debugumgebung fehlt |
+| AltServer | Laut Nutzer installiert; Hostsystem, Version und geeigneter Installationsweg für den eigenen Watchclient ungeprüft |
+| Wear-OS-Uhr | Bisher nicht als verfügbar genannt; keine reale Abnahme möglich |
 
-Gemeinsame Daten-/Planversionen, Nutzer-/Gerätezuordnung und Datenschutzanforderungen aus [requirements.md](requirements.md) wiederverwenden. Keine unabhängig duplizierte Therapielogik, kein zusätzliches Backend nur für die Uhr. Der vorhandene App-Pfad Sohle → Handy wird um einen geprüften Watchpfad ergänzt; keine beliebig vielen BLE-Verbindungen an der Sohle voraussetzen. Hintergrundbeschränkungen und Datenalter sichtbar behandeln. Ein Watchclient ersetzt das eigenständige Waveshare-Armband nur nach ausdrücklicher späterer Architektur-/Freigabeentscheidung.
+Verfügbarkeit ist eine Nutzerangabe, kein durchgeführter Hardware-/Verbindungstest. Kein Simulator als Ersatz für reale Hintergrund-/Haptik-/BLE-Abnahme. Native Apple-Clients müssen mit passender Apple-Toolchain gebaut werden; konkrete SDK-/Deploymentversionen nach Gerätebestand wählen. AltServer kann bei der Installation vorbereiteter iOS-Apps helfen, stellt aber weder Xcode/watchOS-SDK noch einen Ersatz für Apple-Build und Debugging bereit. Ob ein konkretes Companion-/Watch-Paket über den gewählten Verteilungsweg installierbar ist, muss zusätzlich geprüft werden. Ein erreichbarer Mac oder eine passende macOS-Buildumgebung ist noch zu organisieren; Debugging auf echten gekoppelten Geräten dabei mitdenken. AltServer allein löst diesen Blocker nicht.
 
-## Vorgeschlagene Meilensteine
+Apple-Watch-Codebau und reale Clientabnahme sind bis zur Build-/Installationslösung blockiert. Anforderungsklärung, Protokoll-/Testdatenentwurf sowie Android-/Waveshare-Arbeit bleiben möglich. Keine Simulator-/Sideload-Erfolge ohne tatsächlich gebauten und auf der Uhr getesteten Client behaupten.
 
-| ID | Ergebnis | Abnahme |
+## Früher Funktionsvorschlag – noch abzustimmen
+
+Erster kleiner Client: aktuelle kg-Belastung, bestätigte Grenze, Verbindungs-/Datenalterstatus und ein klarer Test für haptisches Feedback. Der Arzt bleibt für die medizinische Grenze verantwortlich; die Watch erhält keine unabhängige Änderungsberechtigung. Welche Warnfunktion für die erste Version zugesagt wird, erst nach echten Tests entscheiden.
+
+Erster zu prüfender Datenweg: Sohle → iPhone → Apple-Watch-Client. Das ist ein Machbarkeitsvorschlag, keine beschlossene Transportbibliothek oder Zusage für gesperrtes Telefon/geschlossene Apps. Foreground, Hintergrund, Abbruch und Wiederverbindung separat testen. Direkter BLE-Empfang der Watch wäre eine eigene Option mit gesonderter Komplexität, nicht automatisch Teil des ersten Clients. Keine beliebig vielen BLE-Verbindungen an der Sohle voraussetzen.
+
+## Meilensteine – in die Plattformplanung integriert
+
+| ID | Ergebnis | Abnahme / Einordnung |
 |---|---|---|
-| WATCH-01 | Fähigkeiten und erste Plattform auswählen | Anzeige/Warnung/Konfiguration, Telefonabhängigkeit und Zielgeräte/OS benannt |
-| WATCH-02 | Testhardware und Entwicklungszugang erfassen | Tatsächlich verfügbare Uhren/Smartphones, Entwicklergeräte und SDK-Voraussetzungen belegt |
-| WATCH-03 | Einen Datenweg auf einer echten Uhr demonstrieren | kg-Wert mit Qualität, Alter und Planversion, Verbindungsabbruch sichtbar |
-| WATCH-04 | Warn-/Konfigurationsverhalten prüfen | Kein Alarmversprechen ohne gemessenen Pfad; Soll-/Istgrenze, Neustart und Wiederverbindung geprüft |
-| WATCH-05 | Nächste Plattform gezielt ergänzen | Gemeinsamen Vertrag wiederverwendet; gleiche Fachbedeutung bei plattformspezifischem Adapter |
-| WATCH-06 | Kompatibilitätsmatrix veröffentlichen | Modell, OS/Clientversion, Funktionen, Abhängigkeiten und Testnachweise dokumentiert |
+| WATCH-01 | Apple-Watch-Funktionsumfang und Abhängigkeiten festlegen | Anzeige/Warnung/Konfiguration, Telefonabhängigkeit und Abnahmekriterien in M0 bestimmt |
+| WATCH-02 | Reale Test-/Buildumgebung sichern, aktuell blockiert | Erreichbaren Mac/macOS-Buildweg, Modelle/OS und gepaartes iPhone erfassen; Test-App bauen und tatsächlich auf iPhone/Watch installieren; AltServer allein reicht nicht |
+| WATCH-03 | Früher Datenweg auf echter Apple Watch | kg, Qualität, Datenalter und Planversion mit Testdaten sichtbar; Abbruch erkennbar, Teil von M1 |
+| WATCH-04 | Gemeinsamen Client ausbauen | Reale Sitzungsdaten über denselben Plan-/Nutzerkontext; Haptik-/Hintergrundgrenzen belegt, abgestimmt mit M3–M5 |
+| WATCH-05 | Apple-Watch-Unterstützung abnehmen | Unterstützte Geräte/Versionen, Funktionen, Abhängigkeiten und Testnachweise vor gemeinsamer M7-Abnahme dokumentiert |
+| WATCH-06 | Wear OS oder weitere Modelle ergänzen | Erst nach expliziter Auswahl, Testhardware und neuer Schätzung; gemeinsame Verträge wiederverwenden |
 
-Offen: erste Plattform, konkrete Modelle, Mindestversionen, Funktionsumfang, Priorisierung, Aufwand, Termine und verantwortliche Person. Kein Codeordner, Skill oder zusätzlicher Agent für eine bloße Vormerkung nötig. Einstieg über den Link im [Projektkontext](context.md); erst bei Beauftragung eigene kleine Aufgaben schätzen.
+Der alte Smartwatch-PoC B16 im Semesterbacklog ist bei der Neuschätzung in diese Aufgaben zu überführen, nicht zusätzlich zu zählen. Aufwand, verbindlicher Releaseumfang und Termine bleiben offen; die alte Appschätzung ist keine Zusage für native Watch-/Companionentwicklung. Keine neuen Codeordner oder Abhängigkeiten, bevor eine echte Implementierungsaufgabe beginnt.

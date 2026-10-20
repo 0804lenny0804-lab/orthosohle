@@ -21,6 +21,7 @@ Vom Nutzer am 20.10.2026 bestätigt:
 | Arzt-/Patientenzuordnung | Patient bestätigt Einladung eines geprüften Arztes | Arztprüfung vor Einladung; explizite Beziehungsaktivierung statt Zugriff allein durch Kenntnis einer E-Mail |
 | Medizinische Belastungsgrenze | Arzt legt fest, Patient sieht und bestätigt die Geräteübernahme | Patient kann medizinischen Wert nicht frei überschreiben; jede Änderung mit Autor/Version |
 | Erste Smartphoneplattformen | iPhone und Android | Datenweg auf beiden Plattformen nachweisen; Web-Bluetooth allein nicht als allgemeine Lösung voraussetzen |
+| Zusätzlicher Watch-Client | Apple Watch von Beginn an mitplanen; iPhone, Android, Waveshare und Apple Watch laut Nutzer verfügbar | Apple Watch zuerst real testen; Modelle/OS und zugesagte Funktionen klären; kein macOS-Zugang, AltServer installiert, Apple-Buildweg noch zu organisieren; Wear OS später |
 | Erste Einsatzform | Beaufsichtigter Pilot, regulärer Einsatz erst nach Freigabe | Pilotumfang, Betreuung und eigene Abnahme definieren |
 | Behandlerzahl | Genau ein verantwortlicher Arzt pro Patient; Arztwechsel unterstützt | Keine gleichzeitig gleichberechtigten Behandler in Version 1; Zuständigkeitswechsel historisieren |
 | Lokaler Messdatenweg | Sohle schickt Messwerte an das Handy | Diesen BLE-Pfad für beide Smartphoneplattformen prüfen; Backend-Übertragung ist ein zweiter Schritt |
@@ -32,7 +33,7 @@ Patientenbestätigung und technische Gerätebestätigung unterscheiden: Die App 
 
 **Datenweg auseinanderhalten:** Sohle → Handy (lokaler Empfang per BLE) ist der bestätigte Ausgangspunkt. Handy → Backend (Internetübertragung) ermöglicht gespeicherte Sitzungen und Arztzugriff. Offen ist, wann dieser zweite Schritt passiert: während aktiver App, zusätzlich im Hintergrund oder nach Offlinephasen. Eine Offline-Queue auf dem Handy kann nur bereits empfangene Daten sichern; Messungen ohne BLE-Empfänger benötigen Speicher am Messgerät/Armband oder müssen als Lücke kenntlich bleiben. Keinen Gerätepuffer aus der früheren Frage als beschlossen ableiten.
 
-**Unabhängiges Armband:** Der bestätigte Handyempfang hebt die bisherige lokale Warnanforderung nicht auf. Direkter Armbandempfang, Parallelverbindung oder anderer lokaler Pfad sind weiterhin nachzuweisen. Das Waveshare-Gerät ist jetzt als Hardwarebasis des unabhängigen Warnarmbands bestätigt. Zusätzliche gängige Smartwatches stehen im [Folgeprojekt WATCH](watch-compatibility.md); nicht ungeprüft Sohle → Handy → Uhr als autonome Warnkette ausgeben. Ein ESP32-Board mit Touchdisplay ist kein Nachweis von Motor, Akku, fertigem Gehäuse oder zuverlässiger Warnfunktion.
+**Unabhängiges Armband:** Der bestätigte Handyempfang hebt die bisherige lokale Warnanforderung nicht auf. Direkter Armbandempfang, Parallelverbindung oder anderer lokaler Pfad sind weiterhin nachzuweisen. Das Waveshare-Gerät ist jetzt als Hardwarebasis des unabhängigen Warnarmbands bestätigt. Zusätzliche gängige Smartwatches stehen im [Arbeitsbereich WATCH](watch-compatibility.md); nicht ungeprüft Sohle → Handy → Uhr als autonome Warnkette ausgeben. Ein ESP32-Board mit Touchdisplay ist kein Nachweis von Motor, Akku, fertigem Gehäuse oder zuverlässiger Warnfunktion.
 
 Weitere offene Fragen: konkrete Arztprüfung, Zugriffs-/Aufbewahrungsregeln nach Arztwechsel, gültiger Plan während des Wechsels, Uploadzeitpunkt, Offlinedauer/Puffergrenzen, Geräteteilung, Praxismodell, Hostingbudget und Support.
 
@@ -92,6 +93,7 @@ Alle IDs sind Produktanforderungen, **keine bereits implementierten Funktionen**
 | UX-01 | Frontend | Eigene Patienten-/Arztbereiche, responsive Oberfläche, verständliche Erstinbetriebnahme | Rollenabhängige Hauptabläufe am Zielgerät vollständig durchführbar; URL-Wechsel umgeht keine Rechte |
 | UX-02 | Zugänglichkeit | Tastaturbedienung, Labels, verständliche Fehler, ausreichend Kontrast; Status nicht nur farblich | Kernabläufe mit Tastatur und Screenreader prüfbar; Zahlen/Einheiten und Zustand eindeutig |
 | UX-03 | Zustände | Laden, leer, offline, gesperrt, fehlgeschlagen und veraltet sichtbar | Backendausfall zeigt keine scheinbar erfolgreiche Änderung oder aktuelle Livezahl |
+| WAT-01 | Watch-Anbindung | Apple-Watch-Client und Handy-Kommunikation ab M0/M1 berücksichtigen; fachlichen Umfang in WATCH klären | Früher Test auf echter gekoppelter Uhr mit kg, Planversion und Datenalter; Telefon-/Hintergrundabhängigkeit nachgewiesen und sichtbar |
 
 ## 6. Backend und Datenmodell – fachlicher Bedarf, noch keine Stackwahl
 
@@ -152,21 +154,21 @@ Grundlegende UI-Abnahme orientiert sich vorgeschlagen an WCAG 2.2 AA für Kernab
 
 ## 10. Meilensteine mit nachweisbaren Ausgängen
 
-Die Reihenfolge ist eine Arbeitsstruktur, **keine terminierte/geschätzte Zusage**. Nach den Kernentscheidungen Umfang, echte Personenstunden und Semesterlieferung bestimmen. M3–M5 dürfen nach abgesichertem Grundmodell teilweise parallel laufen; End-to-End früh in M1 zeigen. In noch nicht freigegebenen Umgebungen nur synthetische Daten.
+Die Reihenfolge ist eine Arbeitsstruktur, **keine terminierte/geschätzte Zusage**. Nach den Kernentscheidungen Umfang, echte Personenstunden und Semesterlieferung bestimmen. M3–M5 dürfen nach abgesichertem Grundmodell teilweise parallel laufen; End-to-End früh in M1 zeigen, einschließlich eines kleinen Apple-Watch-Durchstichs nach Verfügbarkeit der Buildumgebung. In noch nicht freigegebenen Umgebungen nur synthetische Daten.
 
 | Meilenstein | Ergebnis | Abnahme und Abhängigkeit |
 |---|---|---|
 | M0 – Ziel und Rechte verbindlich | Einsatzgrenze, Rollen, Betreuung, Planhoheit, Plattformen, Datenverantwortung und Kernumfang entschieden | Antworten/Entscheidungen dokumentiert, kritische Risiken und messbare Zielwerte benannt; Grundlage aller weiteren Pakete |
-| M1 – Technische Machbarkeit und früher Durchstich | Bestätigten Pfad Sohle → Handy auf iPhone/Android sowie unabhängigen Armbandpfad prüfen und alte App abgleichen | Gültig/stale/Überbereich sowie Plan-ACK mit synthetischen/Prüfdaten demonstriert; Hardware-/Browserblocker benannt, M0 vorausgesetzt |
+| M1 – Technische Machbarkeit und früher Durchstich | Bestätigten Pfad Sohle → Handy auf iPhone/Android sowie unabhängigen Armbandpfad prüfen und alte App abgleichen; Apple-Watch-Companion früh erproben | Gültig/stale/Überbereich sowie Plan-ACK demonstriert; Apple Watch erhält Testdaten mit Alter/Planversion; derzeit fehlenden Apple-Buildzugang als Blocker führen, ohne ihn als bestandene Teilabnahme auszugeben; M0 vorausgesetzt |
 | M2 – Sichere Konten und Betreuungsrechte | Registrierung/Login/Reset/MFA, Arztprüfung, Einladung, Zuordnung und Entzug | Zwei Ärzte/zwei Patienten gegeneinander getestet, keine Rechteeskalation; M0 und gewählte Auth-Integration |
 | M3 – Versionierter Plan und Gerätebindung | Pläne, Historie, Gerätebesitz und bestätigte Grenzwertübernahme | Offline-/Neustart-/Entzugs-/Wechselfälle geprüft; keine falsche Erfolgsmeldung; M1/M2 |
 | M4 – Geschützter Sitzungsdatenweg | Schema/Migration, Upload, Puffer/Retry, Sitzung/Planbezug und Audit | Echte Testsession erneut abrufbar, Duplikate/Lücken/Zeitzonen geprüft, Restore erster Datenbasis; M1/M2 und Planvertrag aus M3 |
-| M5 – Patienten- und Ärzteoberfläche | Vollständige Kernabläufe für beide Rollen, mobile und zugängliche Darstellung | Onboarding bis Verlauf/Export pro Rolle durchführbar; Fehler-/Leerezustände geprüft; M2–M4 |
+| M5 – Patienten- und Ärzteoberfläche | Vollständige Kernabläufe für beide Rollen, mobile und zugängliche Darstellung; zugesagte Apple-Watch-Funktionen abgestimmt integrieren | Onboarding bis Verlauf/Export pro Rolle durchführbar; Fehler-/Leerezustände geprüft; M2–M4 |
 | M6 – Datenschutz und Produktionsbetrieb | Rechte-/Löschprozesse, Verträge/Informationen, getrennte Umgebungen, Monitoring/Backup/Updateablauf | Verantwortlichkeiten benannt, Restore und Incidentübung, Datenschutzreview; kontinuierlich ab M0 vorbereiten, M2–M5 für Ende-zu-Ende-Abnahme |
 | M7 – Gesamtabnahme | Funktion, Sicherheitsreview, Last-/Bedien-/Hardwaretests und dokumentierte Grenzen | Kritische Befunde geschlossen oder Freigabe blockiert, Rückverfolgbarkeit Anforderung → Test → Ergebnis; M1–M6 |
 | M8 – Einsatzfreigabe | Zuerst Freigabe für den definierten beaufsichtigten Pilot; spätere reguläre Freigabe getrennt | Erforderliche fachliche/regulatorische und Datenschutz-/Betriebsnachweise für den jeweiligen Einsatz liegen vor; technische Fertigstellung allein reicht nicht; M7 |
 
-Hausarbeit/Media Night bleiben eigene Semesterlieferungen mit früh laufender Belegsammlung und klar markiertem Testdaten-Fallback. Welcher Meilenstein bis Semesterende belastbar erreichbar ist, nach Aufwandsschätzung entscheiden. Smartwatch-Kompatibilität ist als eigenes [Folgeprojekt WATCH](watch-compatibility.md) vorgemerkt, für weitere Plattformen wie watchOS/Wear OS; Aufwand und unterstützte Modelle sind noch nicht entschieden. Das Waveshare-Armband bleibt dagegen Hauptprojekt und höchste Priorität. KI-Auswertung, Chat, Terminplanung, Abrechnung und automatische Therapieempfehlungen nur bei explizitem Folgeauftrag und belegtem Bedarf ergänzen.
+Hausarbeit/Media Night bleiben eigene Semesterlieferungen mit früh laufender Belegsammlung und klar markiertem Testdaten-Fallback. Welcher Meilenstein bis Semesterende belastbar erreichbar ist, nach Aufwandsschätzung entscheiden. Apple-Watch-Kompatibilität wird im eigenen [Arbeitsbereich WATCH](watch-compatibility.md) von Beginn an mit der App geplant und früh erprobt; zugesagter Funktionsumfang, Aufwand und unterstützte Modelle sind noch festzulegen. Wear OS ist eine spätere Erweiterung, derzeit ohne genannte Testuhr. Das Waveshare-Armband bleibt dagegen Hauptprojekt und höchste Priorität. KI-Auswertung, Chat, Terminplanung, Abrechnung und automatische Therapieempfehlungen nur bei explizitem Folgeauftrag und belegtem Bedarf ergänzen.
 
 ## 11. So wird daraus ein umsetzbarer Backlog
 

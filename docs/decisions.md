@@ -57,3 +57,11 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 **Grund:** Antworten auf Einsatz-/Betreuungsfragen und ausdrücklicher Auftrag zur Vormerkung der Watch-Kompatibilität.
 
 **Konsequenz:** Kernanforderungen angepasst, [WATCH](watch-compatibility.md) als eigene abrufbare Beschreibung gesichert. Waveshare ist Hauptprojekt/Armbandbasis. Noch keine Entscheidung über Handy-Backend-Upload, Hintergrundbetrieb, Gerätepuffer oder konkrete zusätzliche Watchmodelle. Kein neuer Chat/Remote/Repo angelegt und keine Watch-Kompatibilität behauptet.
+
+## 20.10.2026 – Apple Watch von Beginn an mitplanen (aktuelle Planung)
+
+**Entscheidung:** Die frühere rein nachgelagerte Einordnung der Watch-Clients wird für Apple Watch abgelöst. App/Backend, eigenes Waveshare-Armband und zusätzlicher Watch-Client werden gemeinsam spezifiziert; erste zusätzliche Zielplattform ist Apple Watch auf Basis der laut Nutzer vorhandenen Geräte (iPhone, Android-Handy, Waveshare-Armband, Apple Watch).
+
+**Grund:** Nutzer möchte Watch-Clients direkt berücksichtigen und hat die verfügbare Testhardware bestätigt.
+
+**Konsequenz:** Früher Apple-Watch-Durchstich in M1, gemeinsame Verträge und abgestimmte Umsetzung; Wear OS später ohne universelle Modellzusage. Details in [WATCH](watch-compatibility.md). Exakte Geräte-/OS-Versionen sind noch offen; Nutzer hat fehlenden macOS-Zugang und installierten AltServer bestätigt. AltServer ersetzt nicht Xcode/watchOS-Toolchain; nativen Apple-Build-/Installationsweg organisieren, bis dahin Blocker für den realen Apple-Client; keine native Toolchain, Transportbibliothek, Releasefrist oder Hardwarefunktion als bereits vorhanden behaupten. Bestehende Aufwandsschätzung bleibt neu zu prüfen.
