@@ -44,4 +44,10 @@ Neue Ordner-/Dokumentnamen einheitlich englisch in kebab-case; Code folgt den vo
 4. Abgeschlossene beauftragte Arbeit gezielt stagen und lokal committen, sofern kein uncommittierter Entwurf verlangt wurde. Kurze fachliche Commits, z. B. `fix(api): correct limit response`. Aufgaben mit Verantwortlichen und prüfbarer Abnahme bearbeiten, große Schritte in ca. 2–4 echte Personenstunden teilen. „Erledigt“ erst bei tatsächlicher Abnahme mit Nachweis; zweite Person prüft vor Integration.
 5. Ergebnis, Branch/Commit, tatsächliche Prüfungen und Reständerungen knapp berichten. Git ist für HEAD/Branch maßgeblich, keine vorweggenommenen Commit-IDs in Dokumenten.
 
-Kein Push/Merge/Release/Deployment oder Remote-Wechsel ohne Auftrag. Kein Force-Push, Hard-Reset oder Verwerfen fremder Arbeit ohne ausdrücklichen Auftrag. Vorgegebenen Branch verwenden, sonst kurzen Aufgabenbranch vom geprüften Integrationsstand anlegen. Keine Secrets, echten Patientendaten, lokalen Datenbanken oder generierten Builds committen; Lockfiles und harmlose .env.example versionieren.
+## Git-Zusammenarbeit
+
+- `main` ist der Integrationsbranch. Beide Personen arbeiten ausschließlich auf eigenen Aufgabenbranches im Namensschema `Lenni/<branchname>` bzw. `Paul/<branchname>`; `<branchname>` beschreibt kurz die Aufgabe, z. B. `Lenni/docs-git-workflow`.
+- Änderungen gehen per Pull Request vom persönlichen Branch nach `main`. Änderungen nicht direkt auf `main` committen oder pushen. Pull Requests klein und auf eine Aufgabe begrenzt halten; vor dem Eröffnen passende Prüfungen ausführen und den Zweck sowie Prüfergebnis beschreiben.
+- Vor Branch-Erstellung den aktuellen Integrationsstand holen und darauf aufbauen. Bestehende fremde Branches/Änderungen nicht übernehmen oder umschreiben, außer als Teil der gemeinsam vereinbarten Arbeit. Kein Force-Push, Hard-Reset oder Verwerfen fremder Arbeit ohne ausdrücklichen Auftrag.
+- Ein lokaler Commit ist kein Push. Remote-Pushes, Pull-Request-Erstellung und Merge nur im vereinbarten GitHub-Workflow und ohne Geheimnisse, echte Patientendaten, lokale Datenbanken oder generierte Builds.
+- Ist das zentrale GitHub-Repository noch nicht verbunden oder der GitHub-Stand nicht abrufbar, keine gemeinsame Remote-Aktualität behaupten; den Zustand offen nennen.

@@ -62,6 +62,6 @@ Einsatzfolge, ein verantwortlicher Arzt und verfügbare Testgeräte sind bestät
 
 ## Git und Zusammenarbeit auf mehreren Geräten
 
-Lokaler Arbeitsbranch bei Einrichtung: work; origin vorhanden. Gewünschte GitHub-Zentrale noch nicht verbunden, Ziel-URL/Zugang fehlen. Keine Pushes/Merges/Remote-Wechsel oder verifizierte CI/Branchschutzregeln. Git ist für aktuellen Commit und lokale Änderungen maßgeblich.
+Vereinbarter Teamablauf: `main` als Integrationsbranch; persönliche Aufgabenbranches `Lenni/<branchname>` und `Paul/<branchname>`; Integration ausschließlich per Pull Request nach `main`. Der aktuelle lokale Checkout steht weiterhin auf `work`; das ist noch kein eingerichteter Teambranch. Gewünschte GitHub-Zentrale ist nicht verbunden, Ziel-URL/Zugang fehlen. Keine Pushes/Merges oder verifizierte CI-/Branchschutzregeln. Git ist für lokalen Commit und Branch maßgeblich.
 
 Nach tatsächlicher GitHub-Einrichtung: jeden PC separat klonen, Root-README/AGENTS/Kontext lesen und Voraussetzungen prüfen. Nur Commit + Push und Clone/Pull synchronisieren versionierte Dateien. Chat, lokale DB, Secrets, Pakete, Pairings und laufende Prozesse kommen nicht mit. Vor Pull eigenen Status prüfen, passenden Branch fetch/pull --ff-only; bei Divergenz nichts verwerfen/erzwingen. Ohne erfolgreichen Fetch keine Remote-Aktualität behaupten.

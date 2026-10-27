@@ -65,3 +65,11 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 **Grund:** Nutzer möchte Watch-Clients direkt berücksichtigen und hat die verfügbare Testhardware bestätigt.
 
 **Konsequenz:** Früher Apple-Watch-Durchstich in M1, gemeinsame Verträge und abgestimmte Umsetzung; Wear OS später ohne universelle Modellzusage. Details in [WATCH](watch-compatibility.md). Exakte Geräte-/OS-Versionen sind noch offen; Nutzer hat fehlenden macOS-Zugang und installierten AltServer bestätigt. AltServer ersetzt nicht Xcode/watchOS-Toolchain; nativen Apple-Build-/Installationsweg organisieren, bis dahin Blocker für den realen Apple-Client; keine native Toolchain, Transportbibliothek, Releasefrist oder Hardwarefunktion als bereits vorhanden behaupten. Bestehende Aufwandsschätzung bleibt neu zu prüfen.
+
+## 27.10.2026 – Teamarbeit über persönliche Branches und Pull Requests (akzeptiert)
+
+**Entscheidung:** `main` ist der Integrationsbranch. Lenni und Paul arbeiten auf persönlichen Aufgabenbranches im Schema `Lenni/<branchname>` bzw. `Paul/<branchname>`. Änderungen werden per Pull Request nach `main` eingebracht.
+
+**Grund:** Nutzer arbeitet mit einem Kollegen zusammen und möchte Änderungen schrittweise und nachvollziehbar integrieren.
+
+**Konsequenz:** Verbindlicher Ablauf steht in [AGENTS.md](../AGENTS.md) und wird in der README kurz erklärt. Das lokale Repository hat derzeit noch den Branch `work`; es ist noch keine GitHub-Zentrale verbunden und es wurden keine Remote-Aktionen ausgeführt. Einrichtung/URL und technische Branch-Schutzregeln bleiben offen.
