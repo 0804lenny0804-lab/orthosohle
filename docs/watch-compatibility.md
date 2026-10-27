@@ -16,13 +16,15 @@ Gemeinsame Daten-/Planversionen, Nutzer-/Gerätezuordnung und Datenschutzanforde
 | Android-Handy | Laut Nutzer verfügbar; Modell und Android-Version offen |
 | Apple Watch | Laut Nutzer verfügbar; Modell, watchOS-Version und Kopplung mit dem Test-iPhone offen |
 | Waveshare-Armband | Laut Nutzer verfügbar; exakte Boardrevision und Zusatzhardware ungeprüft |
-| macOS/Xcode | Laut Nutzer kein Zugang zu macOS; native Apple-Build-/Debugumgebung fehlt |
-| AltServer | Laut Nutzer installiert; Hostsystem, Version und geeigneter Installationsweg für den eigenen Watchclient ungeprüft |
+| macOS/Xcode | Kein eigener macOS-Zugang; GitHub Actions mit temporärem macOS-/Xcode-Runner ist als Buildweg vorgesehen, im OrthoSohle-Repository noch nicht eingerichtet oder erprobt |
+| AltServer | Laut Nutzer auf Windows installiert; soll eine heruntergeladene unsignierte iPhone-IPA mit dem Apple-Account signieren und per USB installieren; der konkrete Ablauf ist in diesem Projekt noch nicht erprobt |
 | Wear-OS-Uhr | Bisher nicht als verfügbar genannt; keine reale Abnahme möglich |
 
-Verfügbarkeit ist eine Nutzerangabe, kein durchgeführter Hardware-/Verbindungstest. Kein Simulator als Ersatz für reale Hintergrund-/Haptik-/BLE-Abnahme. Native Apple-Clients müssen mit passender Apple-Toolchain gebaut werden; konkrete SDK-/Deploymentversionen nach Gerätebestand wählen. AltServer kann bei der Installation vorbereiteter iOS-Apps helfen, stellt aber weder Xcode/watchOS-SDK noch einen Ersatz für Apple-Build und Debugging bereit. Ob ein konkretes Companion-/Watch-Paket über den gewählten Verteilungsweg installierbar ist, muss zusätzlich geprüft werden. Ein erreichbarer Mac oder eine passende macOS-Buildumgebung ist noch zu organisieren; Debugging auf echten gekoppelten Geräten dabei mitdenken. AltServer allein löst diesen Blocker nicht.
+Verfügbarkeit ist eine Nutzerangabe, kein durchgeführter Hardware-/Verbindungstest. Kein Simulator als Ersatz für reale Hintergrund-/Haptik-/BLE-Abnahme. Vereinbarter iPhone-Erprobungsweg: GitHub Actions baut den iPhone-Code in einem temporären macOS-Runner mit Xcode und erzeugt eine unsignierte IPA. Diese wird heruntergeladen; AltServer auf Windows signiert sie mit dem Apple-Account und installiert sie per USB auf das iPhone. AltStore auf dem iPhone ist laut Nutzer dafür nicht erforderlich. Bei kostenloser Signierung muss die Installation üblicherweise nach sieben Tagen erneuert werden. Dieser Ablauf ist im OrthoSohle-Repository noch nicht umgesetzt oder praktisch geprüft; Signierung und Geräteeinsatz zuerst mit einer kleinen Test-App verifizieren. Konkrete SDK-/Deploymentversionen nach Gerätebestand wählen.
 
-Apple-Watch-Codebau und reale Clientabnahme sind bis zur Build-/Installationslösung blockiert. Anforderungsklärung, Protokoll-/Testdatenentwurf sowie Android-/Waveshare-Arbeit bleiben möglich. Keine Simulator-/Sideload-Erfolge ohne tatsächlich gebauten und auf der Uhr getesteten Client behaupten.
+Der iPhone-Ablauf belegt noch keinen Apple-Watch-Build oder Watch-Installationsweg. watchOS-Targets und Companion-Verteilung haben zusätzliche Anforderungen; Erzeugung des passenden Watch-Artefakts, Signierung, Kopplung und Installation auf der realen Uhr müssen gesondert geprüft werden. Debugging auf echten gekoppelten Geräten bleibt Bestandteil der Abnahme.
+
+Apple-Watch-Codebau ist mit dem geplanten GitHub-Actions-Weg grundsätzlich zu erproben; reale Installation und Abnahme bleiben bis zum Nachweis des Watch-spezifischen Ablaufs offen. Anforderungsklärung, Protokoll-/Testdatenentwurf sowie Android-/Waveshare-Arbeit bleiben möglich. Keine Simulator-/Sideload-Erfolge ohne tatsächlich gebauten und auf der Uhr getesteten Client behaupten.
 
 ## Früher Funktionsvorschlag – noch abzustimmen
 
@@ -35,7 +37,7 @@ Erster zu prüfender Datenweg: Sohle → iPhone → Apple-Watch-Client. Das ist 
 | ID | Ergebnis | Abnahme / Einordnung |
 |---|---|---|
 | WATCH-01 | Apple-Watch-Funktionsumfang und Abhängigkeiten festlegen | Anzeige/Warnung/Konfiguration, Telefonabhängigkeit und Abnahmekriterien in M0 bestimmt |
-| WATCH-02 | Reale Test-/Buildumgebung sichern, aktuell blockiert | Erreichbaren Mac/macOS-Buildweg, Modelle/OS und gepaartes iPhone erfassen; Test-App bauen und tatsächlich auf iPhone/Watch installieren; AltServer allein reicht nicht |
+| WATCH-02 | GitHub-Actions- und Geräteweg praktisch erproben | Kleine iPhone-Test-App per macOS-Runner bauen, IPA über AltServer installieren; watchOS-Target, Signierung und echte Watchinstallation gesondert nachweisen; Modelle/OS erfassen |
 | WATCH-03 | Früher Datenweg auf echter Apple Watch | kg, Qualität, Datenalter und Planversion mit Testdaten sichtbar; Abbruch erkennbar, Teil von M1 |
 | WATCH-04 | Gemeinsamen Client ausbauen | Reale Sitzungsdaten über denselben Plan-/Nutzerkontext; Haptik-/Hintergrundgrenzen belegt, abgestimmt mit M3–M5 |
 | WATCH-05 | Apple-Watch-Unterstützung abnehmen | Unterstützte Geräte/Versionen, Funktionen, Abhängigkeiten und Testnachweise vor gemeinsamer M7-Abnahme dokumentiert |
