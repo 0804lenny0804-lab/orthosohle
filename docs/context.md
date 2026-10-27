@@ -1,6 +1,6 @@
 # OrthoSohle – Projektkontext und aktueller Stand
 
-Aktualisiert: 20.10.2026. Mit [AGENTS.md](../AGENTS.md) lesen; Details über die Quellen unten nachladen. Nur OrthoSohle, keine allgemeine Projektvorlage.
+Aktualisiert: 27.10.2026. Mit [AGENTS.md](../AGENTS.md) lesen; Details über die Quellen unten nachladen. Nur OrthoSohle, keine allgemeine Projektvorlage.
 
 ## Ziel, Prioritäten und Rahmen
 
@@ -19,7 +19,7 @@ Software auf Basis der alten App umfassend überarbeiten: getrennte Arzt-/Patien
 - [Codegrundlage](../code/README.md): unveränderter ZIP-Stand unter code/orthopaul, 51 Dateien mit Herkunft/Prüfsummen. Vue/Vite/Bootstrap/Chart.js; Express/SQLite; ArduinoBLE/HX711-Sketch. Kein ursprünglicher GitLab-Commit enthalten.
 - Web-Referenz: BLE-Auswahl, Livechart, Smartphonewarnung, Konfiguration, Simulation, Schritt-/Peak-Erkennung, Historie und Lauf-Feedback.
 - Neue Armband-/Web-/Backendmodule noch nicht implementiert. Es gibt keine Platzhalter-Codebereiche mehr; nur tatsächliche Quelldateien und Arbeitsunterlagen.
-- [Backlog](backlog.csv): 57 geschätzte Aufgaben mit Priorität, Abhängigkeiten und Abnahme. C01 ist mit dokumentierter Quelle, Inventar und Stack abgenommen; alle übrigen Aufgaben sind offen, Verantwortliche noch zuordnen. Die Schätzungen sind keine geleisteten Stunden.
+- [Backlog](backlog.csv): 57 geschätzte Aufgaben mit Priorität, Abhängigkeiten und Abnahme. C01 ist mit dokumentierter Quelle, Inventar und Stack abgenommen; C03 ist in Arbeit (Vorbereitung durch Codex; reale Hardwareangaben ausstehend); übrige Aufgaben sind offen, Verantwortliche noch zuordnen. Die Schätzungen sind keine geleisteten Stunden.
 
 ## Hardwarebestand – aktuell noch zu prüfen
 
@@ -56,7 +56,7 @@ Referenzprüfungen 20.10.: Produktionsbuild inkl. Service Worker und isolierter 
 
 ## Übergabe und unmittelbar nächste Arbeit
 
-Aktiver Auftrag ist die Software-Anforderungsklärung. [requirements.md](requirements.md) erfasst Rollen, Onboarding, Betreuungsrechte, Plan-/Geräteversionen, Datenweg, Sicherheit/DSGVO, Betrieb und Meilensteine M0–M8. Noch keine Softwarefunktion implementiert und alter Semesterbacklog noch nicht auf erweiterten Produktumfang umgeschätzt.
+Aktiver Auftrag ist die erste kleine Armband-Inbetriebnahme. Die [Erhebung und Abnahme](checks/wristband-bringup.md) beschreibt den begonnenen Schritt C03 und den anschließenden minimalen Displaytest. Tatsächliche Boardrevision und USB-Erkennung fehlen noch; noch kein Firmwarecode oder Flashvorgang. Der Aufgabenbranch Paul/wristband-bringup baut bis zur Integration von PR #1 ausdrücklich auf dessen Projektgrundlage auf; nicht vor dieser Grundlage integrieren. [requirements.md](requirements.md) erfasst Rollen, Onboarding, Betreuungsrechte, Plan-/Geräteversionen, Datenweg, Sicherheit/DSGVO, Betrieb und Meilensteine M0–M8. Noch keine Softwarefunktion implementiert und alter Semesterbacklog noch nicht auf erweiterten Produktumfang umgeschätzt.
 
 Einsatzfolge, ein verantwortlicher Arzt und verfügbare Testgeräte sind bestätigt; Apple Watch wird ab der gemeinsamen Grundlagenplanung berücksichtigt. Nächster Schritt im Produkt: Hardwarebestand C03 und BLE-Rollen C05 anhand realer Geräte erheben; danach übrige M0-Punkte sowie M1 für beide Smartphones, Waveshare und Apple Watch konkretisieren und den erweiterten Umfang neu schätzen. Der GitHub-Teamablauf ist in [AGENTS.md](../AGENTS.md) festgehalten; Pull Request #1 stellt die aufbereitete Arbeitsgrundlage zur Teamprüfung bereit. Der iPhone-Buildweg über GitHub Actions und AltServer sowie der separate Apple-Watch-Installationsweg sind noch praktisch zu erproben. Keine Datenwege/Komponenten erfinden. Bisherige Ordnerbereinigung ist abgeschlossen, kein weiterer Strukturumbau nötig.
 
