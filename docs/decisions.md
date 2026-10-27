@@ -72,4 +72,4 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 
 **Grund:** Nutzer arbeitet mit einem Kollegen zusammen und möchte Änderungen schrittweise und nachvollziehbar integrieren.
 
-**Konsequenz:** Verbindlicher Ablauf steht in [AGENTS.md](../AGENTS.md) und wird in der README kurz erklärt. Das lokale Repository hat derzeit noch den Branch `work`; es ist noch keine GitHub-Zentrale verbunden und es wurden keine Remote-Aktionen ausgeführt. Einrichtung/URL und technische Branch-Schutzregeln bleiben offen.
+**Konsequenz:** Verbindlicher Ablauf steht in [AGENTS.md](../AGENTS.md) und wird in der README kurz erklärt. Die anschließende Prüfung ergab, dass `origin` bereits auf `0804lenny0804-lab/orthosohle` zeigt; `origin/main` ist erreichbar, enthält aber noch nicht die lokalen Projektgrundlagen. Technische Branch-Schutzregeln und CI bleiben ungeprüft.
