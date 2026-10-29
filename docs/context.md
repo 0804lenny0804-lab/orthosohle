@@ -18,7 +18,7 @@ Software auf Basis der alten App umfassend überarbeiten: getrennte Arzt-/Patien
 
 - [Codegrundlage](../code/README.md): unveränderter ZIP-Stand unter code/orthopaul, 51 Dateien mit Herkunft/Prüfsummen. Vue/Vite/Bootstrap/Chart.js; Express/SQLite; ArduinoBLE/HX711-Sketch. Kein ursprünglicher GitLab-Commit enthalten.
 - Web-Referenz: BLE-Auswahl, Livechart, Smartphonewarnung, Konfiguration, Simulation, Schritt-/Peak-Erkennung, Historie und Lauf-Feedback.
-- Neue lokale Webapp-Grundlage unter code/webapp implementiert: Vue/Express, schreibgeschützte Planansicht, synthetischer Demo-Plan und explizite Lade-/Fehler-/Leerzustände. Keine Konten, echte Persistenz oder Geräteanbindung. Neue Armband-Firmware noch nicht implementiert.
+- Neue lokale Webapp-Grundlage unter code/webapp implementiert: Vue/Express, schreibgeschützte Planansicht, synthetischer Demo-Plan und explizite Lade-/Fehler-/Leerzustände. Lokale Testkonten mit Better Auth/SQLite; keine echte Planpersistenz oder Geräteanbindung. Neue Armband-Firmware noch nicht implementiert.
 - [Backlog](backlog.csv): 57 geschätzte Aufgaben mit Priorität, Abhängigkeiten und Abnahme. C01 ist mit dokumentierter Quelle, Inventar und Stack abgenommen; C02 steht mit der lokalen Webapp-Grundlage auf Review; C03 ist wegen fehlender Armbandhardware blockiert; übrige Aufgaben sind offen, Verantwortliche noch zuordnen. Die Schätzungen sind keine geleisteten Stunden.
 
 ## Hardwarebestand – aktuell noch zu prüfen
@@ -58,7 +58,7 @@ Referenzprüfungen 20.10.: Produktionsbuild inkl. Service Worker und isolierter 
 
 Aktiver Auftrag ist jetzt der Start mit der Webapp; Armbandhardware ist laut aktueller Nutzerkorrektur noch nicht vorhanden. Die frühere C03-Erhebung bleibt für später offen. Die neue lokale Grundlage unter [code/webapp](../code/webapp/package.json) trennt UI, API-Client und Express-API; Originalcode bleibt unverändert. Start und Grenzen stehen im [Code-Einstieg](../code/README.md).
 
-Nächster konkreter Schritt: Konto-/Betreuungsmodell aus M2 mit einer begründet ausgewählten Auth-Lösung umsetzen; Auth-/Hostingwahl vorher konkret besprechen. Anschließend versionierte Planpersistenz und sichere Gerätebindung. Keine freie medizinische Grenzwertänderung im Patientenbereich. Die jetzige API liefert ausschließlich synthetische Daten oder einen fehlenden Plan; noch keine echte Nutzeridentität oder Datenspeicherung. Hardware, Smartphone-Hintergrundempfang und Watch sind weiterhin ungeprüft.
+Nächster konkreter Schritt: Konto-/Betreuungsmodell aus M2 mit einer begründet ausgewählten Auth-Lösung umsetzen; Auth-/Hostingwahl vorher konkret besprechen. Anschließend versionierte Planpersistenz und sichere Gerätebindung. Keine freie medizinische Grenzwertänderung im Patientenbereich. Die Plan-API liefert ausschließlich synthetische Daten oder einen fehlenden Plan; lokale Testidentitäten und Sessions werden separat in SQLite gespeichert. Hardware, Smartphone-Hintergrundempfang und Watch sind weiterhin ungeprüft.
 
 ## Git und Zusammenarbeit auf mehreren Geräten
 
@@ -74,3 +74,10 @@ Prüfung der Webapp-Grundlage am 29.10.2026: vier Node-Tests für fehlenden/Demo
 Nutzerregeln zu Dateiverantwortung, 500-Zeilen-Richtwert, lesbarer Formatierung, DRY/Ponytail und Datenschutz/Sicherheit sind in AGENTS.md verbindlich ergänzt. Webapp-Rahmen, Therapieplan, Gerätestatus und Sitzungshistorie sind getrennte Komponenten; die Dateiverantwortlichkeiten und der Datenfluss stehen in code/README.md. API-Prüfung weist auch null, Arrays und unvollständige Antworten kontrolliert zurück. Originalcode unverändert. Prüfung: Node-Vertragstests, Produktionsbuild, Projektprüfung und Diff-Prüfung; keine Browser-/Produktfreigabe.
 
 Nächstes kleines Auth-Arbeitspaket: etablierte Auth-Lösung für Vue/Express konkret auswählen; Kriterien sind serverseitige Sessions mit Widerruf, Verifikation/Reset, Arzt-MFA, sichere Wiederherstellung, Testbarkeit und nachvollziehbarer Betrieb. Empfehlung zur Besprechung: Identitätsverwaltung von fachlicher Arztprüfung und Betreuungsrechten trennen; kein Anbieter darf durch ein Profilfeld selbst Arztzugriff gewähren. Erst danach Integration mit synthetischen Zwei-Arzt-/Zwei-Patientenfällen. Anbieter, Hostingregion und Kosten sind noch nicht entschieden.
+
+
+## Übergabe: lokaler Auth-Durchstich
+
+Better Auth plus lokale SQLite speichert synthetische Testkonten und Sessions. UI bietet Testregistrierung, Anmeldung und Abmeldung. Planendpunkt verlangt serverseitig eine Session und bleibt bei fehlender Auth-Konfiguration gesperrt. Originprüfung, HttpOnly/SameSite-Cookie und serverseitiger Widerruf sind per HTTP getestet. Kein Arztrollen-Schalter, keine Patientendaten. Startbefehle und Dateiverantwortlichkeiten im Code-Einstieg aktualisiert. Tests und Frontendbuild ausgeführt; Browserprüfung noch offen.
+
+Nächster Schritt: E-Mail-Verifikation und Reset mit geeignetem lokalen Mail-Testtransport, danach ärztliche Prüfung/MFA und Betreuungsrechte. Vor realem Betrieb Versand-/Hostingmodell, Datenschutzverantwortung, Produktionskonfiguration und Migrationen festlegen. ACC-01 bis ACC-04 und M2 sind durch den lokalen Durchstich noch nicht vollständig abgenommen. npm audit für Produktionsabhängigkeiten meldete am 29.10.2026 keine bekannten Schwachstellen; kein unabhängiger Sicherheitsnachweis.

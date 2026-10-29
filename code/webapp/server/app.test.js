@@ -6,7 +6,13 @@ import { loadPlan } from "../src/api.js";
 
 for (const demo of [false, true]) {
   test(`API liefert expliziten Planzustand (demo=${demo}) und erlaubt keine Änderung`, async (t) => {
-    const server = createApp({ demo }).listen(0, "127.0.0.1");
+    const server = createApp({
+      demo,
+      auth: {
+        handler: () => new Response(),
+        api: { getSession: async () => ({ user: { id: "test-only" } }) },
+      },
+    }).listen(0, "127.0.0.1");
     t.after(() => new Promise((resolve) => server.close(resolve)));
     await once(server, "listening");
     const url = `http://127.0.0.1:${server.address().port}/api/plan`;

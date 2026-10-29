@@ -221,3 +221,36 @@ button:focus-visible {
     flex-wrap: wrap;
   }
 }
+
+.account {
+  max-width: 620px;
+  margin: 24px auto;
+}
+form label {
+  display: block;
+  font-weight: 600;
+  margin: 18px 0;
+}
+input {
+  display: block;
+  width: 100%;
+  border: 1px solid #81968b;
+  border-radius: 8px;
+  padding: 12px;
+  font: inherit;
+  margin-top: 6px;
+}
+input:focus-visible {
+  outline: 3px solid #b76619;
+  outline-offset: 2px;
+}
+button.secondary {
+  background: transparent;
+  color: #173b38;
+  border: 1px solid #81968b;
+  margin: 8px;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
