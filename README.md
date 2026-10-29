@@ -25,7 +25,7 @@ code/                 Aktiver Entwicklungsbereich
 scripts/              Repositoryprüfung und deren Tests
 ```
 
-„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Aktuell ist der Implementierungsbereich zurückgesetzt; es gibt noch keine neue ausführbare App. Regeln, Anforderungen und Referenzcode bleiben erhalten.
+„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Aktuell liegt ein neuer React-Native-/Expo-Prototyp unter code/mobile; native Geräteinstallation und BLE sind noch ungeprüft. Regeln, Anforderungen und Referenzcode bleiben erhalten.
 
 ## Prüfungen
 
