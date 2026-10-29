@@ -65,3 +65,10 @@ Einsatzfolge, ein verantwortlicher Arzt und verfügbare Testgeräte sind bestät
 Vereinbarter Teamablauf: `main` als Integrationsbranch; persönliche Aufgabenbranches `Lenni/<branchname>` und `Paul/<branchname>`; Integration ausschließlich per Pull Request nach `main`. `origin` zeigt auf `https://github.com/0804lenny0804-lab/orthosohle.git`. Pull Request [#1](https://github.com/0804lenny0804-lab/orthosohle/pull/1) mit der Arbeitsgrundlage und PR [#3](https://github.com/0804lenny0804-lab/orthosohle/pull/3) mit dem ersten Armband-Arbeitspaket sind gemergt. CI und Branchschutz sind nicht geprüft. Git ist für lokalen Commit und Branch maßgeblich.
 
 Auf jedem PC separat Repository klonen, Root-README/AGENTS/Kontext lesen und Voraussetzungen prüfen. Nur Commit + Push und Clone/Pull synchronisieren versionierte Dateien. Chat, lokale DB, Secrets, Pakete, Pairings und laufende Prozesse kommen nicht mit. Vor Pull eigenen Status prüfen, passenden Branch fetch/pull --ff-only; bei Divergenz nichts verwerfen/erzwingen. Ohne erfolgreichen Fetch keine Remote-Aktualität behaupten.
+
+
+## Ergänzende Übergabe: Codeanalyse 29.10.2026
+
+Auf aktuellen GitHub-main aufbauend wurde der Originalcode erneut statisch geprüft. Ergebnis und empfohlene Umsetzungspakete stehen in [analysis.md, Abschnitt 10](analysis.md#10-erneute-codeprüfung-und-empfohlene-umsetzungspakete--29102026). Keine Produktfunktion verändert. Bestätigt: Limit-Vertragsfehler, fehlende BLE-Persistenz, Simulation als Rohwert-Peaks, fehlende Autorisierung/Sitzungszuordnung, unvalidierter BLE-Eingang und 25-kg-Sättigung. Die Arbeitspakete folgen den bestehenden M0–M8; keine zusätzliche parallele Produktspezifikation angelegt.
+
+Nächster Schritt bleibt Boardidentifikation/Displaytest und der frühe Plattform-/BLE-Nachweis. Vor Umsetzung alten Backlog gegen Arztplanhoheit, Handy-Datenweg und frühe Apple-Watch-Integration abgleichen und neu schätzen. Hardware- und Betriebsfreigaben bleiben offen. Der frühere Chatbefund „nur README vorhanden“ bezog sich auf einen veralteten lokalen Stand und ist nach erfolgreichem Fetch überholt.

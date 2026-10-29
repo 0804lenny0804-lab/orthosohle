@@ -150,3 +150,42 @@ Erfolgreich durchgeführt:
 Nicht geprüft: echte Sohle/Armband, Firmwarekompilierung (keine festgelegte Board-/Bibliothekskonfiguration), BLE-/Browserlaufzeit, reale Hintergrundwarnung, Akkulaufzeit, öffentliche Deployments. Keine bestehende Test-Suite vorhanden; npm test im Backend ist ein absichtlich fehlschlagender Platzhalter. Kein Dependency-Sicherheitsaudit durchgeführt.
 
 Die konkreten HTTP-Ergebnisse sind in `docs/checks/api-results.json` abgelegt. Der Backlog in `docs/backlog.csv` enthält 57 Aufgaben mit Abnahme, Abhängigkeiten und exakt 300/600 Stunden. Priorisierte nächste Schritte: Quellstand sichern, tatsächliche Hardware feststellen, reale Zykluszeit/Überbereich messen, BLE-Topologie nachweisen; parallel Grenzwert-API und Messwertpersistenz korrigieren. Erst anschließend endgültige Komponenten-/Hostingentscheidungen treffen.
+
+
+## 10. Erneute Codeprüfung und empfohlene Umsetzungspakete – 29.10.2026
+
+Die erneute Prüfung verwendet den aktuellen GitHub-Integrationsstand als Quelle, insbesondere `code/orthopaul/`. Der zuvor in diesem Chat betrachtete lokale Initialstand war veraltet. Eine Chat-Upload-Ablage ist keine Projektquelle. Die folgenden Pakete konkretisieren die Umsetzung der bestehenden Meilensteine in [requirements.md](requirements.md); sie sind Empfehlungen und keine neue Anforderungsliste oder Aufwandzusage. Die frühere Architektur und Semesterplanung in Abschnitten 6–8 wird bei Widersprüchen durch die bestätigten Smartphone-, Arztplan- und Watchanforderungen überholt.
+
+### Was wiederverwendbar ist
+
+Vue/Vite, die Chart-Komponenten und Express sind brauchbare technische Ausgangspunkte. Geräte-UUIDs, Kalibrierkurve und Schrittalgorithmus dokumentieren bisheriges Verhalten, benötigen aber eigene Validierung. Die bestehenden Datenbanktabellen eignen sich als Referenz für die bisherigen Funktionen; sie tragen das Ärzte-/Patientenmodell noch nicht. Deshalb schrittweise Migration in einen tatsächlich implementierten neuen Codebereich, während der Originalbestand unverändert bleibt. Kein Frameworkwechsel allein wegen des Neuaufbaus; native Smartphone-/Watch-Anbindung anhand des frühen Plattformtests auswählen.
+
+### Im Quelltext erneut bestätigte Befunde
+
+| Beleg im Originalcode | Konsequenz für die Umsetzung |
+|---|---|
+| `server/db.js:getLimit` liefert eine Zeile; `server/server.js:GET /api/limits/:userId` verpackt diese unter limit_value; `frontend/src/App.vue:loadLimit` übernimmt sie direkt | Vertrag vor UI-Übernahme korrigieren und mit fehlendem/gesetztem Grenzwert testen |
+| `App.vue:onPeak` ändert nur lokale Listen/Zähler; `SimulationControl.vue:sendNext` sendet jeden Rohwert an /api/peaks | Gemeinsame Messpipeline; Rohwerte, Peaks und Warnereignisse getrennt modellieren; Demoquelle explizit kennzeichnen |
+| `server/server.js` enthält keine Auth-Middleware; mehrere Stellen verwenden userId=1; `db.js` verknüpft Peaks/Schritte nicht mit Runs oder Besitzern | Neue Datenbasis und serverseitige Autorisierung vor Mehrbenutzerbetrieb; alte Endpunkte nicht als geschütztes Produkt übernehmen |
+| `Bluetooth.vue:onCharacteristicChanged` liest Float32 ohne Paketprüfung; Disconnect meldet keinen globalen Messzustand | Decoder und Zustandsführung aus UI lösen; kurze/ungültige/veraltete Pakete sowie Abbruch explizit behandeln |
+| `arduinocode.ino:rawToKg` klemmt auf 25 kg; loop mittelt 15 Messungen und wartet zusätzlich 200 ms | Überbereich und reale Messrate vor zuverlässiger Alarm-/Schritterkennung nachweisen |
+| `history/PeakChart.vue:filteredPeaks` entfernt Werte bis einschließlich 12 kg; `stepdetector.js` verwendet samplebasierte Fenster | Keine unveränderte fachliche Übernahme; historische Bewertung mit Planversion und Algorithmustests bei relevanten Raten |
+
+### Reihenfolge und Abnahme der Arbeitspakete
+
+| Paket / vorhandene Zuordnung | Reviewbares Ergebnis | Abnahme / nächster kleiner Schritt |
+|---|---|---|
+| 1. Hardware und Plattformpfade — C03–C06, M0/M1, WATCH | Waveshare-Displaytest, nachgewiesene BLE-Rollen, iPhone-/Android-Empfang und früher Watch-Test | Zuerst Boardrevision/USB-Erkennung und minimalen Displaytest abschließen. Danach jeden Datenweg separat mit Ausfall/Gerätesperre prüfen; keine Hintergrundfähigkeit aus einem Vordergrundtest ableiten. |
+| 2. Messvertrag und lokale Warnung — A07–A17, D01–D03 | Versionierter Mess-/Planvertrag, Überbereich, Datenalter, unabhängiger Warnautomat und Plan-ACK | Zuerst Decoder mit gültigem Float, kurzem Paket und NaN prüfen; dann versionierte Pakete und Stale-Übergang. Warnung ohne Telefon/Internet am echten Armband nachweisen. Medizinische Grenze nicht frei vom Patienten überschreibbar machen. |
+| 3. Reproduzierbare Produktbasis — C02, M1 | Ein neuer lauffähiger Bereich mit fixierter Installation, Konfigurationsprüfung, CI und isolierten Testdaten | Zuerst einen minimalen vertikalen Durchstich implementieren; Originalmanifest bleibt unverändert. Build und Start sind technische Teilabnahmen. |
+| 4. Identität und Betreuung — M2, ACC/REL | Geschützte Konten, Arztprüfung, Einladung, Annahme, Entzug und Arztwechsel | Zuerst serverseitige Identität integrieren; danach jede Datenroute mit zwei Ärzten/zwei Patienten auf Fremdzugriff prüfen. Eindeutige aktive Betreuung auch bei konkurrierenden Annahmen absichern. |
+| 5. Gerätebindung und Therapieplan — M3, DEV/PLN | Gerätezuordnung, unveränderliche Planhistorie, getrennte Patientenbestätigung und Gerätebestätigung | Zuerst Planversion speichern/lesen; dann Transfer und ACK. Ausstehende, veraltete oder falsche ACKs dürfen keinen Erfolg anzeigen. |
+| 6. Sitzungen und Offline-Upload — M4, DAT/HIS | Eindeutiger Nutzer-/Geräte-/Sitzungs-/Planbezug, real/demo, gepufferter idempotenter Upload | Zuerst eine synthetische Sitzung vollständig speichern und abrufen; dann doppelten Batch, Netzabbruch und Datenlücke prüfen. Upload darf die lokale Warnung nicht blockieren. |
+| 7. Patienten- und Arztoberflächen — M5, UX/PAT/DOC | Onboarding, aktueller Zustand, Planübernahme, eigener Verlauf bzw. berechtigte Patientenübersicht | Erste Oberfläche entlang eines vollständigen Ablaufs bauen; anschließend Leer-, Offline-, Fehler- und Stale-Zustände sowie zugängliche Bedienung abnehmen. Bestehende Charts nur nach fachlicher Korrektur übernehmen. |
+| 8. Betrieb und Pilotfreigabe — M6–M8 | Getrennte Umgebungen, Monitoring, Löschung/Export, Backup/Restore, Gesamtnachweis und definierter Pilot | Betrieb und Datenschutz ab M0 vorbereiten; Restore mit synthetischen Daten praktisch nachweisen. Technische Fertigstellung, Pilotfreigabe und reguläre Einsatzfreigabe getrennt abnehmen. |
+
+Jedes Paket vor Implementierung in ca. 2–4 echte Personenstunden große Aufgaben mit konkretem Prüfergebnis schneiden. Größere Pakete sind keine einzelnen Tickets. Im bestehenden Backlog insbesondere A11 (freie lokale Grenzwerte), A18/B10 (angenommener Armband-Gatewaypfad) und B16 (später Watch-PoC) vor Umsetzung mit den inzwischen bestätigten Anforderungen abgleichen. Ein ausgewähltes Waveshare-Board erledigt A01/A02 nicht automatisch: Haptik, Energieversorgung und Gehäuse bleiben zu prüfen. Der alte 600-Stunden-Backlog darf nicht durch zusätzliche Produkttickets scheinbar weiterhin vollständig finanziert erscheinen. Erst verbleibenden Umfang und Aufwand schätzen, dann Semesterlieferung und spätere Produktarbeit zuordnen.
+
+### Nachweisgrenzen dieser Prüfung
+
+Erneute statische Quelltextprüfung, keine neue Hardware-, BLE-, Smartphone-, Watch- oder klinische Prüfung. Frühere Build-/API-Ergebnisse bleiben historische Nachweise und werden nicht als heute erneut ausgeführt dargestellt. Der unabhängige Library-Wissensindex konnte mangels Library-Werkzeugen nicht aktualisiert werden; maßgebliche Projektdokumentation liegt hier im Repository.
