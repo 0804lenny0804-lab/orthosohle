@@ -15,6 +15,7 @@ code/                Tatsächlich vorhandener Code mit Startanleitung
   README.md          Codeübersicht, Installation, Betrieb und Grenzen
   manifest.json      Herkunft und Prüfsummen des Originalcodes
   orthopaul/         Unveränderte Codegrundlage aus GitLab-ZIP
+  webapp/            Neue lokale Vue-/Express-Webapp-Grundlage
 docs/                Projektwissen und Arbeitsunterlagen
   context.md         Ziel, Iststand, offene Fragen und aktuelle Übergabe
   decisions.md       Relevante Entscheidungen mit Gründen
@@ -43,7 +44,7 @@ Die Prüfung kontrolliert Dateien/Links, Backlog-Abhängigkeiten und 300/600-Stu
 
 ## Aktueller Arbeitsauftrag
 
-**Arbeitsgrundlage liegt auf `main`; Umsetzung erfolgt schrittweise.** [requirements.md](docs/requirements.md) enthält das Ärzte-/Patientenprodukt mit Abnahmekriterien und Meilensteinen M0–M8. Arzt-Einladung, medizinische Planhoheit, iPhone/Android, beaufsichtigter Pilot und ein verantwortlicher Arzt mit Arztwechsel sind bestätigt; Waveshare ESP32-S3-Touch-LCD-1.28 ist die Hardwarebasis des Warnarmbands. Uploadverhalten und konkreter unabhängiger Armbandpfad sind noch nachzuweisen. iPhone, Android, Waveshare und Apple Watch sind laut Nutzer verfügbar. Der Apple-Watch-Client wird im [Arbeitsbereich WATCH](docs/watch-compatibility.md) von Beginn an mit der Handy-App geplant; Wear OS bleibt vorerst Erweiterung. GitHub Actions/macOS-Runner plus AltServer sind als iPhone-Build-/Installationsweg vorgesehen; sie sind in diesem Repository noch nicht erprobt. Apple-Watch-Build und Installation müssen getrennt nachgewiesen werden. Umfang und alter Backlog müssen neu geschätzt werden; keine bereits erfolgte Produkt-/Sicherheitsfreigabe behaupten.
+**Aktueller Schwerpunkt: Webapp zuerst.** Neue lokale Grundlage und Startbefehle stehen im [Code-Einstieg](code/README.md). [requirements.md](docs/requirements.md) enthält das Ärzte-/Patientenprodukt mit Abnahmekriterien und Meilensteinen M0–M8. Arzt-Einladung, medizinische Planhoheit, iPhone/Android, beaufsichtigter Pilot und ein verantwortlicher Arzt mit Arztwechsel sind bestätigt; Waveshare ESP32-S3-Touch-LCD-1.28 ist die Hardwarebasis des Warnarmbands. Uploadverhalten und konkreter unabhängiger Armbandpfad sind noch nachzuweisen. iPhone, Android und Apple Watch wurden als verfügbar genannt; laut aktueller Nutzerkorrektur ist das Waveshare-Armband noch nicht vorhanden. Der Apple-Watch-Client wird im [Arbeitsbereich WATCH](docs/watch-compatibility.md) von Beginn an mit der Handy-App geplant; Wear OS bleibt vorerst Erweiterung. GitHub Actions/macOS-Runner plus AltServer sind als iPhone-Build-/Installationsweg vorgesehen; sie sind in diesem Repository noch nicht erprobt. Apple-Watch-Build und Installation müssen getrennt nachgewiesen werden. Umfang und alter Backlog müssen neu geschätzt werden; keine bereits erfolgte Produkt-/Sicherheitsfreigabe behaupten.
 
 Technisch parallel nötig: C03 tatsächlichen Hardware-/Firmwarebestand und C05 BLE-Rollen prüfen. Dafür den Hardwareabschnitt des [Projektkontexts](docs/context.md) anhand realer Teile/Revisionen, Pins/Spannungen und Firmwarequellen ergänzen; ältere Hausarbeit allein reicht nicht. Code-Start und bekannte Grenzen stehen im [Code-Einstieg](code/README.md).
 

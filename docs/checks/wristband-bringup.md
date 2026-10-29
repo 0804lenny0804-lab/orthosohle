@@ -4,7 +4,7 @@ Begonnen: 27.10.2026. Aufgabe C03 im [Backlog](../backlog.csv), anschließend er
 
 ## Bisher belegt
 
-- Nutzer nennt Waveshare ESP32-S3-Touch-LCD-1.28 als vorhandene Hardwarebasis.
+- Historische Angabe korrigiert am 29.10.2026: Waveshare ESP32-S3-Touch-LCD-1.28 ist ausgewählt, aber laut Nutzer noch nicht vorhanden. Reale Inbetriebnahme bleibt blockiert.
 - Exakte Revision, aktuelle Firmware, Zusatzhardware und USB-Erkennung sind noch nicht erhoben.
 - Kein physischer Gerätezugriff aus diesem Workspace nachgewiesen. Es wurde nichts geflasht.
 - Hersteller-Wiki am 27.10.2026 erneut mit HTTP 403 nicht abrufbar. Deshalb wurden keine Display-Pins oder Treiberkonfigurationen daraus übernommen.

@@ -73,3 +73,10 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 **Grund:** Nutzer arbeitet mit einem Kollegen zusammen und möchte Änderungen schrittweise und nachvollziehbar integrieren.
 
 **Konsequenz:** Verbindlicher Ablauf steht in [AGENTS.md](../AGENTS.md) und wird in der README kurz erklärt. Die anschließende Prüfung ergab, dass `origin` bereits auf `0804lenny0804-lab/orthosohle` zeigt; `origin/main` ist erreichbar, enthält aber noch nicht die lokalen Projektgrundlagen. Technische Branch-Schutzregeln und CI bleiben ungeprüft.
+
+
+## 29.10.2026 – Webapp vor Armband-Inbetriebnahme
+
+**Entscheidung:** Nutzer priorisiert den Start mit der Webapp und korrigiert den Hardwarebestand: Das Armband ist noch nicht vorhanden.
+
+**Konsequenz:** Lokale Vue-/Express-Grundlage mit schreibgeschützter Patientenansicht und klar gekennzeichnetem synthetischem Plan. Noch keine Auth-/Hostingentscheidung oder echte Datenspeicherung. Armbandanforderungen bleiben bestehen; deren reale Abnahme ist bis zur Hardwareverfügbarkeit offen.

@@ -52,3 +52,30 @@ Das Verzeichnis enthält eine lokale Test-DB und gehört nicht in Git. SQLITE_DI
 - Erste Migration (C02) als abgegrenzte Aufgabe: genau einen tatsächlich nutzbaren Bereich unter code/ übernehmen, Build/Start dokumentieren und prüfen. Dabei bekannte Fehler nicht mit einer reinen Verschiebung vermischen.
 - Neue Modulnamen erst bei konkretem Inhalt wählen; keine leeren Web-/API-/Firmware-/Hardwareordner vorsorglich erzeugen.
 - README und manifest.json sichern Herkunft; das zusätzliche Quellinventar ist entfallen, da es dieselben Dateinamen doppelt führte. Den historischen Originalbestand nur bewusst mit neuer Herkunft/Prüfsumme ersetzen.
+
+
+## Neue lokale Webapp-Grundlage
+
+[webapp](webapp/package.json) ist der erste neue implementierte Produktbereich mit Vue/Vite und Express. Der Originalcode bleibt unverändert. Dies ist zunächst eine schreibgeschützte Patientenansicht: Plan laden, kein Plan, API-Fehler und fehlendes Gerät werden explizit dargestellt. Kein Login, keine echte Patientendatenhaltung, keine BLE-/Warnfunktion oder Gerätebestätigung. Demo-Plan ausdrücklich synthetisch; nicht als ärztlich angelegter Plan ausgegeben.
+
+Node gemäß package.json. Installation aus dem Repository-Root:
+
+```bash
+npm ci --prefix code/webapp
+```
+
+Zwei Terminals aus dem Repository-Root:
+
+```bash
+npm run server --prefix code/webapp
+npm run dev --prefix code/webapp
+```
+
+Weboberfläche: http://127.0.0.1:5173. API: http://127.0.0.1:3001/api/plan, Vite leitet /api lokal weiter. Ohne Konfiguration zeigt die App keinen Plan. Für den synthetischen Beispielplan API in Bash mit `DEMO_MODE=true npm run server --prefix code/webapp` starten; in PowerShell zuvor `$env:DEMO_MODE="true"` setzen. Die [.env.example](webapp/.env.example) dokumentiert Prozessvariablen, wird nicht automatisch geladen. Der Vite-Proxy erwartet API-Port 3001; bei anderem PORT Proxy ebenfalls anpassen.
+
+```bash
+npm test --prefix code/webapp
+npm run build --prefix code/webapp
+```
+
+API und Vite binden lokal an Loopback. Keine Produktionsbereitstellung: dist ist ein Frontend-Build und benötigt später einen geschützten API-/Hostingpfad. Autorisierung, persistente Pläne und Arztfunktionen folgen als eigene Arbeitspakete.
