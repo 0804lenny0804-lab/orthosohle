@@ -1,53 +1,47 @@
-# OrthoSohle 2.0
+# OrthoSohle
 
-## Hier anfangen
+## Einstieg
 
-1. [Arbeitsregeln](AGENTS.md) lesen.
-2. [Projektkontext](docs/context.md) öffnen: aufbereitetes Wissen, Iststand und nächster Schritt.
-3. Für den aktuellen Softwareauftrag [Anforderungen und Meilensteine](docs/requirements.md) lesen. Umsetzungsaufgaben im [Backlog](docs/backlog.csv) führen; bei Bedarf [Code-Einstieg](code/README.md) oder [Detailanalyse](docs/analysis.md) lesen.
+1. [Arbeitsregeln](AGENTS.md): Zusammenarbeit, Modularität, DRY/Ponytail und Qualität.
+2. [Projektkontext](context/context.md): Ziel, belegter Stand, offene Fragen und nächster Schritt.
+3. [Aktiver Entwicklungsbereich](code/README.md): aktuelle Anwendung, Installation und lokale Startbefehle.
 
-## Struktur
+## Ablage
 
 ```text
-AGENTS.md            Arbeitsregeln – einzige maßgebliche Regeldatei
-README.md            Dieser Einstieg
-code/                Tatsächlich vorhandener Code mit Startanleitung
-  README.md          Codeübersicht, Installation, Betrieb und Grenzen
-  manifest.json      Herkunft und Prüfsummen des Originalcodes
-  orthopaul/         Unveränderte Codegrundlage aus GitLab-ZIP
-  webapp/            Neue lokale Vue-/Express-Webapp-Grundlage
-docs/                Projektwissen und Arbeitsunterlagen
-  context.md         Ziel, Iststand, offene Fragen und aktuelle Übergabe
-  decisions.md       Relevante Entscheidungen mit Gründen
-  requirements.md    Produktanforderungen und Softwaremeilensteine
-  watch-compatibility.md  Apple-Watch-Planung und weitere Watchplattformen
-  backlog.csv        Aufgaben mit Priorität, Abhängigkeiten und Abnahme
-  analysis.md        Ausführliche Bestandsaufnahme und Semesterplanung
-  sources/           Originalunterlagen und Ponytail-Quellennotiz
-  checks/            Tatsächlich ausgeführte Prüfungen und Ergebnisse
-scripts/             Repositoryprüfung und deren Tests
+AGENTS.md             Verbindliche Regeln
+context/              Projektwissen und Nachweise
+  context.md          Kompakter aktueller Stand und Navigation
+  requirements.md     Produktanforderungen und Abnahme
+  decisions.md        Entscheidungen mit Gründen und Historie
+  backlog.csv         Aufgaben, Status und bisherige Schätzungen
+  analysis.md         Detailanalyse des Altbestands
+  watch-compatibility.md  Zusätzlicher Watch-Arbeitsbereich
+  legacy/             Unveränderter Altcode, Manifest und alte Startanleitung
+  sources/            Originalunterlagen
+  checks/             Ausgeführte Prüfungen und Grenzen
+code/                 Aktiver Entwicklungsbereich
+  README.md           Installation, Start, Datenfluss und Grenzen
+  webapp/             Vue-/Express-Anwendung mit lokaler Authentifizierung
+scripts/              Repositoryprüfung und deren Tests
 ```
 
-Es gibt keine leeren Produktmodule. Neue Ordner entstehen erst mit echtem Code oder tatsächlichen Unterlagen. Der bestehende Code bleibt zunächst vollständig unter code/orthopaul; zukünftige Module werden bei ihrer ersten Umsetzung unter code/ angelegt. Kein Code wurde durch diese Bereinigung als produktfähig erklärt.
+„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Aktuell sind nur synthetische Daten und lokale Testkonten vorgesehen.
 
-## Arbeitsgrundlage prüfen
+## Prüfungen
 
-Voraussetzungen: Git und Python 3.9+, keine zusätzlichen Python-Pakete. Im Repository-Root ausführen:
+Im Repository-Root mit Git, Python 3.9+ und Node gemäß code/webapp/package.json:
 
 ```bash
 python3 scripts/check_project.py
 python3 -m unittest discover -s scripts -p 'test_*.py'
+npm test --prefix code/webapp
+npm run build --prefix code/webapp
 git diff --check
 ```
 
-Die Prüfung kontrolliert Dateien/Links, Backlog-Abhängigkeiten und 300/600-Stunden-Budget sowie den unveränderten Originalcode. Der [Code-Einstieg](code/README.md) beschreibt den gesonderten Node-Build und lokalen Betrieb.
+Die Repositoryprüfung kontrolliert Links, Backlog und die unveränderten Originaldateien. Die historische 600-Personenstunden-Schätzung deckt den erweiterten Produktumfang nicht belastbar ab. Aktuelle Grenzen und Startkonfiguration stehen im Code-Einstieg.
 
-## Aktueller Arbeitsauftrag
+## Git und Gerätewechsel
 
-**Aktueller Schwerpunkt: Webapp zuerst.** Neue lokale Grundlage und Startbefehle stehen im [Code-Einstieg](code/README.md). [requirements.md](docs/requirements.md) enthält das Ärzte-/Patientenprodukt mit Abnahmekriterien und Meilensteinen M0–M8. Arzt-Einladung, medizinische Planhoheit, iPhone/Android, beaufsichtigter Pilot und ein verantwortlicher Arzt mit Arztwechsel sind bestätigt; Waveshare ESP32-S3-Touch-LCD-1.28 ist die Hardwarebasis des Warnarmbands. Uploadverhalten und konkreter unabhängiger Armbandpfad sind noch nachzuweisen. iPhone, Android und Apple Watch wurden als verfügbar genannt; laut aktueller Nutzerkorrektur ist das Waveshare-Armband noch nicht vorhanden. Der Apple-Watch-Client wird im [Arbeitsbereich WATCH](docs/watch-compatibility.md) von Beginn an mit der Handy-App geplant; Wear OS bleibt vorerst Erweiterung. GitHub Actions/macOS-Runner plus AltServer sind als iPhone-Build-/Installationsweg vorgesehen; sie sind in diesem Repository noch nicht erprobt. Apple-Watch-Build und Installation müssen getrennt nachgewiesen werden. Umfang und alter Backlog müssen neu geschätzt werden; keine bereits erfolgte Produkt-/Sicherheitsfreigabe behaupten.
-
-Technisch parallel nötig: C03 tatsächlichen Hardware-/Firmwarebestand und C05 BLE-Rollen prüfen. Dafür den Hardwareabschnitt des [Projektkontexts](docs/context.md) anhand realer Teile/Revisionen, Pins/Spannungen und Firmwarequellen ergänzen; ältere Hausarbeit allein reicht nicht. Code-Start und bekannte Grenzen stehen im [Code-Einstieg](code/README.md).
-
-## Anderes Gerät / GitHub
-
-Das GitHub-Repository `0804lenny0804-lab/orthosohle` ist als `origin` verbunden. Der Teamablauf: `main` ist der Integrationsbranch, jede Person arbeitet auf einem eigenen Branch `Lenni/<branchname>` oder `Paul/<branchname>`, Änderungen gehen per Pull Request nach `main`. Details und Schutzregeln stehen in [AGENTS.md](AGENTS.md). Auf einem weiteren Gerät Repository klonen, diese README und AGENTS.md lesen, Projektkontext laden und die oben genannten Prüfungen ausführen. Beim Gerätewechsel: auf dem ersten Gerät bewusst committen/pushen, auf dem zweiten lokalen Status prüfen und den passenden Branch mit fetch/pull --ff-only aktualisieren. Kein Überschreiben divergierter Arbeit. Chatverläufe, lokale DB, Zugangsdaten, installierte Pakete und Prozesse werden nicht über Git synchronisiert.
+Es gibt drei dauerhafte Branches: `lenni/code`, `paul/code` und `main`. Der genaue Integrationsablauf steht ausschließlich in [AGENTS.md](AGENTS.md). Vor Synchronisierung lokalen Status und Remote-Stand prüfen. Zugangsdaten, lokale Datenbanken, installierte Pakete und Chatverläufe werden nicht durch Git übertragen.

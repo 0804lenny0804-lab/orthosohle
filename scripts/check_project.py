@@ -11,12 +11,13 @@ from urllib.parse import unquote
 ROOT = Path(__file__).resolve().parents[1]
 BUDGET = {'A': 135, 'B': 90, 'C': 30, 'D': 30, 'E': 15}
 REQUIRED = [
-    'README.md', 'AGENTS.md', '.gitignore', 'docs/context.md', 'docs/decisions.md',
-    'docs/requirements.md',
-    'docs/analysis.md', 'docs/checks/baseline.md', 'docs/checks/api-results.json',
-    'docs/sources/README.md', 'docs/sources/ORTHOSOHLE_CODEX_CONTEXT.md',
-    'docs/sources/Hausarbeit_Orthosohle.pdf', 'docs/sources/ponytail.md',
-    'code/README.md', 'code/manifest.json',
+    'README.md', 'AGENTS.md', '.gitignore', 'context/context.md', 'context/decisions.md',
+    'context/requirements.md',
+    'context/analysis.md', 'context/checks/baseline.md', 'context/checks/api-results.json',
+    'context/sources/README.md', 'context/sources/ORTHOSOHLE_CODEX_CONTEXT.md',
+    'context/sources/Hausarbeit_Orthosohle.pdf', 'context/sources/ponytail.md',
+    'code/README.md', 'context/legacy/manifest.json', 'context/legacy/README.md',
+    'context/project-background.md',
 ]
 
 
@@ -25,7 +26,7 @@ def check():
     for item in REQUIRED:
         if not (ROOT / item).is_file():
             errors.append(f'Pflichtdatei fehlt: {item}')
-    csv_path = ROOT / 'docs/backlog.csv'
+    csv_path = ROOT / 'context/backlog.csv'
     try:
         with csv_path.open(newline='') as stream:
             rows = list(csv.DictReader(stream))
@@ -74,8 +75,8 @@ def check():
         errors.append(f'Backlog nicht prüfbar: {exc}')
 
     try:
-        manifest = json.loads((ROOT / 'code/manifest.json').read_text())
-        ref = ROOT / 'code/orthopaul'
+        manifest = json.loads((ROOT / 'context/legacy/manifest.json').read_text())
+        ref = ROOT / 'context/legacy/orthopaul'
         original = manifest['files']
         for name, expected_hash in original.items():
             path = ref / name
@@ -95,8 +96,8 @@ def check():
 
     # Check local inline Markdown file links in maintained docs, excluding historical source text.
     maintained = [ROOT / name for name in ['README.md', 'AGENTS.md', 'code/README.md']]
-    maintained += [p for p in (ROOT / 'docs').rglob('*.md') if 'sources' not in p.parts]
-    maintained += [ROOT / 'docs/sources/README.md', ROOT / 'docs/sources/ponytail.md']
+    maintained += [p for p in (ROOT / 'context').rglob('*.md') if 'sources' not in p.parts and 'legacy' not in p.parts]
+    maintained += [ROOT / 'context/legacy/README.md', ROOT / 'context/sources/README.md', ROOT / 'context/sources/ponytail.md']
     for path in maintained:
         if not path.exists():
             continue

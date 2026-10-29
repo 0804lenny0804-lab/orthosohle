@@ -1,0 +1,33 @@
+# Projektgrundlagen und historischer Bestand
+
+Stand: 29.10.2026. Fachlicher Hintergrund; aktueller Arbeitsstand ausschließlich in [context.md](context.md). Regeln stehen in [AGENTS.md](../AGENTS.md).
+
+## Ziel, Prioritäten und Rahmen
+
+OrthoSohle soll eine vorgegebene Teilbelastung als kalibrierte kg-Belastung kontrollierbar machen. Ein eigenständiges Armband soll aktuelle Werte anzeigen, lokal eine persistente Grenze prüfen und bei Überschreitung vibrieren. Warnung unabhängig von Smartphone und Internet. Fehlende, ungültige oder veraltete Werte brauchen einen klaren Störungsstatus; sie sind kein sicherer Nullwert.
+
+Aktueller Nutzerauftrag vom 29.10.2026: **Web-App jetzt zuerst**, da das Armband noch nicht vorhanden ist. Das löst die frühere Reihenfolge „Armband zuerst“ ab, Integration und Abschluss laufend berücksichtigen. Bestehende Sohle als Datenquelle nutzen; nur notwendige Mess-/Kommunikationskorrekturen, kein Sensor-Redesign. Apple-Watch-Kompatibilität wird im eigenen [Arbeitsbereich WATCH](watch-compatibility.md) von Beginn an mitgeplant und früh erprobt; Funktionsumfang und Budget noch klären. Wear OS bleibt eine spätere Erweiterung. Das Waveshare-Armband gehört dagegen zum Hauptprojekt. Ziel ist jetzt ein produktreifes Ärzte-/Patientensystem; der tatsächliche Stand bleibt ein Forschungs-/Beta-Prototyp. Vollständige Beinlast, Genauigkeit und klinische Sicherheit sind nicht nachgewiesen; produktiver/medizinischer Einsatz benötigt eigene Abnahme und Freigabe.
+
+Zwei Personen, 15.10.2026–28.01.2027: 600 echte Personenstunden. Normierte 300-Stunden-Sicht: Armband 135, App 90, Planung 30, Integration 30, Hausarbeit/Media Night 15. Die bisherige Appschätzung deckt das zusätzliche Ärzteportal und vollständige Produkt-/Betriebsfreigaben nicht belastbar ab; nach Anforderungsklärung neu schätzen, keine Produktfreigabe zum Semesterende zusagen. Abschlussbudget knapp. Hochschulanforderungen, Abgabetermin und separates Media-Night-Datum noch bestätigen. Vorgeschlagene Meilensteine: 20.11. Tischprototyp, 18.12. lokale Warnung, 12.01. integrierte Sitzung, 21.01. Stabilisierung; keine bestätigten Hochschultermine.
+
+## Bestätigtes Softwareziel
+
+Software auf Basis der alten App umfassend überarbeiten: getrennte Arzt-/Patientenfunktionen, vollständiges Frontend/Backend, Sicherheit, Datenschutz und betreibbarer Produktstand. Patient bestätigt Einladung eines geprüften Arztes; Arzt legt medizinische Belastungsgrenze fest, Patient sieht/bestätigt Geräteübernahme; erste Produktversion für iPhone und Android. Technisches Geräte-ACK bleibt zusätzlich nötig. Bestätigt sind außerdem beaufsichtigter Pilot vor regulärem Einsatz und genau ein verantwortlicher Arzt je Patient mit Arztwechsel. Messwerte gehen von der Sohle ans Handy; der anschließende Upload zum Backend und seine Offline-/Hintergrundeigenschaften sind noch zu klären. Katalog, offene Detailentscheidungen und Meilensteine stehen ausschließlich in [requirements.md](requirements.md); Vorschläge dort sind noch keine implementierten oder sämtlich akzeptierten Funktionen.
+
+## Hardwarebestand – aktuell noch zu prüfen
+
+Historisch laut Hausarbeit: Arduino Nano 33 BLE, HX711, KERN CK 30-Y1 und PowerBoost. Aktuelle Boardrevision, Versorgung, Verkabelung, geflashter Sketch und Bibliotheksstände sind unbekannt. Der Sketch definiert DOUT 2/SCK 3; das ist kein Nachweis des realen Aufbaus. Bestätigte Hardwarebasis des Armbands: **Waveshare ESP32-S3-Touch-LCD-1.28**. Korrektur durch Nutzer am 29.10.2026: Das Armband ist noch nicht vorhanden; exakte Revision, Haptik/Motortreiber, Akku/Ladeschaltung und Gehäuse sind noch nicht verifiziert oder ausgewählt. Das ist eine Hardwareentscheidung, keine Bestätigung vorhandener/geeigneter Komplettausstattung. Das [Hersteller-Wiki](https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-1.28) war beim Abruf mit HTTP 403 nicht lesbar; keine konkreten Ausstattungsangaben daraus übernommen. ESP32-S3 ist grundsätzlich BLE-fähig; reale Verbindung/Parallelbetrieb noch testen.
+
+**Nächste Erhebung C03:** tatsächliche Teile/Revisionen, Pins/Spannungen, Fotos bzw. Beobachtungsquelle, verfügbare Testgeräte und Firmwareversion hier ergänzen. Eigene Hardwaredateien erst anlegen, sobald echte umfangreichere Unterlagen entstehen. Keine historischen Angaben als aktuelle Bestandsliste übernehmen.
+
+Laut Nutzer zusätzlich verfügbar: **iPhone, Android-Handy und Apple Watch**. Exakte Modelle, OS-Versionen und Apple-Watch-Kopplung sind offen; eigener macOS-Zugang fehlt. Vereinbarter iPhone-Weg: GitHub Actions baut mit temporärem macOS-/Xcode-Runner eine unsignierte IPA; AltServer auf Windows signiert sie mit dem Apple-Account und installiert sie über USB. AltStore auf dem iPhone ist laut Nutzer nicht erforderlich; kostenlose Signierung muss üblicherweise nach sieben Tagen erneuert werden. Dieser Ablauf wurde für OrthoSohle noch nicht praktisch geprüft. Die Apple-Watch-Artefakt- und Installationskette ist davon getrennt und bleibt zu erproben. Diese Angaben bestimmen Apple Watch als erste zusätzliche Watchplattform, belegen aber noch keine funktionierende Verbindung.
+
+## Bekannte technische Lücken und Entwurfsrichtung
+
+- Firmware begrenzt oberhalb ihres Kalibrierbereichs auf 25 kg; Überbereichsstatus fehlt. 15 HX711-Messungen plus 200-ms-Pause ergeben keine belegten 5 Hz.
+- Fersensensorik erfasst die Gesamtbeinlast beim Abrollen nicht nachweislich. In der Hausarbeit berichtete statische Abweichungen ca. 0,1–0,6 kg sind keine allgemeine Genauigkeitszusage.
+- Limit-API liefert ein verschachteltes Objekt statt Zahl. BLE-Ereignisse werden nicht gespeichert, Simulation speichert Rohwerte als Peaks.
+- Auth/Besitzprüfung, vollständige Geräte-/Sitzungszuordnung und Offline-Synchronisierung fehlen. Browser-/Push-Warnung ist keine gesicherte unabhängige Warnkette.
+- Bestätigter App-Pfad: Sohle → BLE → Handy → separat zu definierender Backend-Upload → Datenbank/Web. Die unabhängige Armbandwarnung bleibt erforderlich; direkter Empfang/Parallelverbindung zum Waveshare-Armband ist noch nicht nachgewiesen. Apple Watch wird parallel früh auf den Handy-Companionpfad geprüft; weitere Watchplattformen später. Gleichzeitige BLE-Rollen, Upload und bestätigte Grenzwertsynchronisierung müssen nachgewiesen werden. Vorhandenen Vue-/Express-Stack möglichst erhalten; UI, Transport, Fachlogik und Speicherung trennen.
+- Noch offen: Messrate, BLE-Topologie, Gateway, Armband-BOM/Ladung/Gehäuse, Auth/Hosting, Hardwarebudget und konkrete Watch-/Buildversionen. Vor endgültiger Auswahl prüfen und konkret besprechen.
+

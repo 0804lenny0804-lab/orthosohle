@@ -17,7 +17,7 @@ Reproduzierbare Installations-, Build- und lokale Startbefehle stehen ausschlie�
 
 Auf Linux mit Node v24.19.0 in einer isolierten Kopie der neuen Struktur unter /workspace/scratch/orthosohle-start-check:
 
-- Alle drei npm-Projekte über die neuen code/orthopaul-Pfade mit npm ci und beschreibbarem Cache installiert: erfolgreich.
+- Alle drei npm-Projekte über die neuen context/legacy/orthopaul-Pfade mit npm ci und beschreibbarem Cache installiert: erfolgreich.
 - Produktionsbuild des Frontends einschließlich Service Worker: erfolgreich.
 - Gemeinsames Root-Dev-Skript mit isoliertem SQLITE_DIR und USE_LOCAL=true gestartet. Frontend auf localhost:5173 lieferte index.html, API /api/peaks auf localhost:3000 eine JSON-Liste. Anschließend die gestartete Prozessgruppe beendet, temporäre Datenbank entfernt.
 - Repository-Checker, drei Regressionstests (gültiger Stand, defekter Code-Dokumentationslink, geänderte Originaldatei) und Diff-Whitespaceprüfung erfolgreich. Originaldateien nach Verschiebung gegen Manifest geprüft.
