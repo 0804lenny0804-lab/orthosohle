@@ -4,25 +4,22 @@ Stand: 29.10.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 
 ## Ziel und aktueller Schwerpunkt
 
-Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: Webapp zuerst. Das ausgewählte Waveshare-Armband ist laut Nutzer noch nicht vorhanden. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
+Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: sauberer Neustart für installierbare iOS-/Android-App plus kompatibles Webportal. Das ausgewählte Waveshare-Armband ist laut Nutzer noch nicht vorhanden. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
 
 ## Belegter Softwarestand
 
-- [Altbestand](legacy/README.md): 51 unveränderte Dateien aus dem GitLab-ZIP mit [Manifest](legacy/manifest.json); ursprünglicher GitLab-Commit unbekannt. Vue/Express/SQLite und Arduino-Sketch dienen als Referenz, keine Produktfreigabe.
-- Aktiver Code: code/webapp. Vue-/Express-Grundlage mit getrennten Plan-, Geräte- und Historienkomponenten; lokale Testkonten und datenbankgestützte Sessions über Better Auth/SQLite.
-- Testregistrierung, Anmeldung und serverseitige Abmeldung implementiert. Planendpunkt verlangt eine gültige Session und liefert ausschließlich synthetischen Demo-Plan oder fehlenden Plan. Keine echten Gesundheitsdaten, Arztfunktionen, Planpersistenz oder Geräteanbindung.
-- E-Mail-Verifikation ist für Anmeldung erforderlich. Verifikations-/Reset-Links liegen ausschließlich in geschützter lokaler Mail-Testablage. Reset widerruft bestehende Sitzungen.
-- Start nur im ausdrücklich freigegebenen lokalen Auth-Testbetrieb. Externer Mailversand, Arzt-MFA/Recovery, fachliche Rechte, Produktionsmigrationen und Hosting bleiben offen.
+- [Altbestand](legacy/README.md): 51 unveränderte Dateien aus dem GitLab-ZIP mit [Manifest](legacy/manifest.json); ursprünglicher GitLab-Commit unbekannt. Referenz, keine Produktfreigabe.
+- Nutzerauftrag: Implementierung von null neu beginnen und den bisherigen neuen Webapp-/Auth-Code entfernen. Dieser Stand ist unter Git-Tag `archive/2026-10-29/before-mobile-restart` gesichert.
+- Aktuell kein neuer ausführbarer Anwendungscode, keine Anmeldung und keine neue Datenhaltung. code/ enthält den Einstieg zum Neuaufbau. Regeln, Kontext, Anforderungen und Altbestand bleiben erhalten.
+- Zielrichtung: native Plattformzugriffe im iOS-/Android-Patientenclient, gemeinsame Backend-API und webbasiertes Ärzteportal. Kein mobiles Framework, neuer Auth-Stack oder Hosting ausgewählt.
 
 ## Nachweise und Grenzen
 
-Acht Node-Tests prüfen unter anderem unberechtigten Planzugriff, fremden Origin und widerrufene Sitzung sowie E-Mail-Verifikation, abgelaufene/erneut verwendete Reset-Tokens und geschützte lokale Testnachrichten. Frontend-Produktionsbuild erfolgreich; Produktionsabhängigkeiten laut npm audit am 29.10.2026 ohne bekannte Schwachstellen. Das ist kein unabhängiger Sicherheitsnachweis. Browserbedienung, Hardware, BLE, Smartphone-Hintergrundbetrieb und Watch sind ungeprüft. Anforderungen ACC-01–04 und M2 noch nicht vollständig abgenommen.
-
-Die Struktur trennt Regeln, Kontext/Altbestand und aktiven Code. Verschieben ändert keine Originaldatei; die Manifestprüfung bleibt maßgeblich. Ältere Verweise innerhalb unveränderter Quellen beschreiben deren damaligen Stand.
+Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Aktuell prüfbar: Repositorystruktur, Dokumentationslinks, Backlog und unveränderte Originaldateien. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
 
 ## Nächster konkreter Schritt
 
-Zuerst die mobile Zielarchitektur für installierbare iOS-/Android-Apps festlegen und Build-/BLE-Pfad prüfen; weitere Web-UI-Erweiterung bis dahin zurückstellen. Browserablauf für Verifikation/Reset bleibt ungeprüft. Vor realem Betrieb Versand-/Hostingmodell, Verantwortlichkeiten, Datenschutz und Freigaben festlegen. Das Armband wartet auf Hardwareverfügbarkeit.
+Mobile Zielarchitektur auswählen: React Native/Expo Development Builds und Flutter konkret an BLE, Offlineablage, sicherer Anmeldung/Deep Links, iOS-/Android-Build und Watch-Anbindung vergleichen. Danach einen kleinen installierbaren Durchstich umsetzen. App und Webportal erhalten dieselben versionierten API-Verträge; gemeinsame Datenbasis allein garantiert noch keine korrekten Rechte oder Synchronisierung.
 
 ## Navigation ohne doppelte Pflege
 
@@ -41,8 +38,3 @@ Zuerst die mobile Zielarchitektur für installierbare iOS-/Android-Apps festlege
 Dieser Chat arbeitet ab der Strukturintegration ausschließlich auf `lenni/code`; `paul/code` ist Pauls Arbeitsbranch. Integration nach `main` erfolgt per Pull Request gemäß AGENTS.md.
 
 Der historische 600-Personenstunden-Plan ist keine belastbare Schätzung des erweiterten Produktumfangs. Offene Aufgaben und neue Schätzungen werden im Backlog gepflegt. Lokale Gitstände und Branches ergeben sich aus Git, nicht aus vorweggenommenen Commitangaben hier.
-
-
-## Architekturklärung für Store-Apps
-
-Nutzer möchte den Neuaufbau als installierbare App für App Store und Play Store ausrichten. code/webapp ist bereits unabhängig neu geschriebener Code, keine Änderung des Altbestands; bislang aber browserorientiert. Empfehlung, noch keine beschlossene Stackwahl: Patientenclient mit nativen Plattformzugriffen, separates gemeinsames Backend und gegebenenfalls webbasiertes Ärzteportal. React Native/Expo mit Development Builds und Flutter als Kandidaten anhand BLE, gesperrtem Bildschirm, Offlineablage, Auth/Deep Links und iOS-/Android-Build prüfen. Vue mit Capacitor ist eine mögliche Alternative, deren BLE-/Hintergrundgrenzen ebenso nachzuweisen sind. Apple-Watch-Client benötigt zusätzlich watchOS-Arbeit. Storeinstallation allein belegt keinen zuverlässigen Hintergrundempfang. Bestehender lokaler Auth-Durchstich bleibt Referenz; mobile Session-/Tokenablage und Rücksetzlinks müssen gesondert entworfen werden. Keine Frameworkmigration oder Löschung beauftragt.
