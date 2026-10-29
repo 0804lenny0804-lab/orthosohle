@@ -1,7 +1,7 @@
 ID,Prioritaet,Arbeitspaket,Aufgabe,Planungsstunden,Personenstunden,Abhaengigkeiten,Abnahmekriterium,Status,Verantwortlich,Nachweis
 C01,P0,C,Quellstand und Inventar dokumentieren,4,8,—,"ZIP-Prüfsumme, 51 Dateien, Stack und fehlende Git-Historie dokumentiert",Erledigt,Codex,code/manifest.json; code/README.md; docs/analysis.md; Integritätsprüfung 20.10.2026
 C02,P0,C,Entwicklungsstart reproduzierbar beschreiben,4,8,C01,"Node-Version, Installationsschritte und .env.example für beide Dienste beschrieben",Offen,,
-C03,P0,C,Hardwarebestand und Firmwarestand abgleichen,4,8,C01,"Boardrevision, Sensor, HX711-Rate, Versorgung und geflashter Sketch erfasst",Offen,,
+C03,P0,C,Hardwarebestand und Firmwarestand abgleichen,4,8,C01,"Boardrevision, Sensor, HX711-Rate, Versorgung und geflashter Sketch erfasst",In Arbeit,Codex,"docs/checks/wristband-bringup.md; Vorbereitung begonnen, reale Hardwareangaben ausstehend"
 C04,P0,C,Abnahmekriterien und Messplan festlegen,4,8,C03,"Messbereich, Datenalter, Warnlatenz und Laufzeit als zu prüfende Ziele vereinbart",Offen,,
 C05,P0,C,BLE-Rollen und Gateway auswählen,5,10,C03,Central/Peripheral-Rollen und benötigte gleichzeitige Verbindungen am Testaufbau nachgewiesen,Offen,,
 C06,P0,C,Versioniertes Protokoll spezifizieren,5,10,C04;C05,"Payload, Einheit, Sequenz, Gerätezeit, Status, Grenzwertversion und ACK definiert",Offen,,

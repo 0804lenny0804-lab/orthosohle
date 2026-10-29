@@ -1,6 +1,6 @@
 # OrthoSohle – Projektkontext und aktueller Stand
 
-Aktualisiert: 20.10.2026. Mit [AGENTS.md](../AGENTS.md) lesen; Details über die Quellen unten nachladen. Nur OrthoSohle, keine allgemeine Projektvorlage.
+Aktualisiert: 29.10.2026. Mit [AGENTS.md](../AGENTS.md) lesen; Details über die Quellen unten nachladen. Nur OrthoSohle, keine allgemeine Projektvorlage.
 
 ## Ziel, Prioritäten und Rahmen
 
@@ -19,7 +19,7 @@ Software auf Basis der alten App umfassend überarbeiten: getrennte Arzt-/Patien
 - [Codegrundlage](../code/README.md): unveränderter ZIP-Stand unter code/orthopaul, 51 Dateien mit Herkunft/Prüfsummen. Vue/Vite/Bootstrap/Chart.js; Express/SQLite; ArduinoBLE/HX711-Sketch. Kein ursprünglicher GitLab-Commit enthalten.
 - Web-Referenz: BLE-Auswahl, Livechart, Smartphonewarnung, Konfiguration, Simulation, Schritt-/Peak-Erkennung, Historie und Lauf-Feedback.
 - Neue Armband-/Web-/Backendmodule noch nicht implementiert. Es gibt keine Platzhalter-Codebereiche mehr; nur tatsächliche Quelldateien und Arbeitsunterlagen.
-- [Backlog](backlog.csv): 57 geschätzte Aufgaben mit Priorität, Abhängigkeiten und Abnahme. C01 ist mit dokumentierter Quelle, Inventar und Stack abgenommen; alle übrigen Aufgaben sind offen, Verantwortliche noch zuordnen. Die Schätzungen sind keine geleisteten Stunden.
+- [Backlog](backlog.csv): 57 geschätzte Aufgaben mit Priorität, Abhängigkeiten und Abnahme. C01 ist mit dokumentierter Quelle, Inventar und Stack abgenommen; C03 ist in Arbeit (Vorbereitung durch Codex; reale Hardwareangaben ausstehend); übrige Aufgaben sind offen, Verantwortliche noch zuordnen. Die Schätzungen sind keine geleisteten Stunden.
 
 ## Hardwarebestand – aktuell noch zu prüfen
 
@@ -56,12 +56,12 @@ Referenzprüfungen 20.10.: Produktionsbuild inkl. Service Worker und isolierter 
 
 ## Übergabe und unmittelbar nächste Arbeit
 
-Aktiver Auftrag ist die Software-Anforderungsklärung. [requirements.md](requirements.md) erfasst Rollen, Onboarding, Betreuungsrechte, Plan-/Geräteversionen, Datenweg, Sicherheit/DSGVO, Betrieb und Meilensteine M0–M8. Noch keine Softwarefunktion implementiert und alter Semesterbacklog noch nicht auf erweiterten Produktumfang umgeschätzt.
+Aktiver Auftrag ist die erste kleine Armband-Inbetriebnahme. Die [Erhebung und Abnahme](checks/wristband-bringup.md) beschreibt den begonnenen Schritt C03 und den anschließenden minimalen Displaytest. Tatsächliche Boardrevision und USB-Erkennung fehlen noch; noch kein Firmwarecode oder Flashvorgang. PR #1 mit der Arbeitsgrundlage wurde am 29.10.2026 nach `main` übernommen; der aktuelle Branch `Paul/wristband-first-display` enthält die angefangene Hardwareerhebung und soll separat per PR integriert werden. [requirements.md](requirements.md) erfasst Rollen, Onboarding, Betreuungsrechte, Plan-/Geräteversionen, Datenweg, Sicherheit/DSGVO, Betrieb und Meilensteine M0–M8. Noch keine Softwarefunktion implementiert und alter Semesterbacklog noch nicht auf erweiterten Produktumfang umgeschätzt.
 
-Einsatzfolge, ein verantwortlicher Arzt und verfügbare Testgeräte sind bestätigt; Apple Watch wird ab der gemeinsamen Grundlagenplanung berücksichtigt. Nächster Schritt im Produkt: Hardwarebestand C03 und BLE-Rollen C05 anhand realer Geräte erheben; danach übrige M0-Punkte sowie M1 für beide Smartphones, Waveshare und Apple Watch konkretisieren und den erweiterten Umfang neu schätzen. Der GitHub-Teamablauf ist in [AGENTS.md](../AGENTS.md) festgehalten; Pull Request #1 stellt die aufbereitete Arbeitsgrundlage zur Teamprüfung bereit. Der iPhone-Buildweg über GitHub Actions und AltServer sowie der separate Apple-Watch-Installationsweg sind noch praktisch zu erproben. Keine Datenwege/Komponenten erfinden. Bisherige Ordnerbereinigung ist abgeschlossen, kein weiterer Strukturumbau nötig.
+Einsatzfolge, ein verantwortlicher Arzt und verfügbare Testgeräte sind bestätigt; Apple Watch wird ab der gemeinsamen Grundlagenplanung berücksichtigt. Nächster Schritt im Produkt: Hardwarebestand C03 und BLE-Rollen C05 anhand realer Geräte erheben; danach übrige M0-Punkte sowie M1 für beide Smartphones, Waveshare und Apple Watch konkretisieren und den erweiterten Umfang neu schätzen. Der GitHub-Teamablauf ist in [AGENTS.md](../AGENTS.md) festgehalten; PR #1 ist gemergt. Der iPhone-Buildweg über GitHub Actions und AltServer sowie der separate Apple-Watch-Installationsweg sind noch praktisch zu erproben. Keine Datenwege/Komponenten erfinden. Bisherige Ordnerbereinigung ist abgeschlossen, kein weiterer Strukturumbau nötig.
 
 ## Git und Zusammenarbeit auf mehreren Geräten
 
-Vereinbarter Teamablauf: `main` als Integrationsbranch; persönliche Aufgabenbranches `Lenni/<branchname>` und `Paul/<branchname>`; Integration ausschließlich per Pull Request nach `main`. `origin` zeigt auf `https://github.com/0804lenny0804-lab/orthosohle.git`; der lokale Checkout `Paul/docs-git-workflow` ist veröffentlicht. Pull Request [#1](https://github.com/0804lenny0804-lab/orthosohle/pull/1) mit den lokalen Projektgrundlagen ist offen und wartet auf Teamprüfung/Integration. `origin/main` ist noch der initiale Stand. CI und Branchschutz sind nicht geprüft. Git ist für lokalen Commit und Branch maßgeblich.
+Vereinbarter Teamablauf: `main` als Integrationsbranch; persönliche Aufgabenbranches `Lenni/<branchname>` und `Paul/<branchname>`; Integration ausschließlich per Pull Request nach `main`. `origin` zeigt auf `https://github.com/0804lenny0804-lab/orthosohle.git`. Pull Request [#1](https://github.com/0804lenny0804-lab/orthosohle/pull/1) mit der Arbeitsgrundlage ist gemergt. Der aktuelle Armband-Vorbereitungsschritt liegt auf `Paul/wristband-first-display`; CI und Branchschutz sind nicht geprüft. Git ist für lokalen Commit und Branch maßgeblich.
 
 Auf jedem PC separat Repository klonen, Root-README/AGENTS/Kontext lesen und Voraussetzungen prüfen. Nur Commit + Push und Clone/Pull synchronisieren versionierte Dateien. Chat, lokale DB, Secrets, Pakete, Pairings und laufende Prozesse kommen nicht mit. Vor Pull eigenen Status prüfen, passenden Branch fetch/pull --ff-only; bei Divergenz nichts verwerfen/erzwingen. Ohne erfolgreichen Fetch keine Remote-Aktualität behaupten.
