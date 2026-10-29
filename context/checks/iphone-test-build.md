@@ -23,3 +23,7 @@ GitHub-Metadaten und fertiges Buildlog wurden über Connector geprüft. Lokaler 
 Windows-PC und iPhone sind nicht mit dieser Sitzung verbunden; kein lokales Terminal angehängt. Daher AltServer-Version, tatsächliches iPhone/iOS, Signierung, Installation und Appstart nicht selbst geprüft. Diese Angaben bleiben unbekannt. Keine Apple-Zugangsdaten an GitHub oder Chat übermittelt.
 
 Nächste Abnahme: Artifact unter Windows herunterladen/entpacken, lokale AltServer-Signierung, USB-Installation und Appstart ohne Metro. Entwicklerprofil/Entwicklermodus sowie iOS-Kompatibilität am tatsächlichen Gerät prüfen. Die zuvor dokumentierten Expo-Toolchain-Sicherheitsbefunde und sämtliche Produkt-/BLE-/Hintergrund-/Watchfreigaben bleiben offen.
+
+## Installationsrückmeldung
+
+Nutzer meldet „could not install in this time“. Vollständiger Wortlaut, Fehlercode und Stelle (AltServer oder iPhone) noch unbekannt. Installation damit nicht abgenommen; erfolgreicher GitHub-Build belegt keine erfolgreiche Signierung oder Installation. Vor erneutem Build vollständige Meldung und Installationsschritt erfassen. Keine Ursache als bestätigt behandeln.
