@@ -10,7 +10,11 @@ for (const demo of [false, true]) {
       demo,
       auth: {
         handler: () => new Response(),
-        api: { getSession: async () => ({ user: { id: "test-only" } }) },
+        api: {
+          getSession: async () => ({
+            user: { id: "test-only", emailVerified: true },
+          }),
+        },
       },
     }).listen(0, "127.0.0.1");
     t.after(() => new Promise((resolve) => server.close(resolve)));
@@ -72,4 +76,23 @@ test("Client akzeptiert fehlenden und numerischen Demo-Plan", async (t) => {
     assert.deepEqual(await loadPlan(), data);
     t.mock.restoreAll();
   }
+});
+
+test("Bestehende Sitzung ohne bestätigte E-Mail erhält keinen Planzugriff", async (t) => {
+  const server = createApp({
+    auth: {
+      handler: () => new Response(),
+      api: {
+        getSession: async () => ({
+          user: { id: "old-account", emailVerified: false },
+        }),
+      },
+    },
+  }).listen(0, "127.0.0.1");
+  await once(server, "listening");
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  assert.equal(
+    (await fetch(`http://127.0.0.1:${server.address().port}/api/plan`)).status,
+    403,
+  );
 });

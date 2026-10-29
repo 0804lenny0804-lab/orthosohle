@@ -28,7 +28,7 @@ npm test --prefix code/webapp
 npm run build --prefix code/webapp
 ```
 
-API und Vite binden lokal an Loopback. Ausschließlich http://127.0.0.1:5173 verwenden; localhost ist ein anderer Origin. API startet nur mit AUTH_DEV_MODE=true und verweigert NODE_ENV=production. Better Auth erstellt im lokalen Testbetrieb das Schema beim Start. Die SQLite-Datei liegt unter data/local/auth.db relativ zum Prozess-Arbeitsverzeichnis und wird nicht versioniert. Beim ersten Start ein synthetisches Testkonto anlegen. E-Mail-Verifikation, Versand und Reset sind noch nicht eingerichtet. Kein Patient kann sich über ein Profilfeld zum Arzt machen; Arztfunktionen fehlen bisher vollständig.
+API und Vite binden lokal an Loopback. Ausschließlich http://127.0.0.1:5173 verwenden; localhost ist ein anderer Origin. API startet nur mit AUTH_DEV_MODE=true und verweigert NODE_ENV=production. Better Auth erstellt im lokalen Testbetrieb das Schema beim Start. Die SQLite-Datei liegt unter data/local/auth.db relativ zum Prozess-Arbeitsverzeichnis und wird nicht versioniert. Beim ersten Start ein synthetisches Testkonto anlegen. E-Mail-Verifikation und Passwortreset sind über eine lokale Mailablage eingerichtet; externer Versand fehlt. Kein Patient kann sich über ein Profilfeld zum Arzt machen; Arztfunktionen fehlen bisher vollständig.
 
  Keine Produktionsbereitstellung: dist ist ein Frontend-Build und benötigt später einen geschützten API-/Hostingpfad. Fachliche Autorisierung, persistente Pläne und Arztfunktionen folgen als eigene Arbeitspakete.
 
@@ -63,3 +63,14 @@ Datenfluss: TherapyPlan → api.loadPlan → /api/plan → Express → synthetis
 Der Browser sendet Auth-Aufrufe über /api/auth an den Vite-Proxy. Better Auth prüft Passwort und Origin, speichert Sitzungen in SQLite und setzt das Sessioncookie. /api/plan prüft dieses Cookie serverseitig; fehlende Auth-Konfiguration sperrt den Endpunkt. Abmelden widerruft die Sitzung in der Datenbank, nicht nur im Browser.
 
 Grenzen: lokale HTTP-Cookies sind für Loopback konfiguriert; produktiver HTTPS-/Proxybetrieb ist nicht eingerichtet. Die Bibliothek nutzt ohne vertrauenswürdig ermittelte Client-IP einen gemeinsamen Rate-Limit-Bucket; derzeitiger lokaler Testbetrieb, noch kein geprüfter verteilter Missbrauchsschutz. Für Produktion persistenten Rate-Limit-Speicher und Proxy-Vertrauenskette prüfen. Schemaänderungen vor echtem Betrieb als geprüfte Migrationen ausführen; derzeit automatische lokale Initialisierung. Kein Schutz-/DSGVO-Gesamtnachweis aus dieser Integration ableiten.
+
+
+### E-Mail bestätigen und Passwort zurücksetzen (lokaler Test)
+
+Nach Registrierung liegt die Testnachricht als einzelne JSON-Datei unter `data/local/mail/`, relativ zum Arbeitsverzeichnis des API-Prozesses. Den dortigen `url`-Wert lokal im Browser öffnen; keine Links oder Tokens in Git, Logs oder Chats kopieren. Ohne Bestätigung scheitert die Anmeldung. Der Bestätigungslink gilt 30 Minuten. Bereits vorhandene unbestätigte Testkonten können über „Bestätigungslink erneut anfordern“ einen Link erhalten. Nach Bestätigung erneut anmelden.
+
+„Passwort vergessen?“ erzeugt eine lokale Nachricht mit 15 Minuten gültigem Rücksetzlink. Link öffnen, neues Passwort setzen und neu anmelden. Ein Reset-Link kann nur einmal verwendet werden; bestehende Sitzungen werden nach erfolgreichem Reset widerrufen. Die Oberfläche entfernt den übernommenen Reset-Token aus der Adresszeile, und Referrer-Weitergabe ist deaktiviert. Bestätigungslinks sind signierte zeitbegrenzte Bibliothekslinks; keine allgemeine Einmalnutzung dieser Links zugesagt.
+
+`server/auth/local-mail.js` schreibt ausschließlich lokale Testnachrichten mit restriktiven Dateirechten. Die Mailablage wird nicht per HTTP angeboten. `src/components/PasswordRecovery.vue` behandelt Anforderung und Einlösung des Reset-Links. Testnachrichten nach Gebrauch lokal löschen; eine automatische Aufbewahrungsregel und echter Mailversand gehören zum späteren Betriebskonzept. Auf Windows zusätzlich die lokalen Benutzer-/Verzeichnisrechte prüfen.
+
+Vertragstests prüfen den vollständigen Ablauf einschließlich verweigerter Anmeldung vor Bestätigung, Einmalnutzung und Ablauf des Reset-Tokens, ungültigem alten Passwort und Sessionwiderruf. Ein gesonderter Test verhindert Planzugriff auch mit einer alten unbestätigten Sitzung. Mailablage-Test prüft Dateitrennung und auf Unix Dateirechte. Browserabläufe bleiben manuell zu prüfen.

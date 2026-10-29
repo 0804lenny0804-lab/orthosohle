@@ -1,4 +1,5 @@
 import { chmodSync, mkdirSync } from "node:fs";
+import { createLocalMail } from "./auth/local-mail.js";
 import Database from "better-sqlite3";
 import { createApp } from "./app.js";
 import { createLocalAuth } from "./auth/create-auth.js";
@@ -22,6 +23,7 @@ const database = new Database("data/local/auth.db");
 chmodSync("data/local/auth.db", 0o600);
 const auth = await createLocalAuth({
   database,
+  sendMail: createLocalMail("data/local/mail"),
   secret: process.env.AUTH_SECRET,
   baseURL: "http://127.0.0.1:5173",
   trustedOrigins: ["http://127.0.0.1:5173"],

@@ -8,6 +8,11 @@ export function requireSession(auth) {
       });
       if (!session)
         return res.status(401).json({ error: "Anmeldung erforderlich" });
+      if (session.user.emailVerified !== true) {
+        return res
+          .status(403)
+          .json({ error: "E-Mail-Bestätigung erforderlich" });
+      }
       // Identität kommt ausschließlich aus der geprüften Session, nie aus Request-IDs.
       res.locals.session = session;
       next();

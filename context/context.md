@@ -11,17 +11,18 @@ Stand: 29.10.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 - [Altbestand](legacy/README.md): 51 unveränderte Dateien aus dem GitLab-ZIP mit [Manifest](legacy/manifest.json); ursprünglicher GitLab-Commit unbekannt. Vue/Express/SQLite und Arduino-Sketch dienen als Referenz, keine Produktfreigabe.
 - Aktiver Code: code/webapp. Vue-/Express-Grundlage mit getrennten Plan-, Geräte- und Historienkomponenten; lokale Testkonten und datenbankgestützte Sessions über Better Auth/SQLite.
 - Testregistrierung, Anmeldung und serverseitige Abmeldung implementiert. Planendpunkt verlangt eine gültige Session und liefert ausschließlich synthetischen Demo-Plan oder fehlenden Plan. Keine echten Gesundheitsdaten, Arztfunktionen, Planpersistenz oder Geräteanbindung.
-- Start nur im ausdrücklich freigegebenen lokalen Auth-Testbetrieb. E-Mail-Verifikation, Versand/Reset, Arzt-MFA/Recovery, fachliche Rechte, Produktionsmigrationen und Hosting bleiben offen.
+- E-Mail-Verifikation ist für Anmeldung erforderlich. Verifikations-/Reset-Links liegen ausschließlich in geschützter lokaler Mail-Testablage. Reset widerruft bestehende Sitzungen.
+- Start nur im ausdrücklich freigegebenen lokalen Auth-Testbetrieb. Externer Mailversand, Arzt-MFA/Recovery, fachliche Rechte, Produktionsmigrationen und Hosting bleiben offen.
 
 ## Nachweise und Grenzen
 
-Sechs Node-Tests prüfen unter anderem unberechtigten Planzugriff, fremden Origin und widerrufene Sitzung. Frontend-Produktionsbuild erfolgreich; Produktionsabhängigkeiten laut npm audit am 29.10.2026 ohne bekannte Schwachstellen. Das ist kein unabhängiger Sicherheitsnachweis. Browserbedienung, Hardware, BLE, Smartphone-Hintergrundbetrieb und Watch sind ungeprüft. Anforderungen ACC-01–04 und M2 noch nicht vollständig abgenommen.
+Acht Node-Tests prüfen unter anderem unberechtigten Planzugriff, fremden Origin und widerrufene Sitzung sowie E-Mail-Verifikation, abgelaufene/erneut verwendete Reset-Tokens und geschützte lokale Testnachrichten. Frontend-Produktionsbuild erfolgreich; Produktionsabhängigkeiten laut npm audit am 29.10.2026 ohne bekannte Schwachstellen. Das ist kein unabhängiger Sicherheitsnachweis. Browserbedienung, Hardware, BLE, Smartphone-Hintergrundbetrieb und Watch sind ungeprüft. Anforderungen ACC-01–04 und M2 noch nicht vollständig abgenommen.
 
 Die Struktur trennt Regeln, Kontext/Altbestand und aktiven Code. Verschieben ändert keine Originaldatei; die Manifestprüfung bleibt maßgeblich. Ältere Verweise innerhalb unveränderter Quellen beschreiben deren damaligen Stand.
 
 ## Nächster konkreter Schritt
 
-E-Mail-Verifikation und Passwortreset mit lokalem Mail-Testtransport ergänzen; danach geprüfte Arztrolle, MFA und Betreuungsbeziehung. Vor realem Betrieb Versand-/Hostingmodell, Verantwortlichkeiten, Datenschutz und Freigaben festlegen. Das Armband wartet auf Hardwareverfügbarkeit.
+Browserablauf für Verifikation/Reset prüfen; danach geprüfte Arztrolle, MFA und Betreuungsbeziehung umsetzen. Vor realem Betrieb Versand-/Hostingmodell, Verantwortlichkeiten, Datenschutz und Freigaben festlegen. Das Armband wartet auf Hardwareverfügbarkeit.
 
 ## Navigation ohne doppelte Pflege
 

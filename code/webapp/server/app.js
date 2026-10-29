@@ -10,6 +10,7 @@ export function createApp({ demo = false, auth = null } = {}) {
   app.use("/api", (_req, res, next) => {
     res.set("Cache-Control", "no-store");
     res.set("X-Content-Type-Options", "nosniff");
+    res.set("Referrer-Policy", "no-referrer");
     next();
   });
   if (auth) {
