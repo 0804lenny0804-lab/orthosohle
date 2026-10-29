@@ -1,0 +1,12 @@
+{
+  "name": "orthopaul",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n FRONTEND,BACKEND -c magenta,cyan \"npm run dev --prefix local-comm/frontend\" \"nodemon local-comm/server/server.js\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.0"
+  }
+}
