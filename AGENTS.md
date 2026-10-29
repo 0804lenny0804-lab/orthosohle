@@ -4,7 +4,7 @@ Gilt ausschließlich für dieses Repository. Aktuelle Nutzeraufträge und überg
 
 ## Start und Entscheidungen
 
-- Zuerst `git status --short --branch` und `git log -5 --oneline`, dann diese Datei und [Projektkontext](docs/context.md) lesen. Danach nur betroffenen Code, Aufgabe und relevante Quellen nachladen.
+- Zuerst `git status --short --branch` und `git log -5 --oneline`, dann diese Datei und [Projektkontext](context/context.md) lesen. Danach nur betroffenen Code, Aufgabe und relevante Quellen nachladen.
 - Ziel, Abnahme und Umfang der Änderung bestimmen. Kleine technische Entscheidungen innerhalb der vereinbarten Aufgabe selbst treffen. Größere Änderungen an Architektur, Hardware, Umfang oder Abhängigkeiten vorher konkret besprechen; unabhängige Arbeit fortsetzen.
 - Keine vorhandenen fremden Änderungen verwerfen oder beiläufig mitcommitten. Keine unbekannten Komponenten, Stunden oder Messergebnisse erfinden.
 
@@ -15,24 +15,35 @@ Gilt ausschließlich für dieses Repository. Aktuelle Nutzeraufträge und überg
 - Vor Fehlerkorrekturen alle Aufrufer suchen; Ursache möglichst einmal an der richtigen gemeinsamen Stelle korrigieren. Betroffene Tests, Konfiguration, Exporte, Fixtures und Dokumentation mitziehen.
 - Keine Wrapper, Optionen, Module oder Ordner auf Vorrat. Ähnliche Zeilen allein rechtfertigen keine gekoppelte Abstraktion. Lesbarkeit geht vor cleverer Kürze. Beim Verschieben Validierung und Fehlerbehandlung erhalten.
 - Schnittstellenvalidierung, Fehlerbehandlung, Datensicherheit, Barrierefreiheit und Hardwarekalibrierung niemals zugunsten kurzer Implementierung streichen. Bewusste Abkürzungen direkt mit Grenze und Verbesserungsanlass dokumentieren: `shortcut: <Grenze>, <wann verbessern>`.
-- [Ponytail-Quelle](docs/sources/ponytail.md) wurde gelesen; kein Skill installiert. Zusätzliche Tools, Skills und Agenten nur für konkreten Bedarf und entsprechendem Auftrag; keine Rollenverwaltung auf Vorrat.
+- [Ponytail-Quelle](context/sources/ponytail.md) wurde gelesen; kein Skill installiert. Zusätzliche Tools, Skills und Agenten nur für konkreten Bedarf und entsprechendem Auftrag; keine Rollenverwaltung auf Vorrat.
+
+## Nachvollziehbarkeit und Produktqualität
+
+- Das Team muss jeden neuen Datenfluss und jede fachliche Regel erklären können. Aussagekräftige Namen, lesbar formatierter Quelltext und überschaubare Funktionen sind Pflicht. Kommentare erklären Gründe, Annahmen und Grenzen; keine komprimierten Einzeiler zur Einhaltung von Dateilimits.
+- Jede selbst geschriebene Quelldatei hat eine klar benennbare Verantwortung. Richtwert: unter 500 Zeilen je Datei. Größere Dateien sind zulässig, wenn fachlich sinnvoll; Grund und Prüfanlass dokumentieren. Generierte Dateien, Lockfiles und unveränderte Originalquellen sind ausgenommen. Nicht mechanisch in Kleinstdateien zerlegen.
+- UI-Darstellung, Transport, fachliche Regeln und Persistenz getrennt halten. Schnittstellen explizit beschreiben; keine versteckten Seiteneffekte. Abhängigkeiten nur bei belegtem Nutzen und nachvollziehbarem Wartungsaufwand ergänzen. DRY/Ponytail gelten gemäß dem Abschnitt oben.
+- Datenschutz ab Datenmodell berücksichtigen: Zweck und erforderliche Felder, Datenminimierung, Rollen/Besitz/Betreuungsrechte, Aufbewahrung, Löschung und Export. Rechtsgrundlagen, Verantwortliche, Dienstleisterverträge und gegebenenfalls Datenschutz-Folgenabschätzung für den konkreten Einsatz fachlich klären. Keine echten Gesundheitsdaten in Entwicklung, Tests oder Logs.
+- Sicherheit ab Schnittstelle berücksichtigen: serverseitige Validierung und Autorisierung, etablierte Authentifizierung, sichere Sessions, CSRF-Schutz soweit erforderlich, Missbrauchsbegrenzung, Secret-Verwaltung, datensparsame Fehler/Logs und Prüfung relevanter Abhängigkeiten. Sicherheitskritische Negativfälle testen; keine selbst entworfene Kryptografie oder Passwortlösung.
+- Produktreife anhand nachprüfbarer Anforderungen abnehmen: fachliche Korrektheit, Barrierefreiheit, unterstützte Geräte/Browser, Fehler-/Offlineverhalten, Migrationen, reproduzierbare Builds/Deployments, Monitoring, Backup mit erprobtem Restore, Rollback, Update-/Incidentverantwortung und erforderliche Einsatzfreigaben. Die maßgeblichen Kriterien stehen in context/requirements.md; keine parallelen Anforderungskopien pflegen.
+- Bei jedem Review Verantwortung der Dateien, Verständlichkeit, doppelte Fachregeln, Datenschutz-/Sicherheitsauswirkungen und passende Prüfnachweise prüfen. Ungeprüfte Eigenschaften ausdrücklich offen lassen; ein Build allein belegt keine Produktreife.
 
 ## Ablage und modulare Arbeit
 
 | Inhalt | Maßgebliche Stelle |
 |---|---|
 | Arbeitsregeln | Diese AGENTS.md |
-| Wissen, belegter Iststand, offene Fragen und letzte Übergabe | docs/context.md |
-| Dauerhafte Entscheidung mit Datum, Grund und Konsequenz | docs/decisions.md |
-| Produktanforderungen und Meilenstein-Abnahme | docs/requirements.md |
-| Aufgaben, Verantwortliche, Status, Schätzung und Abnahme | docs/backlog.csv |
-| Umfangreiche Bestandsaufnahme / Originale / Prüfbelege | docs/analysis.md / docs/sources / docs/checks |
-| Code, ausführbare Einstiegsschritte und Herkunft | code/; Übersicht in code/README.md |
+| Wissen, belegter Iststand, offene Fragen und letzte Übergabe | context/context.md |
+| Dauerhafte Entscheidung mit Datum, Grund und Konsequenz | context/decisions.md |
+| Produktanforderungen und Meilenstein-Abnahme | context/requirements.md |
+| Aufgaben, Verantwortliche, Status, Schätzung und Abnahme | context/backlog.csv |
+| Umfangreiche Bestandsaufnahme / Originale / Prüfbelege | context/analysis.md / context/sources / context/checks |
+| Aktiver Anwendungscode und Start | code/; Übersicht in code/README.md |
+| Unveränderter Altcode und Herkunft | context/legacy/; Manifest und alte Startanleitung dort |
 | Projektwerkzeuge und zugehörige Tests | scripts/ |
 
 Codebereiche erst anlegen, wenn dort tatsächlich implementiert wird; keine Platzhalter-READMEs oder .gitkeep-Dateien für mögliche spätere Module. Fachlich UI, Transport/Decoder, Domänenlogik und Persistenz trennen. Ein Modul hat eine klare Verantwortung und eine kleine explizite Schnittstelle; keine direkten Web-/Server-/Firmware-Imports. Neue gemeinsam genutzte Pakete nur bei belegtem Bedarf. Hardwarezugriffe nicht in den fachlichen Warnautomaten mischen. Details erst am tatsächlichen Implementierungsschritt konkretisieren.
 
-Originalcode unter code/orthopaul bleibt bis zur bewussten Migration unverändert und durch code/manifest.json prüfbar. Neue Produktänderungen in einem eigenen tatsächlich implementierten Codebereich; keine Änderung durch bloßes Umbenennen als Migration ausgeben. Dateiverschiebung und Verhaltensänderung möglichst getrennt halten.
+Originalcode unter context/legacy/orthopaul bleibt bis zur bewussten Migration unverändert und durch context/legacy/manifest.json prüfbar. Neue Produktänderungen in einem eigenen tatsächlich implementierten Codebereich; keine Änderung durch bloßes Umbenennen als Migration ausgeben. Dateiverschiebung und Verhaltensänderung möglichst getrennt halten.
 
 Neue Ordner-/Dokumentnamen einheitlich englisch in kebab-case; Code folgt den vorhandenen Sprach-/Frameworkkonventionen. Originaldateinamen bleiben erhalten. Deutsche Projektdokumentation mit relativen Links. Reale Zeiten nur erfassen, wenn sie bekannt sind; eine Zeiterfassungsdatei erst mit tatsächlichen Einträgen anlegen, keine Planung als geleisteten Aufwand buchen.
 
@@ -40,14 +51,15 @@ Neue Ordner-/Dokumentnamen einheitlich englisch in kebab-case; Code folgt den vo
 
 1. Passende Verifikation ausführen. Neue nichttriviale Logik und Korrekturen an Warnung, Protokoll, API, Autorisierung oder Datenhaltung brauchen aussagekräftige Tests. Reine Dokumentationsänderungen brauchen keine künstlichen Unit-Tests. Hardwareprüfungen mit Datum, Quellstand, Aufbau, Erwartung, Beobachtung und Grenzen festhalten.
 2. `python3 scripts/check_project.py`, bei geändertem Prüfer auch dessen Tests, und `git diff --check` ausführen. Diff selbst lesen. Erfolgreicher Build ist kein Funktions-/Genauigkeitsnachweis; nicht ausgeführte Tests als ungeprüft nennen.
-3. Geänderten Iststand und nächste Schritte in docs/context.md aktualisieren; relevante Entscheidung/Abnahme an ihrer maßgeblichen Stelle festhalten. Keine Chatprotokolle kopieren. Eine Übergabe braucht nur Ergebnis, verbleibende Fragen und nächsten konkreten Schritt.
+3. Geänderten Iststand und nächste Schritte in context/context.md aktualisieren; relevante Entscheidung/Abnahme an ihrer maßgeblichen Stelle festhalten. Keine Chatprotokolle kopieren. Eine Übergabe braucht nur Ergebnis, verbleibende Fragen und nächsten konkreten Schritt.
 4. Abgeschlossene beauftragte Arbeit gezielt stagen und lokal committen, sofern kein uncommittierter Entwurf verlangt wurde. Kurze fachliche Commits, z. B. `fix(api): correct limit response`. Aufgaben mit Verantwortlichen und prüfbarer Abnahme bearbeiten, große Schritte in ca. 2–4 echte Personenstunden teilen. „Erledigt“ erst bei tatsächlicher Abnahme mit Nachweis; zweite Person prüft vor Integration.
 5. Ergebnis, Branch/Commit, tatsächliche Prüfungen und Reständerungen knapp berichten. Git ist für HEAD/Branch maßgeblich, keine vorweggenommenen Commit-IDs in Dokumenten.
 
 ## Git-Zusammenarbeit
 
-- `main` ist der Integrationsbranch. Beide Personen arbeiten ausschließlich auf eigenen Aufgabenbranches im Namensschema `Lenni/<branchname>` bzw. `Paul/<branchname>`; `<branchname>` beschreibt kurz die Aufgabe, z. B. `Lenni/docs-git-workflow`.
-- Änderungen gehen per Pull Request vom persönlichen Branch nach `main`. Änderungen nicht direkt auf `main` committen oder pushen. Pull Requests klein und auf eine Aufgabe begrenzt halten; vor dem Eröffnen passende Prüfungen ausführen und den Zweck sowie Prüfergebnis beschreiben.
-- Vor Branch-Erstellung den aktuellen Integrationsstand holen und darauf aufbauen. Bestehende fremde Branches/Änderungen nicht übernehmen oder umschreiben, außer als Teil der gemeinsam vereinbarten Arbeit. Kein Force-Push, Hard-Reset oder Verwerfen fremder Arbeit ohne ausdrücklichen Auftrag.
-- Ein lokaler Commit ist kein Push. Remote-Pushes, Pull-Request-Erstellung und Merge nur im vereinbarten GitHub-Workflow und ohne Geheimnisse, echte Patientendaten, lokale Datenbanken oder generierte Builds.
-- Ist das zentrale GitHub-Repository noch nicht verbunden oder der GitHub-Stand nicht abrufbar, keine gemeinsame Remote-Aktualität behaupten; den Zustand offen nennen.
+- Genau drei dauerhafte Branches: `lenni/code`, `paul/code` und `main` (Kleinschreibung verbindlich). Lenni arbeitet auf lenni/code, Paul auf paul/code. Keine zusätzlichen Aufgabenbranches anlegen.
+- Personenbranches regelmäßig pushen. Geprüfte Änderungen gehen per Pull Request vom Personenbranch nach main; main bleibt der gemeinsame Integrationsstand. Kein direkter Push nach main. Zweite Person prüft vor dem Merge; dauerhafte Personenbranches beim Merge nicht löschen.
+- Vor Arbeit und Integration Status prüfen und origin fetchen. Änderungen von main bewusst in den eigenen Personenbranch übernehmen, Konflikte dort lösen und passende Prüfungen erneut ausführen. Keine fremden Commits umschreiben, kein Force-Push, kein Hard-Reset und kein Verwerfen unbekannter Änderungen.
+- Vor Gerätewechsel eigenen Stand committen/pushen; am anderen Gerät den passenden Personenbranch und Remote-Stand prüfen. Lokale Datenbanken, Secrets und Pakete sind nicht synchronisiert.
+- Alte Branch-Namen erst nach Sicherung ihrer Commitstände unter nachvollziehbaren Archiv-Tags entfernen. Ungeprüfte fremde Änderungen werden durch Archivierung nicht als integriert erklärt.
+- Remote-Pushes und Pull Requests im vereinbarten Workflow; keine Geheimnisse, echten Patientendaten, lokalen Datenbanken oder generierten Builds übertragen. Ohne erfolgreichen Fetch keine Remote-Aktualität behaupten.

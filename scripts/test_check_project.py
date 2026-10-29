@@ -34,7 +34,7 @@ class ProjectChecks(unittest.TestCase):
         self.assertEqual(self.check(), 1)
 
     def test_changed_historical_source_fails(self):
-        path = self.root / 'code/orthopaul/package.json'
+        path = self.root / 'context/legacy/orthopaul/package.json'
         path.write_bytes(path.read_bytes() + b'\n')
         self.assertEqual(self.check(), 1)
 

@@ -1,0 +1,256 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #173b38;
+  background: #f4f7f5;
+  font-synthesis: none;
+  line-height: 1.6;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px max(24px, calc((100vw - 1120px) / 2));
+  background: white;
+  border-bottom: 1px solid #dce6e0;
+  gap: 16px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 22px;
+  font-weight: 750;
+  text-decoration: none;
+  color: inherit;
+}
+.mark {
+  display: grid;
+  place-items: center;
+  background: #1d6658;
+  color: white;
+  width: 38px;
+  height: 42px;
+  border-radius: 15px 15px 15px 4px;
+}
+main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 52px 24px 24px;
+}
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: #416d62;
+}
+h1 {
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.2;
+  letter-spacing: -1.4px;
+  margin: 12px 0;
+}
+h2 {
+  font-size: 19px;
+  margin: 0;
+}
+h3 {
+  font-size: 21px;
+  margin: 24px 0 8px;
+}
+p {
+  margin: 10px 0;
+}
+.intro,
+.muted,
+dt,
+footer {
+  color: #526961;
+}
+.intro {
+  font-size: 18px;
+}
+.notice {
+  padding: 14px 18px;
+  background: #e8efe9;
+  border: 1px solid #cedbd0;
+  border-radius: 10px;
+  margin: 28px 0;
+  font-size: 14px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 24px;
+}
+.card {
+  background: white;
+  border: 1px solid #dce6e0;
+  border-radius: 18px;
+  padding: 28px;
+}
+.plan {
+  border-top: 4px solid #317b67;
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.badge {
+  font-size: 12px;
+  font-weight: 650;
+  color: #345c50;
+  background: #e8f1ea;
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+.label {
+  margin-top: 28px;
+  color: #526961;
+}
+.weight {
+  font-size: 68px;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -3px;
+  margin: 8px 0;
+}
+.weight span {
+  font-size: 26px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.status {
+  display: inline-block;
+  padding: 7px 11px;
+  background: #fff2dc;
+  color: #73531d;
+  border-radius: 7px;
+  font-size: 14px;
+  margin: 14px 0;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #7a8b83;
+}
+dl {
+  margin-top: 28px;
+}
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #edf1ee;
+  padding: 12px 0;
+  font-size: 14px;
+}
+dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+}
+.sessions {
+  margin-top: 24px;
+}
+.empty {
+  text-align: center;
+  padding: 24px 12px 40px;
+  color: #526961;
+}
+.empty h3 {
+  color: #173b38;
+}
+footer {
+  font-size: 12px;
+  margin: 28px 0;
+}
+button {
+  background: #1d6658;
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font: inherit;
+  cursor: pointer;
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #b76619;
+  outline-offset: 4px;
+}
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  background: white;
+  padding: 12px;
+  z-index: 2;
+}
+.skip:focus {
+  top: 12px;
+}
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  header {
+    padding: 18px 20px;
+  }
+  .brand {
+    font-size: 19px;
+  }
+  main {
+    padding-top: 32px;
+  }
+  .card {
+    padding: 22px;
+  }
+  .badge {
+    white-space: nowrap;
+  }
+  dl div {
+    flex-wrap: wrap;
+  }
+}
+
+.account {
+  max-width: 620px;
+  margin: 24px auto;
+}
+form label {
+  display: block;
+  font-weight: 600;
+  margin: 18px 0;
+}
+input {
+  display: block;
+  width: 100%;
+  border: 1px solid #81968b;
+  border-radius: 8px;
+  padding: 12px;
+  font: inherit;
+  margin-top: 6px;
+}
+input:focus-visible {
+  outline: 3px solid #b76619;
+  outline-offset: 2px;
+}
+button.secondary {
+  background: transparent;
+  color: #173b38;
+  border: 1px solid #81968b;
+  margin: 8px;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
