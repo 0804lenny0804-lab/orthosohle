@@ -88,7 +88,7 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 
 **Grund:** Etablierte Bibliothek statt eigener Passwort-/Sessionkryptografie, gleicher Origin und lokal nachvollziehbare Datenhaltung. Arztprüfung und Betreuungsrechte bleiben fachliche Backendregeln.
 
-**Konsequenz:** Node 22.12+; native SQLite-Abhängigkeit und regelmäßige Sicherheitsupdates berücksichtigen. Start ausdrücklich lokal freigeben und Secret setzen. E-Mail-Verifikation/Reset, Arzt-MFA/Recovery, persistenter Missbrauchsschutz, fachliche Autorisierung, Migrations-/Betriebsfreigaben noch offen. Referenzen: https://www.better-auth.com/context/integrations/express und https://www.better-auth.com/context/concepts/session-management ; implementierte API-Exports anhand installierter Version geprüft, HTTP-Verhalten mit isolierter SQLite getestet.
+**Konsequenz:** Node 22.12+; native SQLite-Abhängigkeit und regelmäßige Sicherheitsupdates berücksichtigen. Start ausdrücklich lokal freigeben und Secret setzen. E-Mail-Verifikation/Reset, Arzt-MFA/Recovery, persistenter Missbrauchsschutz, fachliche Autorisierung, Migrations-/Betriebsfreigaben noch offen. Referenzen: https://www.better-auth.com/docs/integrations/express und https://www.better-auth.com/docs/concepts/session-management ; implementierte API-Exports anhand installierter Version geprüft, HTTP-Verhalten mit isolierter SQLite getestet.
 
 
 ## 29.10.2026 – Drei dauerhafte Branches und klare Ablage

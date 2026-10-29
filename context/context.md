@@ -22,7 +22,7 @@ Die Struktur trennt Regeln, Kontext/Altbestand und aktiven Code. Verschieben än
 
 ## Nächster konkreter Schritt
 
-Browserablauf für Verifikation/Reset prüfen; danach geprüfte Arztrolle, MFA und Betreuungsbeziehung umsetzen. Vor realem Betrieb Versand-/Hostingmodell, Verantwortlichkeiten, Datenschutz und Freigaben festlegen. Das Armband wartet auf Hardwareverfügbarkeit.
+Zuerst die mobile Zielarchitektur für installierbare iOS-/Android-Apps festlegen und Build-/BLE-Pfad prüfen; weitere Web-UI-Erweiterung bis dahin zurückstellen. Browserablauf für Verifikation/Reset bleibt ungeprüft. Vor realem Betrieb Versand-/Hostingmodell, Verantwortlichkeiten, Datenschutz und Freigaben festlegen. Das Armband wartet auf Hardwareverfügbarkeit.
 
 ## Navigation ohne doppelte Pflege
 
@@ -41,3 +41,8 @@ Browserablauf für Verifikation/Reset prüfen; danach geprüfte Arztrolle, MFA u
 Dieser Chat arbeitet ab der Strukturintegration ausschließlich auf `lenni/code`; `paul/code` ist Pauls Arbeitsbranch. Integration nach `main` erfolgt per Pull Request gemäß AGENTS.md.
 
 Der historische 600-Personenstunden-Plan ist keine belastbare Schätzung des erweiterten Produktumfangs. Offene Aufgaben und neue Schätzungen werden im Backlog gepflegt. Lokale Gitstände und Branches ergeben sich aus Git, nicht aus vorweggenommenen Commitangaben hier.
+
+
+## Architekturklärung für Store-Apps
+
+Nutzer möchte den Neuaufbau als installierbare App für App Store und Play Store ausrichten. code/webapp ist bereits unabhängig neu geschriebener Code, keine Änderung des Altbestands; bislang aber browserorientiert. Empfehlung, noch keine beschlossene Stackwahl: Patientenclient mit nativen Plattformzugriffen, separates gemeinsames Backend und gegebenenfalls webbasiertes Ärzteportal. React Native/Expo mit Development Builds und Flutter als Kandidaten anhand BLE, gesperrtem Bildschirm, Offlineablage, Auth/Deep Links und iOS-/Android-Build prüfen. Vue mit Capacitor ist eine mögliche Alternative, deren BLE-/Hintergrundgrenzen ebenso nachzuweisen sind. Apple-Watch-Client benötigt zusätzlich watchOS-Arbeit. Storeinstallation allein belegt keinen zuverlässigen Hintergrundempfang. Bestehender lokaler Auth-Durchstich bleibt Referenz; mobile Session-/Tokenablage und Rücksetzlinks müssen gesondert entworfen werden. Keine Frameworkmigration oder Löschung beauftragt.
