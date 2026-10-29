@@ -27,3 +27,15 @@ Nächste Abnahme: Artifact unter Windows herunterladen/entpacken, lokale AltServ
 ## Installationsrückmeldung
 
 Nutzer meldet „could not install in this time“. Vollständiger Wortlaut, Fehlercode und Stelle (AltServer oder iPhone) noch unbekannt. Installation damit nicht abgenommen; erfolgreicher GitHub-Build belegt keine erfolgreiche Signierung oder Installation. Vor erneutem Build vollständige Meldung und Installationsschritt erfassen. Keine Ursache als bestätigt behandeln.
+
+
+## Präzisierter AltServer-Fehler und Recherche – 29.10.2026
+
+Nutzerscreenshot: AltServer unter Windows meldet beim Sideload der IPA exakt „This action cannot be completed at this time. (-80046)“. Die IPA-Datei wurde ausgewählt. Dieser Fehler ist im offiziellen AltStore-Issuetracker als Problem der Apple-Anmeldung dokumentiert; eine beschädigte OrthoSohle-IPA ist dadurch nicht belegt. Konkrete Account-/Clientursache auf dem Nutzergerät bleibt ungeprüft.
+
+Quellen, abgerufen 29.10.2026:
+- AltStore-Issuetracker, „New Error: -80046. Happens with AltServer 1.8.2“, Issue 1840: https://github.com/altstoreio/AltStore/issues/1840 . Meldungen betreffen unter anderem Fehler nach 2FA und AltServer Windows.
+- Offizieller AltStore-Account: https://fosstodon.org/@altstore . Aktuell indexierte Ankündigung nennt AltStore Classic 2.3.2, AltServer Windows 1.8.1 und macOS 1.8.3 mit Fixes für 503/-80046 und empfiehlt „Check for Updates“. Installierte Windows-Version beim Nutzer unbekannt; aus der Fehlermeldung nicht ableiten.
+- Offizieller Download: https://altstore.io/ , Abschnitt Downloads → AltServer Windows.
+
+Nächster gezielter Schritt: AltServer über eigenes Update-Menü bzw. offiziellen Windows-Download aktualisieren, vollständig beenden und neu starten, dieselbe IPA erneut sideloaden. Erfolg noch nicht bestätigt. Falls der Fehler mit aktualisiertem Client bleibt, installierte Versionsnummer und vollständige neue Fehlermeldung aufnehmen. Kein neuer App-Build und keine fremden Account-/Anisette-Dienste als bestätigte Lösung erforderlich.
