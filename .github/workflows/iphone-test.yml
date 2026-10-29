@@ -1,0 +1,63 @@
+name: iPhone test IPA
+
+on:
+  push:
+    branches: [lenni/code]
+    paths: ['code/mobile/**', 'scripts/build-iphone-test.sh', '.github/workflows/iphone-test.yml']
+  pull_request:
+    branches: [main]
+    paths: ['code/mobile/**', 'scripts/build-iphone-test.sh', '.github/workflows/iphone-test.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iphone-test-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      EXPO_NO_TELEMETRY: '1'
+      CI: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: code/mobile/package-lock.json
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          node --version
+          pod --version
+      - name: Install locked dependencies
+        run: npm ci --prefix code/mobile
+      - name: Check mobile code
+        run: |
+          npm run typecheck --prefix code/mobile
+          npm test --prefix code/mobile
+          python3 scripts/check_project.py
+      - name: Build unsigned device IPA
+        run: bash scripts/build-iphone-test.sh
+      - name: Upload IPA and build details
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrthoSohle-iPhone-unsigned-${{ github.sha }}
+          path: |
+            artifacts/local/iphone/OrthoSohle-unsigned.ipa
+            artifacts/local/iphone/build-info.txt
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload diagnostic build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iphone-build-log-${{ github.sha }}
+          path: artifacts/local/iphone/xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 3

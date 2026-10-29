@@ -56,3 +56,14 @@ Backend und Ärzteportal werden über gemeinsame versionierte API-Verträge ange
 ## Offene Sicherheitsbefunde der Toolchain
 
 `npm audit --omit=dev` meldet am 29.10.2026 acht transitive Befunde (fünf niedrig, drei hoch) zu deepmerge und zod im Expo-Werkzeugbaum. Reguläres `npm audit fix` beseitigt sie nicht; die vorgeschlagene erzwungene SDK-Rückstufung wurde nicht ausgeführt. Keine ungeprüften Major-Overrides setzen. Vor Freigabe gepatchte kompatible Versionen oder eine geprüfte alternative Lösung nachweisen. Quellen: https://github.com/advisories/GHSA-gcqx-w48m-w2h4 und https://github.com/advisories/GHSA-mrhx-c7xc-m3w5 . Die Einordnung in Tooling bedeutet keine pauschale Entwarnung für verarbeitete Eingaben. Der Prototyp verarbeitet nur eigene synthetische Daten und ist nicht freigegeben.
+
+
+## iPhone-Testversion über GitHub Actions und AltServer
+
+[Workflow](../.github/workflows/iphone-test.yml) baut auf einem macOS-26-Runner eine **unsignierte Release-IPA für echte iPhones**. [Buildskript](../scripts/build-iphone-test.sh) erzeugt das native Expo-Projekt, installiert Pods, archiviert ohne Apple-Signierung und verpackt Payload/OrthoSohle.app. Das JS-Bundle ist enthalten; für diese Testversion läuft auf dem iPhone kein Metro-Server. Quellstand, minimale iOS-Version und SHA-256 liegen im Artifact neben der IPA. Keine Apple-Zugangsdaten oder Zertifikate an GitHub übergeben.
+
+Auslösung: Push relevanter Dateien auf lenni/code, Pull Request nach main oder manueller Workflowstart (manuell erst nach Verfügbarkeit des Workflows auf dem Standardbranch). Workflow heißt „iPhone test IPA“. Erfolgreichen Run öffnen, Artifact `OrthoSohle-iPhone-unsigned-<Commit>` herunterladen und ZIP entpacken. Erst ein tatsächlich erfolgreiches Artifact ist ein Buildnachweis.
+
+Unter Windows: iPhone per USB verbinden, Rechner vertrauen und AltServer starten; passende Apple-Gerätetreiber/iTunes-/iCloud-Voraussetzungen gemäß installierter AltServer-Version beachten. Bei unterstützter AltServer-Version mit gedrückter Umschalttaste das Tray-Menü öffnen und „Sideload .ipa“ wählen, IPA auswählen und den Apple-Account **ausschließlich lokal in AltServer** verwenden. Falls dieser Menüpunkt fehlt, die konkrete AltServer-Version prüfen; nicht annehmen, dass „Install AltStore“ unsere IPA installiert. Geräteinstallation und Signierung sind getrennte Schritte vom GitHub-Build. Gegebenenfalls Entwicklerprofil in iOS bestätigen und Entwicklermodus aktivieren. Kostenlose Signierung gilt typischerweise sieben Tage; Apple-Limits und kompatible iOS-Version anhand build-info.txt prüfen.
+
+Die App enthält nur die Demo und ist keine Store-/medizinische Freigabe. Apple-Watch-Installation ist nicht Bestandteil dieses Workflows. Externe Referenzen: https://altstore.io/ und https://faq.altstore.io/ . Der lokale Windows-/Geräteschritt kann aus dieser Linux-Umgebung nicht ausgeführt werden.

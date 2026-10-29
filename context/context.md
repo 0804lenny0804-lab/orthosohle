@@ -21,7 +21,7 @@ Offener Freigabeblocker: npm audit meldet acht transitive Expo-Toolchainbefunde 
 
 ## Nächster konkreter Schritt
 
-Development Build auf realem Android und iPhone installieren; derzeit fehlen hier Android-SDK und Xcode. Anschließend tatsächlichen BLE-/Hintergrundpfad prüfen. Die Demo ist ausschließlich synthetisch und flüchtig. Start-/Buildanleitung in code/README.md. App und Webportal erhalten dieselben versionierten API-Verträge; gemeinsame Datenbasis allein garantiert noch keine korrekten Rechte oder Synchronisierung.
+GitHub-Actions-Workflow für unsignierte iPhone-Release-IPA ausführen und Artifact prüfen; danach lokal mit AltServer signieren/installieren. Android-Development-Build folgt separat. Hier fehlen Android-SDK und Xcode. Anschließend tatsächlichen BLE-/Hintergrundpfad prüfen. Die Demo ist ausschließlich synthetisch und flüchtig. Start-/Buildanleitung in code/README.md. App und Webportal erhalten dieselben versionierten API-Verträge; gemeinsame Datenbasis allein garantiert noch keine korrekten Rechte oder Synchronisierung.
 
 ## Navigation ohne doppelte Pflege
 
@@ -40,3 +40,6 @@ Development Build auf realem Android und iPhone installieren; derzeit fehlen hie
 Dieser Chat arbeitet ab der Strukturintegration ausschließlich auf `lenni/code`; `paul/code` ist Pauls Arbeitsbranch. Integration nach `main` erfolgt per Pull Request gemäß AGENTS.md.
 
 Der historische 600-Personenstunden-Plan ist keine belastbare Schätzung des erweiterten Produktumfangs. Offene Aufgaben und neue Schätzungen werden im Backlog gepflegt. Lokale Gitstände und Branches ergeben sich aus Git, nicht aus vorweggenommenen Commitangaben hier.
+
+
+Aktueller iPhone-Auftrag: macOS-26-GitHub-Runner plus AltServer unter Windows. Workflow und Buildskript eingerichtet; bei dieser Dokumentaktualisierung noch kein erfolgreicher nativer Run oder Geräteinstallation nachgewiesen. Keine Apple-Zugangsdaten im Repository oder GitHub erforderlich. Der GitHub-Connector dient zur Laufprüfung; gh-CLI hat in dieser Umgebung keine gültige GitHub-API-Anmeldung.
