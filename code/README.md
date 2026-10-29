@@ -79,3 +79,22 @@ npm run build --prefix code/webapp
 ```
 
 API und Vite binden lokal an Loopback. Keine Produktionsbereitstellung: dist ist ein Frontend-Build und benötigt später einen geschützten API-/Hostingpfad. Autorisierung, persistente Pläne und Arztfunktionen folgen als eigene Arbeitspakete.
+
+
+### Verantwortlichkeiten und Datenfluss der neuen Webapp
+
+| Datei | Verantwortung |
+|---|---|
+| webapp/src/main.js | Vue starten und globales Stylesheet laden |
+| webapp/src/App.vue | Seitenrahmen und Zusammensetzung der Ansichten |
+| webapp/src/components/TherapyPlan.vue | Plan laden und Lade-, Fehler-, Leer- bzw. Planzustand darstellen |
+| webapp/src/components/DeviceStatus.vue | Aktuell noch nicht verbundenes Gerät ausdrücklich darstellen |
+| webapp/src/components/SessionHistory.vue | Aktuell leere Sitzungshistorie darstellen |
+| webapp/src/api.js | HTTP-Abruf und Prüfung des Planantwort-Vertrags |
+| webapp/src/style.css | Gemeinsame Gestaltung und responsive Darstellung |
+| webapp/server/index.js | Prozesskonfiguration prüfen und lokalen HTTP-Server starten |
+| webapp/server/app.js | Express-App mit schreibgeschütztem synthetischem Planendpunkt erstellen |
+| webapp/server/app.test.js | HTTP-Vertrag und Ablehnung fehlerhafter Planantworten nachweisen |
+| webapp/vite.config.js | Vue-Build und lokalen API-Proxy konfigurieren |
+
+Datenfluss: TherapyPlan → api.loadPlan → /api/plan → Express → synthetische Antwort → Vertragsprüfung → Darstellung. Aktuell keine Datenbank, Cookies, Analytics, externen Schriftarten oder Patientenidentitäten. Der Demo-Wert steht ausschließlich in der lokalen API. Das ist kein Nachweis einer abgeschlossenen Datenschutz- oder Sicherheitsprüfung. Der nächste Auth-Schritt muss echte Identität, geprüfte Arztrolle und Betreuungsbeziehung serverseitig zusammenführen; ein UI-Rollenumschalter wäre kein Berechtigungsmodell.

@@ -17,6 +17,16 @@ Gilt ausschließlich für dieses Repository. Aktuelle Nutzeraufträge und überg
 - Schnittstellenvalidierung, Fehlerbehandlung, Datensicherheit, Barrierefreiheit und Hardwarekalibrierung niemals zugunsten kurzer Implementierung streichen. Bewusste Abkürzungen direkt mit Grenze und Verbesserungsanlass dokumentieren: `shortcut: <Grenze>, <wann verbessern>`.
 - [Ponytail-Quelle](docs/sources/ponytail.md) wurde gelesen; kein Skill installiert. Zusätzliche Tools, Skills und Agenten nur für konkreten Bedarf und entsprechendem Auftrag; keine Rollenverwaltung auf Vorrat.
 
+## Nachvollziehbarkeit und Produktqualität
+
+- Das Team muss jeden neuen Datenfluss und jede fachliche Regel erklären können. Aussagekräftige Namen, lesbar formatierter Quelltext und überschaubare Funktionen sind Pflicht. Kommentare erklären Gründe, Annahmen und Grenzen; keine komprimierten Einzeiler zur Einhaltung von Dateilimits.
+- Jede selbst geschriebene Quelldatei hat eine klar benennbare Verantwortung. Richtwert: unter 500 Zeilen je Datei. Größere Dateien sind zulässig, wenn fachlich sinnvoll; Grund und Prüfanlass dokumentieren. Generierte Dateien, Lockfiles und unveränderte Originalquellen sind ausgenommen. Nicht mechanisch in Kleinstdateien zerlegen.
+- UI-Darstellung, Transport, fachliche Regeln und Persistenz getrennt halten. Schnittstellen explizit beschreiben; keine versteckten Seiteneffekte. Abhängigkeiten nur bei belegtem Nutzen und nachvollziehbarem Wartungsaufwand ergänzen. DRY/Ponytail gelten gemäß dem Abschnitt oben.
+- Datenschutz ab Datenmodell berücksichtigen: Zweck und erforderliche Felder, Datenminimierung, Rollen/Besitz/Betreuungsrechte, Aufbewahrung, Löschung und Export. Rechtsgrundlagen, Verantwortliche, Dienstleisterverträge und gegebenenfalls Datenschutz-Folgenabschätzung für den konkreten Einsatz fachlich klären. Keine echten Gesundheitsdaten in Entwicklung, Tests oder Logs.
+- Sicherheit ab Schnittstelle berücksichtigen: serverseitige Validierung und Autorisierung, etablierte Authentifizierung, sichere Sessions, CSRF-Schutz soweit erforderlich, Missbrauchsbegrenzung, Secret-Verwaltung, datensparsame Fehler/Logs und Prüfung relevanter Abhängigkeiten. Sicherheitskritische Negativfälle testen; keine selbst entworfene Kryptografie oder Passwortlösung.
+- Produktreife anhand nachprüfbarer Anforderungen abnehmen: fachliche Korrektheit, Barrierefreiheit, unterstützte Geräte/Browser, Fehler-/Offlineverhalten, Migrationen, reproduzierbare Builds/Deployments, Monitoring, Backup mit erprobtem Restore, Rollback, Update-/Incidentverantwortung und erforderliche Einsatzfreigaben. Die maßgeblichen Kriterien stehen in docs/requirements.md; keine parallelen Anforderungskopien pflegen.
+- Bei jedem Review Verantwortung der Dateien, Verständlichkeit, doppelte Fachregeln, Datenschutz-/Sicherheitsauswirkungen und passende Prüfnachweise prüfen. Ungeprüfte Eigenschaften ausdrücklich offen lassen; ein Build allein belegt keine Produktreife.
+
 ## Ablage und modulare Arbeit
 
 | Inhalt | Maßgebliche Stelle |

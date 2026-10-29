@@ -67,3 +67,10 @@ Vereinbarter Teamablauf: `main` als Integrationsbranch; persönliche Aufgabenbra
 Auf jedem PC separat Repository klonen, Root-README/AGENTS/Kontext lesen und Voraussetzungen prüfen. Nur Commit + Push und Clone/Pull synchronisieren versionierte Dateien. Chat, lokale DB, Secrets, Pakete, Pairings und laufende Prozesse kommen nicht mit. Vor Pull eigenen Status prüfen, passenden Branch fetch/pull --ff-only; bei Divergenz nichts verwerfen/erzwingen. Ohne erfolgreichen Fetch keine Remote-Aktualität behaupten.
 
 Prüfung der Webapp-Grundlage am 29.10.2026: vier Node-Tests für fehlenden/Demo-Plan, Schreibschutz, ungültige API-Antworten und HTTP-Fehler bestanden; Vite-Produktionsbuild, Repositoryprüfung und Diff-Prüfung erfolgreich. Browserbedienung und responsive Darstellung noch nicht praktisch geprüft. Zweite Person prüft vor Integration.
+
+
+## Übergabe: nachvollziehbare Webapp-Grundlage
+
+Nutzerregeln zu Dateiverantwortung, 500-Zeilen-Richtwert, lesbarer Formatierung, DRY/Ponytail und Datenschutz/Sicherheit sind in AGENTS.md verbindlich ergänzt. Webapp-Rahmen, Therapieplan, Gerätestatus und Sitzungshistorie sind getrennte Komponenten; die Dateiverantwortlichkeiten und der Datenfluss stehen in code/README.md. API-Prüfung weist auch null, Arrays und unvollständige Antworten kontrolliert zurück. Originalcode unverändert. Prüfung: Node-Vertragstests, Produktionsbuild, Projektprüfung und Diff-Prüfung; keine Browser-/Produktfreigabe.
+
+Nächstes kleines Auth-Arbeitspaket: etablierte Auth-Lösung für Vue/Express konkret auswählen; Kriterien sind serverseitige Sessions mit Widerruf, Verifikation/Reset, Arzt-MFA, sichere Wiederherstellung, Testbarkeit und nachvollziehbarer Betrieb. Empfehlung zur Besprechung: Identitätsverwaltung von fachlicher Arztprüfung und Betreuungsrechten trennen; kein Anbieter darf durch ein Profilfeld selbst Arztzugriff gewähren. Erst danach Integration mit synthetischen Zwei-Arzt-/Zwei-Patientenfällen. Anbieter, Hostingregion und Kosten sind noch nicht entschieden.
