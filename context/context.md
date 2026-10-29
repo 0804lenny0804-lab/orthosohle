@@ -4,24 +4,22 @@ Stand: 29.10.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 
 ## Ziel und aktueller Schwerpunkt
 
-Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: Webapp zuerst. Das ausgewählte Waveshare-Armband ist laut Nutzer noch nicht vorhanden. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
+Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: sauberer Neustart für installierbare iOS-/Android-App plus kompatibles Webportal. Das ausgewählte Waveshare-Armband ist laut Nutzer noch nicht vorhanden. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
 
 ## Belegter Softwarestand
 
-- [Altbestand](legacy/README.md): 51 unveränderte Dateien aus dem GitLab-ZIP mit [Manifest](legacy/manifest.json); ursprünglicher GitLab-Commit unbekannt. Vue/Express/SQLite und Arduino-Sketch dienen als Referenz, keine Produktfreigabe.
-- Aktiver Code: code/webapp. Vue-/Express-Grundlage mit getrennten Plan-, Geräte- und Historienkomponenten; lokale Testkonten und datenbankgestützte Sessions über Better Auth/SQLite.
-- Testregistrierung, Anmeldung und serverseitige Abmeldung implementiert. Planendpunkt verlangt eine gültige Session und liefert ausschließlich synthetischen Demo-Plan oder fehlenden Plan. Keine echten Gesundheitsdaten, Arztfunktionen, Planpersistenz oder Geräteanbindung.
-- Start nur im ausdrücklich freigegebenen lokalen Auth-Testbetrieb. E-Mail-Verifikation, Versand/Reset, Arzt-MFA/Recovery, fachliche Rechte, Produktionsmigrationen und Hosting bleiben offen.
+- [Altbestand](legacy/README.md): 51 unveränderte Dateien aus dem GitLab-ZIP mit [Manifest](legacy/manifest.json); ursprünglicher GitLab-Commit unbekannt. Referenz, keine Produktfreigabe.
+- Nutzerauftrag: Implementierung von null neu beginnen und den bisherigen neuen Webapp-/Auth-Code entfernen. Dieser Stand ist unter Git-Tag `archive/2026-10-29/before-mobile-restart` gesichert.
+- Aktuell kein neuer ausführbarer Anwendungscode, keine Anmeldung und keine neue Datenhaltung. code/ enthält den Einstieg zum Neuaufbau. Regeln, Kontext, Anforderungen und Altbestand bleiben erhalten.
+- Zielrichtung: native Plattformzugriffe im iOS-/Android-Patientenclient, gemeinsame Backend-API und webbasiertes Ärzteportal. Kein mobiles Framework, neuer Auth-Stack oder Hosting ausgewählt.
 
 ## Nachweise und Grenzen
 
-Sechs Node-Tests prüfen unter anderem unberechtigten Planzugriff, fremden Origin und widerrufene Sitzung. Frontend-Produktionsbuild erfolgreich; Produktionsabhängigkeiten laut npm audit am 29.10.2026 ohne bekannte Schwachstellen. Das ist kein unabhängiger Sicherheitsnachweis. Browserbedienung, Hardware, BLE, Smartphone-Hintergrundbetrieb und Watch sind ungeprüft. Anforderungen ACC-01–04 und M2 noch nicht vollständig abgenommen.
-
-Die Struktur trennt Regeln, Kontext/Altbestand und aktiven Code. Verschieben ändert keine Originaldatei; die Manifestprüfung bleibt maßgeblich. Ältere Verweise innerhalb unveränderter Quellen beschreiben deren damaligen Stand.
+Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Aktuell prüfbar: Repositorystruktur, Dokumentationslinks, Backlog und unveränderte Originaldateien. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
 
 ## Nächster konkreter Schritt
 
-E-Mail-Verifikation und Passwortreset mit lokalem Mail-Testtransport ergänzen; danach geprüfte Arztrolle, MFA und Betreuungsbeziehung. Vor realem Betrieb Versand-/Hostingmodell, Verantwortlichkeiten, Datenschutz und Freigaben festlegen. Das Armband wartet auf Hardwareverfügbarkeit.
+Mobile Zielarchitektur auswählen: React Native/Expo Development Builds und Flutter konkret an BLE, Offlineablage, sicherer Anmeldung/Deep Links, iOS-/Android-Build und Watch-Anbindung vergleichen. Danach einen kleinen installierbaren Durchstich umsetzen. App und Webportal erhalten dieselben versionierten API-Verträge; gemeinsame Datenbasis allein garantiert noch keine korrekten Rechte oder Synchronisierung.
 
 ## Navigation ohne doppelte Pflege
 

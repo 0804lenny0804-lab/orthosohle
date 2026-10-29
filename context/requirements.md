@@ -6,7 +6,7 @@ Stand: 20.10.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe u
 
 Das Ziel ist ein betreibbares Gesamtsystem mit sicheren, nachvollziehbaren Nutzerabläufen und belegten Grenzen. Ein schönes Dashboard, vorhandene Datenbank oder erfolgreicher Build allein genügt nicht. Zu unterscheiden sind technische Abnahme, datenschutzrechtliche Betriebsfähigkeit und die fachlich/regulatorisch erforderliche Freigabe für den beabsichtigten medizinischen Einsatz.
 
-**Bestätigt durch Nutzerauftrag:** alte App als funktionale Basis, umfassende Überarbeitung, Arzt und Patient mit jeweils eigenen Funktionen, vollständiges Frontend/Backend, Sicherheit und Datenschutz als Produktanforderungen. Die lokale unabhängige Warnkette bleibt aus dem bisherigen Projektrahmen maßgeblich.
+**Bestätigt durch Nutzerauftrag:** alte App als funktionale Referenz, umfassende Überarbeitung, Arzt und Patient mit jeweils eigenen Funktionen, vollständiges Frontend/Backend, Sicherheit und Datenschutz als Produktanforderungen. Die lokale unabhängige Warnkette bleibt aus dem bisherigen Projektrahmen maßgeblich.
 
 **Einsatzfolge bestätigt:** beaufsichtigter Pilot zuerst, regulärer Einsatz nach erforderlicher Freigabe. Ein Pilot ist keine pauschale Ausnahme von Sicherheits-, Datenschutz- oder sonstigen anwendbaren Voraussetzungen. **Noch festzulegen:** Verantwortlicher/Betreiber, konkretes Pilotsetting, Zielmärkte, vorgesehene Nutzer, klinischer Zweck und Aussagen zur Verlässlichkeit. EU-MDR-Einordnung, einschlägige Entwicklungs-/Risikomanagementanforderungen und notwendige Nachweise fachlich bestimmen; keine Klasse/Zulassung ohne Prüfung behaupten. Echte Gesundheitsdaten oder Patientenbetrieb erst nach den dafür erforderlichen Freigaben.
 
@@ -20,7 +20,7 @@ Vom Nutzer am 20.10.2026 bestätigt:
 |---|---|---|
 | Arzt-/Patientenzuordnung | Patient bestätigt Einladung eines geprüften Arztes | Arztprüfung vor Einladung; explizite Beziehungsaktivierung statt Zugriff allein durch Kenntnis einer E-Mail |
 | Medizinische Belastungsgrenze | Arzt legt fest, Patient sieht und bestätigt die Geräteübernahme | Patient kann medizinischen Wert nicht frei überschreiben; jede Änderung mit Autor/Version |
-| Erste Smartphoneplattformen | iPhone und Android | Datenweg auf beiden Plattformen nachweisen; Web-Bluetooth allein nicht als allgemeine Lösung voraussetzen |
+| Erste Smartphoneplattformen | Installierbare Patienten-App für iPhone und Android, Ziel App Store/Google Play | Datenweg auf beiden Plattformen nachweisen; Web-Bluetooth allein nicht als allgemeine Lösung voraussetzen |
 | Zusätzlicher Watch-Client | Apple Watch von Beginn an mitplanen; iPhone, Android, Waveshare und Apple Watch laut Nutzer verfügbar | Apple Watch zuerst real testen; Modelle/OS und zugesagte Funktionen klären. iPhone-Buildweg über GitHub Actions/macOS-Runner und AltServer auf Windows ist vereinbart, aber noch nicht praktisch erprobt; Watch-Build/Installation separat prüfen. Wear OS später |
 | Erste Einsatzform | Beaufsichtigter Pilot, regulärer Einsatz erst nach Freigabe | Pilotumfang, Betreuung und eigene Abnahme definieren |
 | Behandlerzahl | Genau ein verantwortlicher Arzt pro Patient; Arztwechsel unterstützt | Keine gleichzeitig gleichberechtigten Behandler in Version 1; Zuständigkeitswechsel historisieren |
@@ -97,7 +97,7 @@ Alle IDs sind Produktanforderungen, **keine bereits implementierten Funktionen**
 
 ## 6. Backend und Datenmodell – fachlicher Bedarf, noch keine Stackwahl
 
-Vorhandene Vue-/Express-Bausteine und Domänenwissen prüfen und gezielt weiterverwenden. Die neue Oberfläche kann vollständig überarbeitet werden; keine pauschale 1:1-Übernahme des alten App.vue und keine parallele unabhängige Implementierung gleicher Fachregeln. Migration und Verhaltenskorrekturen nachvollziehbar trennen. Datenbank-/Auth-/Hostingauswahl erst an Anforderungen und Betriebsaufwand messen; SQLite nicht reflexartig ersetzen oder ungeprüft für Mehrinstanzbetrieb voraussetzen.
+Aktueller Nutzerauftrag vom 29.10.2026: Implementierung neu beginnen, Altcode nur als Referenz nutzen. Mobile Patienten-App und Webportal über eine gemeinsame Backend-API planen; Framework und Auth-Stack neu anhand der Anforderungen auswählen. Die neue Oberfläche kann vollständig überarbeitet werden; keine pauschale 1:1-Übernahme des alten App.vue und keine parallele unabhängige Implementierung gleicher Fachregeln. Migration und Verhaltenskorrekturen nachvollziehbar trennen. Datenbank-/Auth-/Hostingauswahl erst an Anforderungen und Betriebsaufwand messen; SQLite nicht reflexartig ersetzen oder ungeprüft für Mehrinstanzbetrieb voraussetzen.
 
 Benötigte fachliche Datentypen: Konto/Identität; Arztprofil und Prüfstatus; Patient; Betreuungsbeziehung mit Freigabestatus; Gerät und zeitliche Zuordnung; Planversion und Gerätebestätigung; Messsitzung; Messpunkte/verdichtete Ereignisse mit Qualität; Auditereignisse; Datenschutzanfrage. Das sind Verantwortlichkeiten, noch keine verpflichtenden elf Tabellen/Services. Aufbewahrung und Indizes nach Zugriff/Volumen bestimmen.
 

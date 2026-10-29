@@ -22,21 +22,18 @@ context/              Projektwissen und Nachweise
   checks/             Ausgeführte Prüfungen und Grenzen
 code/                 Aktiver Entwicklungsbereich
   README.md           Installation, Start, Datenfluss und Grenzen
-  webapp/             Vue-/Express-Anwendung mit lokaler Authentifizierung
 scripts/              Repositoryprüfung und deren Tests
 ```
 
-„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Aktuell sind nur synthetische Daten und lokale Testkonten vorgesehen.
+„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Aktuell ist der Implementierungsbereich zurückgesetzt; es gibt noch keine neue ausführbare App. Regeln, Anforderungen und Referenzcode bleiben erhalten.
 
 ## Prüfungen
 
-Im Repository-Root mit Git, Python 3.9+ und Node gemäß code/webapp/package.json:
+Im Repository-Root mit Git, Python 3.9+:
 
 ```bash
 python3 scripts/check_project.py
 python3 -m unittest discover -s scripts -p 'test_*.py'
-npm test --prefix code/webapp
-npm run build --prefix code/webapp
 git diff --check
 ```
 
