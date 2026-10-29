@@ -10,16 +10,18 @@ Stand: 29.10.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 
 - [Altbestand](legacy/README.md): 51 unveränderte Dateien aus dem GitLab-ZIP mit [Manifest](legacy/manifest.json); ursprünglicher GitLab-Commit unbekannt. Referenz, keine Produktfreigabe.
 - Nutzerauftrag: Implementierung von null neu beginnen und den bisherigen neuen Webapp-/Auth-Code entfernen. Dieser Stand ist unter Git-Tag `archive/2026-10-29/before-mobile-restart` gesichert.
-- Aktuell kein neuer ausführbarer Anwendungscode, keine Anmeldung und keine neue Datenhaltung. code/ enthält den Einstieg zum Neuaufbau. Regeln, Kontext, Anforderungen und Altbestand bleiben erhalten.
-- Zielrichtung: native Plattformzugriffe im iOS-/Android-Patientenclient, gemeinsame Backend-API und webbasiertes Ärzteportal. Kein mobiles Framework, neuer Auth-Stack oder Hosting ausgewählt.
+- Neuer unabhängiger mobiler Prototyp unter code/mobile: React Native/Expo/TypeScript, native Übersicht und manuelle Demo-Sitzung. Keine Anmeldung, API, neue Datenhaltung oder Geräteverbindung. Regeln, Kontext, Anforderungen und Altbestand bleiben erhalten.
+- Zielrichtung: native Plattformzugriffe im iOS-/Android-Patientenclient, gemeinsame Backend-API und webbasiertes Ärzteportal. Mobile Arbeitsgrundlage React Native/Expo Development Builds gewählt; Auth-Stack und Hosting offen.
 
 ## Nachweise und Grenzen
 
-Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Aktuell prüfbar: Repositorystruktur, Dokumentationslinks, Backlog und unveränderte Originaldateien. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
+Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Neue Prüfungen: TypeScript, zwei Fachlogiktests und erfolgreiche Android-/iOS-Bundleexports; native Installation und Gerätebedienung noch nicht nachgewiesen. Repositorystruktur, Links, Backlog und Originaldateien ebenfalls geprüft. Native Installation, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
+
+Offener Freigabeblocker: npm audit meldet acht transitive Expo-Toolchainbefunde (fünf niedrig, drei hoch); reguläres audit fix reicht nicht. Details und Advisories im Code-Einstieg. Keine sichere/produktreife Toolchain behaupten.
 
 ## Nächster konkreter Schritt
 
-Mobile Zielarchitektur auswählen: React Native/Expo Development Builds und Flutter konkret an BLE, Offlineablage, sicherer Anmeldung/Deep Links, iOS-/Android-Build und Watch-Anbindung vergleichen. Danach einen kleinen installierbaren Durchstich umsetzen. App und Webportal erhalten dieselben versionierten API-Verträge; gemeinsame Datenbasis allein garantiert noch keine korrekten Rechte oder Synchronisierung.
+Development Build auf realem Android und iPhone installieren; derzeit fehlen hier Android-SDK und Xcode. Anschließend tatsächlichen BLE-/Hintergrundpfad prüfen. Die Demo ist ausschließlich synthetisch und flüchtig. Start-/Buildanleitung in code/README.md. App und Webportal erhalten dieselben versionierten API-Verträge; gemeinsame Datenbasis allein garantiert noch keine korrekten Rechte oder Synchronisierung.
 
 ## Navigation ohne doppelte Pflege
 

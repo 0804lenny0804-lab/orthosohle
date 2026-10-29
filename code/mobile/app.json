@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "OrthoSohle",
+    "slug": "orthosohle-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "orthosohle",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "de.orthosohle.prototype"
+    },
+    "android": {
+      "package": "de.orthosohle.prototype"
+    }
+  }
+}

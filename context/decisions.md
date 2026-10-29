@@ -105,3 +105,20 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 **Nutzerauftrag:** Bisherige neue Implementierung aus main entfernen und von null beginnen. Regeln, Projektwissen und historische Referenz bleiben als Arbeitsgrundlage erhalten; kein Umschreiben der Git-Historie. Vollständiger Stand vor Entfernung unter `archive/2026-10-29/before-mobile-restart` gesichert.
 
 **Konsequenz:** code/webapp inklusive neuer Auth-Implementierung entfernt. Frühere Stackentscheidungen gelten als archivierter Versuch, nicht als verbindliche Architektur des Neustarts. Zielrichtung: installierbare Patienten-App und Webportal über gemeinsame Backend-API; mobile Framework-, Auth- und Hostingwahl noch offen. Bestehende Test-/Buildnachweise sind historisch. Neue Umsetzung ausschließlich auf lenni/code; Entfernung per Pull Request nach main.
+
+
+## 29.10.2026 – React Native/Expo als mobile Arbeitsgrundlage
+
+**Arbeitsentscheidung nach Startauftrag:** Erster mobiler Durchstich mit React Native, Expo Development Builds und TypeScript. Kein Wiederaufnehmen des Vue-Clients, keine neue Backend-/Auth-/Hostingentscheidung.
+
+| Kriterium | React Native / Expo | Flutter |
+|---|---|---|
+| Team-/Sprachaufwand | JavaScript-/TypeScript-Anschluss an bisherigen Kontext; React muss gelernt werden | Neue Sprache Dart und Flutter-Widgetmodell |
+| iOS und Android | Gemeinsamer Client mit nativen Projekten | Gemeinsamer Client mit nativen Projekten |
+| BLE und Hintergrund | Native Module/Development Build nötig; reale Plattformtests erforderlich | Plugins/native Ergänzungen nötig; dieselben Plattformgrenzen prüfen |
+| Webportal und API | TypeScript kann Vertragsarbeit erleichtern; derzeit kein gemeinsames Paket nötig | Gemeinsame API trotz anderer Sprache möglich |
+| Apple Watch | Zusätzlicher nativer watchOS-Client | Zusätzlicher nativer watchOS-Client |
+
+**Grund:** Für den kleinen ersten Durchstich vermeidet TypeScript eine weitere Sprache und erlaubt isolierte Fachlogiktests. Flutter wird dadurch nicht als technisch ungeeignet bewertet. Native BLE-/Hintergrundeignung noch nicht nachgewiesen; wenn der Geräteversuch scheitert, Architektur vor weiterer Produktentwicklung neu bewerten.
+
+**Umsetzung/Quelle:** Offizielles npm-Paket expo-template-blank-typescript@58.0.30 als minimale Grundlage, Abhängigkeiten passend zum Template und Expo bundledNativeModules.json. Quelle https://www.npmjs.com/package/expo-template-blank-typescript ; abgerufen 29.10.2026. Dateien modular, keine echten Nutzerdaten, keine Netzwerk-/Geräteanbindung im Prototyp. Buildprofile vorbereitet, aber keine Cloudregistrierung oder Signierung ausgeführt.
