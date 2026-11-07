@@ -20,6 +20,9 @@
         <nav class="mt-3 mt-md-0">
           <ul class="nav nav-ortho">
             <li class="nav-item">
+              <a class="nav-link" :class="{ active: activeNav === 'account' }" href="#account" @click.prevent="setNav('account')">Konto</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" :class="{ active: activeNav === 'live' }" href="#live" @click.prevent="setNav('live')">Live</a>
             </li>
             <li class="nav-item">
@@ -37,6 +40,8 @@
     </header>
 
     <main class="container py-4" id="main">
+      <p class="alert alert-warning">Lokaler Prototyp: Messansichten sind noch keinem Konto zugeordnet. Bitte keine echten Patientendaten verwenden.</p>
+      <AccountView v-if="activeNav === 'account'" />
 
       <div v-show="activeNav === 'live'">
         <div class="row g-4">
@@ -119,6 +124,7 @@
 
 <script>
 import axios from "axios";
+import AccountView from "./features/account/AccountView.vue";
 import Bluetooth from './components/Bluetooth.vue';
 import LiveChart from './components/LiveChart.vue';
 import LimitConfig from './components/LimitConfig.vue';
@@ -135,7 +141,7 @@ import { pwa__enablePush } from "./pwa__/pwa__push.js";
 export default {
   name: 'App',
   components: {
-    Bluetooth, LiveChart, LimitConfig, SimulationControl,
+    AccountView, Bluetooth, LiveChart, LimitConfig, SimulationControl,
     MeasurementTable, Toastwarning, StepCounter, HistoryView, RunFeedbackWindow
   },
   data() {
@@ -164,7 +170,7 @@ export default {
     },
     getNavFromHash() {
       const hash = window.location.hash.replace("#", "");
-      return ["live", "config", "connect", "history"].includes(hash) ? hash : "live";
+      return ["account", "live", "config", "connect", "history"].includes(hash) ? hash : "live";
     },
 
     // Zentraler Datenempfang

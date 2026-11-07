@@ -71,6 +71,8 @@ test('loopback configuration requires opt-in, explicit secret and local URL', ()
   assert.throws(() => readConfig({ LOCAL_AUTH_ENABLED: 'true' }), /SECRET/);
   assert.throws(() => readConfig({ LOCAL_AUTH_ENABLED: 'true', BETTER_AUTH_SECRET: 'x'.repeat(40),
     AUTH_BASE_URL: 'https://example.com' }), /loopback/);
+  assert.throws(() => readConfig({ LOCAL_AUTH_ENABLED: 'true', BETTER_AUTH_SECRET: 'x'.repeat(40),
+    AUTH_WEB_ORIGIN: 'https://foreign.invalid' }), /AUTH_WEB_ORIGIN/);
 });
 
 test('registration, invalid login, valid session and replay after logout', async t => {
@@ -112,4 +114,24 @@ test('foreign origin cannot sign out an active session', async t => {
     cookie, body: {}, origin: 'https://foreign.invalid',
   })).status, 403);
   assert.equal((await f.request('/api/me', { cookie })).status, 200);
+});
+
+
+test('explicit local web origin can register, sign in, reload identity and sign out', async t => {
+  const f = await fixture(t);
+  const origin = 'http://127.0.0.1:5173';
+  const registered = await f.request('/api/auth/sign-up/email', { body: account, origin });
+  assert.equal(registered.status, 200);
+  const id = (await registered.json()).user.id;
+  const login = await f.request('/api/auth/sign-in/email', {
+    body: { email: account.email, password: account.password }, origin,
+  });
+  assert.equal(login.status, 200);
+  assert.match(login.headers.getSetCookie().join(';'), /HttpOnly/i);
+  assert.match(login.headers.getSetCookie().join(';'), /SameSite=Lax/i);
+  const cookie = cookies(login);
+  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id });
+  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id });
+  assert.equal((await f.request('/api/auth/sign-out', { body: {}, origin, cookie })).status, 200);
+  assert.equal((await f.request('/api/me', { cookie })).status, 401);
 });

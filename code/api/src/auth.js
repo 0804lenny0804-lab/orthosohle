@@ -13,7 +13,7 @@ export function createAuth(config, { forMigration = false } = {}) {
     baseURL: config.baseURL,
     secret: config.secret,
     database,
-    trustedOrigins: [config.baseURL],
+    trustedOrigins: [config.baseURL, config.webOrigin],
     // shortcut: loopback identity probe only; mail verification is a later step.
     emailAndPassword: { enabled: true, autoSignIn: false },
     account: { accountLinking: { enabled: true, disableImplicitLinking: true } },

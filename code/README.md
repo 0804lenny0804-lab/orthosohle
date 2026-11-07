@@ -23,15 +23,30 @@ npm start --prefix code/api
 
 Der Server bindet ausschließlich `127.0.0.1`; Basisadresse standardmäßig `http://127.0.0.1:3000`. `LOCAL_AUTH_ENABLED=true` und ein explizites Secret sind Pflicht. Die Standard-DB liegt unter `code/api/data/local/auth.sqlite` und wird von Git ausgeschlossen; alternativ einen absoluten `AUTH_DATABASE_PATH` setzen. Schemaänderungen laufen bewusst separat über Better Auths Migrationsfunktion, nicht beim Serverstart. Sie ist ein lokaler Entwicklungsweg, noch kein abgenommener Produktions-Migrations-/Rollbackprozess.
 
-Die Better-Auth-Routen liegen unter `/api/auth/`; `GET /api/me` liefert ausschließlich die eigene authentifizierte ID oder `401`. Es gibt noch keine Gesundheitsdatenroute und keine neue Web-Anmeldemaske. Der Loopback-Prototyp erlaubt synthetische E-Mail-/Passwortkonten ohne Mailverifikation; Verifikation, Reset-Mail, Arzt-MFA, Google/Apple und mobile Sessions sind weitere Schritte. Implizites Account-Linking und Cookie-Sessioncache sind deaktiviert; der Server prüft Sessions gegen SQLite. Ratenbegrenzung liegt ebenfalls in SQLite; derzeit teilt lokaler Verkehr ohne vertrauenswürdigen IP-Header einen Pfad-Bucket. Keine frei gesetzten Proxyheader als Lösung vertrauen. HTTP ohne Secure-Cookie ist hier auf den expliziten lokalen Betrieb begrenzt; Hosting/TLS ist nicht eingerichtet.
+Die Better-Auth-Routen liegen unter `/api/auth/`; `GET /api/me` liefert ausschließlich die eigene authentifizierte ID oder `401`. Die Web-App besitzt jetzt einen eigenen lokalen Kontobereich; Gesundheitsdatenrouten und fachliche Kontozuordnung fehlen weiterhin. Der Loopback-Prototyp erlaubt synthetische E-Mail-/Passwortkonten ohne Mailverifikation; Verifikation, Reset-Mail, Arzt-MFA, Google/Apple und mobile Sessions sind weitere Schritte. Implizites Account-Linking und Cookie-Sessioncache sind deaktiviert; der Server prüft Sessions gegen SQLite. Ratenbegrenzung liegt ebenfalls in SQLite; derzeit teilt lokaler Verkehr ohne vertrauenswürdigen IP-Header einen Pfad-Bucket. Keine frei gesetzten Proxyheader als Lösung vertrauen. HTTP ohne Secure-Cookie ist hier auf den expliziten lokalen Betrieb begrenzt; Hosting/TLS ist nicht eingerichtet.
 
 ```bash
 npm test --prefix code/api
 ```
 
-Vier HTTP-/Konfigurationstests mit automatisch entfernter temporärer DB prüfen fehlende Session, Registrierung/Login, falsches Passwort, `200` mit Session, `401` beim Replay nach Logout, persistente Konten/Sessions nach Neuerzeugung der API-/SQLite-Instanzen und abgewiesenen Fremd-Origin. Das ist kein Browser-, Geräte- oder vollständiger Sicherheitsnachweis.
+Fünf HTTP-/Konfigurationstests mit automatisch entfernter temporärer DB prüfen fehlende Session, Registrierung/Login, falsches Passwort, `200` mit Session, `401` beim Replay nach Logout, persistente Konten/Sessions nach Neuerzeugung der API-/SQLite-Instanzen sowie akzeptierten expliziten Web-Origin und abgewiesenen Fremd-Origin. Das ist kein Browser-, Geräte- oder vollständiger Sicherheitsnachweis.
 
 Referenzen für die verwendete Integration (abgerufen 07.11.2026): [Better Auth Express](https://better-auth.com/docs/integrations/express), [programmatische Migrationen](https://better-auth.com/docs/concepts/database#programmatic-migrations), [Sessions](https://better-auth.com/docs/concepts/session-management), [Account-Linking](https://better-auth.com/docs/concepts/users-accounts#account-linking).
+
+## Web-App mit lokalem Kontobereich starten
+
+Nach der API-Migration und bei laufendem API-Server in einem zweiten Terminal:
+
+```bash
+npm ci --prefix code/webapp
+npm run dev --prefix code/webapp
+```
+
+Öffnen: `http://127.0.0.1:5173/#account`. Vite bindet lokal an Port 5173 und beendet sich bei belegtem Port, statt den Ursprung still zu ändern. Relative Kontoaufrufe nach `/api/auth` und `/api/me` werden ausschließlich zum lokalen Backend auf `http://127.0.0.1:3000` weitergeleitet. Beide Standardports für diesen Startweg beibehalten. Der Backendparameter `AUTH_WEB_ORIGIN=http://127.0.0.1:5173` ist explizit auf einen HTTP-Loopback-Ursprung begrenzt; keine CORS-Wildcards werden freigegeben. Nach Änderung der Backendkonfiguration den API-Server neu starten.
+
+Unter **Konto** ein ausschließlich synthetisches Testkonto erstellen und danach anmelden. Neuladen prüft die vorhandene Cookie-Session erneut serverseitig; Abmelden widerruft sie. Tokens werden nicht im LocalStorage abgelegt; Formpasswörter werden nach jedem abgeschickten Versuch gelöscht. Nicht erreichbarer Server und unbestätigter Sessionstatus sind eigene Zustände mit erneuter Prüfung. Die bestehende Messoberfläche bleibt ein ausdrücklich gekennzeichneter, noch keinem Konto zugeordneter Prototyp.
+
+Die neue Anmeldemaske hat keine Mailverifikation, Passwortreset-Oberfläche, Google-/Apple-Anmeldung oder Arzt-MFA. Die PWA-Konfiguration enthält keinen API-Runtime-Cache; der vorhandene Service Worker übernimmt nur den Asset-Precache. Auslieferung eines gebauten Frontends mitsamt API unter einem Origin ist noch nicht eingerichtet; `vite preview` richtet keinen Entwicklungsproxy ein.
 
 ## Geplanter Zuschnitt
 

@@ -10,6 +10,15 @@ const __dirname = dirname(__filename);
 
 
 export default defineConfig({
+  server: {
+    host: "127.0.0.1",
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      "/api/auth": { target: "http://127.0.0.1:3000", changeOrigin: true },
+      "/api/me": { target: "http://127.0.0.1:3000", changeOrigin: true },
+    },
+  },
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),
@@ -30,21 +39,7 @@ export default defineConfig({
       manifest: false,
       includeAssets: ["pwa__manifest.webmanifest", "pwa__icons/*"],
 
-      workbox: {
-        navigateFallback: "/index.html",
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "pwa__api_get_cache",
-              networkTimeoutSeconds: 4,
-              cacheableResponse: { statuses: [0, 200] },
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 },
-            },
-          },
-        ],
-      },
+
     }),
   ],
 });
