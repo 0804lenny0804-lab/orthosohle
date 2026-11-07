@@ -4,7 +4,7 @@ Auf Nutzerauftrag vom 06.11.2026 wird der vorhandene Vue-/Vite-Web-App-Prototyp 
 
 ## Lokaler Identitäts-Durchstich
 
-`api/` enthält Better Auth 1.7.18, Express 5.3.0 und better-sqlite3 13.0.3 mit Lockfile. Voraussetzung: Node 22.12+; tatsächlich geprüft mit Node 24.19.0 und npm 11.9.0. Die SQLite-Bibliothek benötigt eine passende native Binärdatei oder Buildwerkzeuge.
+`api/` enthält Better Auth 1.7.18, Express 5.3.0 und better-sqlite3 12.11.1 mit Lockfile. Voraussetzung: Node 22.12+; tatsächlich geprüft mit Node 24.19.0 und npm 11.9.0. better-sqlite3 13.0.3 fiel unter Windows bei `npm ci` in einen Visual-Studio-Buildtools-Pfad; deshalb ist die lokale Version auf 12.11.1 festgesetzt. Der Windows-Installationsweg mit passendem Vorabpaket muss auf dem Zielrechner noch bestätigt werden.
 
 Im Repository-Root installieren und eine lokale Konfiguration anlegen:
 
