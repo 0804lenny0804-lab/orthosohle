@@ -17,6 +17,16 @@ Gilt ausschließlich für dieses Repository. Aktuelle Nutzeraufträge und überg
 - Schnittstellenvalidierung, Fehlerbehandlung, Datensicherheit, Barrierefreiheit und Hardwarekalibrierung niemals zugunsten kurzer Implementierung streichen. Bewusste Abkürzungen direkt mit Grenze und Verbesserungsanlass dokumentieren: `shortcut: <Grenze>, <wann verbessern>`.
 - [Ponytail-Quelle](context/sources/ponytail.md) wurde gelesen; kein Skill installiert. Zusätzliche Tools, Skills und Agenten nur für konkreten Bedarf und entsprechendem Auftrag; keine Rollenverwaltung auf Vorrat.
 
+## Agentenablauf für die schrittweise Web-App-Migration
+
+Der aktive Vue-/Vite-Stand wird aus dem unveränderten Prototyp unter `context/legacy/orthopaul/local-comm/frontend` weiterentwickelt, mit dem Ziel später APK (Android) und IPA (iOS) aus der gemeinsamen Web-Oberfläche zu bauen. Die Referenz unter `context/legacy/` bleibt unverändert. Für beauftragte Migrationsschritte werden drei getrennte Perspektiven eingesetzt; ihre Aufgaben und Prüfkriterien stehen in [Prüfer](context/agents/code-verifier.md), [Verbesserungsagent](context/agents/improvement-agent.md) und [Reviewer](context/agents/reviewer.md). Agentenanalysen sind Empfehlungen, kein Ersatz für eigene Prüfung oder Nutzerentscheidungen zu größerer Architektur.
+
+Der Hauptagent delegiert jeweils genau einen überschaubaren Arbeitsschritt mit Ziel, Umfang, zuständiger Rolle und vorab bestimmten, überprüfbaren Abschlusskriterien. Darin stehen erwartetes Verhalten, relevante Grenzen sowie konkrete Nachweise oder Prüfungen; nicht verfügbare Hardware oder Werkzeuge werden als Blocker kenntlich gemacht. Der Fortschritt wird im bestehenden Backlog beziehungsweise Projektkontext geführt, ohne zusätzliche Statuskopien anzulegen.
+
+Für jeden Schritt ermittelt der Prüfer Bestand und Grenzen; der Verbesserungsagent schlägt eine kleine modulare Änderung samt Plattformoptionen vor. Der beauftragte Implementierer setzt den abgegrenzten Schritt um. Ein unabhängiger Reviewer prüft Diff, Kriterien, Anforderungen, Sicherheit und Prüfnachweise. Befunde werden behoben und soweit nötig erneut geprüft. Erst nach erfüllten Kriterien und Review gilt ein Schritt als abgeschlossen; andernfalls stehen Grund und nächster Schritt ausdrücklich offen. Danach wird der nächste einzelne Schritt anhand des tatsächlichen Stands delegiert. Der Ablauf wird bei Folgeaufträgen fortgesetzt; er ist kein unbeaufsichtigter Hintergrunddienst.
+
+Vor Abschluss erzeugte Dateien prüfen: temporäre Ausgaben, verwaiste Dateien und unnötige Gerüste aus dem eigenen Schritt entfernen; fremde oder unbekannte Dateien nicht löschen. Generierte Builds und Abhängigkeiten gehören nicht in den Commit. Vorschläge zu Capacitor, BLE-Plugins, Auth, Backend oder weiteren Abhängigkeiten werden vor Implementierung mit Zweck, Grenzen und Aufwand dokumentiert; sie werden nicht allein durch eine Agentenempfehlung beschlossen. APK-/IPA-Builds, Signierung und Hardwarefähigkeit gelten erst nach tatsächlicher Plattformprüfung als belegt.
+
 ## Nachvollziehbarkeit und Produktqualität
 
 - Das Team muss jeden neuen Datenfluss und jede fachliche Regel erklären können. Aussagekräftige Namen, lesbar formatierter Quelltext und überschaubare Funktionen sind Pflicht. Kommentare erklären Gründe, Annahmen und Grenzen; keine komprimierten Einzeiler zur Einhaltung von Dateilimits.
@@ -38,6 +48,7 @@ Gilt ausschließlich für dieses Repository. Aktuelle Nutzeraufträge und überg
 | Aufgaben, Verantwortliche, Status, Schätzung und Abnahme | context/backlog.csv |
 | Umfangreiche Bestandsaufnahme / Originale / Prüfbelege | context/analysis.md / context/sources / context/checks |
 | Aktiver Anwendungscode und Start | code/; Übersicht in code/README.md |
+| Agentenrollen und Reviewablauf | context/agents/ |
 | Unveränderter Altcode und Herkunft | context/legacy/; Manifest und alte Startanleitung dort |
 | Projektwerkzeuge und zugehörige Tests | scripts/ |
 

@@ -2,6 +2,20 @@
 
 Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung, Grund und Konsequenz. Kleine lokale Implementierungsdetails gehören in Code/Commit. Offene Optionen stehen im Kontext, nicht als beschlossene Entscheidung hier. Frühere Einträge bei Ablösung erhalten und Nachfolger nennen; einzelne ADR-Dateien erst bei tatsächlichem Umfangsbedarf.
 
+## 07.11.2026 – Better Auth als Auth-Basis gewählt
+
+**Nutzerentscheidung:** Nach dem Auth-Vergleich Better Auth verwenden und weiterarbeiten. Die vorherige Auth0-Empfehlung im Vergleich ist damit nicht die gewählte Umsetzung.
+
+**Konsequenz:** Erster lokaler Node-/Express-Durchstich mit Better Auth und persistenter SQLite-DB unter `code/api`. SQLite ist die begrenzte lokale Arbeitsentscheidung für diesen Nachweis, keine Entscheidung über Produktivhosting oder Mehrinstanzbetrieb. Keine eigene Passwortkryptografie; explizites Linking, kein Cookie-Sessioncache. Synthetische Konten können sich registrieren/anmelden; `/api/me` prüft nur Identität, keine Fachrechte. Verifikation/Reset-Mail, Arzt-MFA, Social Login und native Sessions werden separat umgesetzt und geprüft. Der lokale Nachweis ist keine Produktionsfreigabe.
+
+## 06.11.2026 – Bestehende Vue-Web-App als aktive Basis
+
+**Nutzerentscheidung:** Den bestehenden Web-App-Code eng weiterführen, daraus schrittweise die neue Anwendung aufbauen und APK sowie IPA als Zielpakete berücksichtigen. Verbesserungs-, Prüf- und Reviewperspektive pro Schritt einsetzen; modular und kleinteilig arbeiten.
+
+**Grund:** Bestehende Oberfläche und Funktionen sollen weitergenutzt werden, statt eine unabhängige Neuentwicklung zu beginnen.
+
+**Konsequenz:** Vue 3/Vite-Frontend wurde als erste aktive Kopie nach `code/webapp` übernommen; `context/legacy/` bleibt unverändert. Agentenrollen und Ablauf stehen in `context/agents/` und `AGENTS.md`. Die PWA erzeugt keine APK/IPA; native Verpackung (z. B. Capacitor), BLE-Plugin, Buildkette und Signierung bleiben vor Umsetzung zu prüfen. Feste Nutzer-ID, API-Cache und sonstige Prototypgrenzen sind vor echten Patientendaten zu beheben. Nächster Schritt: aktive Kopie reproduzierbar bauen/starten und ersten UI-Baustein prüfen.
+
 ## 20.10.2026 – Ausgangsstruktur (ersetzt bezüglich Dokumentationsaufteilung)
 
 **Entscheidung:** Ein gemeinsames OrthoSohle-Repository mit getrennten Zielbereichen für Web, API, Armband und Sohle; ZIP-Quellstand unverändert als Referenz importieren. Vue/Express zunächst als Basis behalten, keine vollständige Neuschreibung.

@@ -1,6 +1,6 @@
 # Softwareanforderungen und Produktmeilensteine
 
-Stand: 20.10.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe und kein Nachweis einer produktiven/medizinischen Einsatzfähigkeit. Zielauftrag: auf der alten App aufbauen, Frontend und Backend umfassend überarbeiten, Arzt-/Patientenkonten und Sicherheits-/DSGVO-Vorkehrungen ergänzen. Bestätigte Kernentscheidungen stehen in Abschnitt 2; weitere Detailfunktionen unten sind begründete Vorschläge, bis sie abgestimmt sind. Hardwarebasis des eigenständigen Armbands ist auf Nutzerentscheidung Waveshare ESP32-S3-Touch-LCD-1.28; weitere Komponenten, Provider und Frameworkänderungen sind nicht ausgewählt.
+Stand: 06.11.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe und kein Nachweis einer produktiven/medizinischen Einsatzfähigkeit. Zielauftrag: auf der alten App aufbauen, Frontend und Backend umfassend überarbeiten, Arzt-/Patientenkonten und Sicherheits-/DSGVO-Vorkehrungen ergänzen. Bestätigte Kernentscheidungen stehen in Abschnitt 2; weitere Detailfunktionen unten sind begründete Vorschläge, bis sie abgestimmt sind. Hardwarebasis des eigenständigen Armbands ist auf Nutzerentscheidung Waveshare ESP32-S3-Touch-LCD-1.28; weitere Komponenten, Provider und Frameworkänderungen sind nicht ausgewählt.
 
 ## 1. Was „produktreif“ hier konkret bedeutet
 
@@ -97,9 +97,210 @@ Alle IDs sind Produktanforderungen, **keine bereits implementierten Funktionen**
 
 ## 6. Backend und Datenmodell – fachlicher Bedarf, noch keine Stackwahl
 
-Aktueller Nutzerauftrag vom 29.10.2026: Implementierung neu beginnen, Altcode nur als Referenz nutzen. Mobile Patienten-App und Webportal über eine gemeinsame Backend-API planen; Framework und Auth-Stack neu anhand der Anforderungen auswählen. Die neue Oberfläche kann vollständig überarbeitet werden; keine pauschale 1:1-Übernahme des alten App.vue und keine parallele unabhängige Implementierung gleicher Fachregeln. Migration und Verhaltenskorrekturen nachvollziehbar trennen. Datenbank-/Auth-/Hostingauswahl erst an Anforderungen und Betriebsaufwand messen; SQLite nicht reflexartig ersetzen oder ungeprüft für Mehrinstanzbetrieb voraussetzen.
+Aktueller Nutzerauftrag vom 06.11.2026: vorhandene Vue-/Vite-Web-App eng weiterführen und schrittweise zur gemeinsamen Basis für Web, Android-APK und iOS-IPA ausbauen. Mobile Patienten-App und Ärzteportal verwenden dieselbe fachliche Backend-API. Better Auth ist seit Nutzerwahl vom 07.11.2026 die Auth-Basis; SQLite wird zunächst lokal verwendet. Produktive Datenbank-/Hostingauslegung und native Verpackung bleiben offen. Migration und Verhaltenskorrekturen nachvollziehbar trennen. Datenbank-/Auth-/Hostingauswahl an Anforderungen und Betriebsaufwand messen; SQLite nicht reflexartig ersetzen oder ungeprüft für Mehrinstanzbetrieb voraussetzen.
 
-Benötigte fachliche Datentypen: Konto/Identität; Arztprofil und Prüfstatus; Patient; Betreuungsbeziehung mit Freigabestatus; Gerät und zeitliche Zuordnung; Planversion und Gerätebestätigung; Messsitzung; Messpunkte/verdichtete Ereignisse mit Qualität; Auditereignisse; Datenschutzanfrage. Das sind Verantwortlichkeiten, noch keine verpflichtenden elf Tabellen/Services. Aufbewahrung und Indizes nach Zugriff/Volumen bestimmen.
+### Systembild und Verantwortlichkeiten
+
+Das folgende Bild beschreibt das logische Zielsystem, keine bereits implementierte Verbindung und keine Vorgabe für getrennte Services. Aktuell existiert die aktive Vue-/Vite-Prototypkopie mit ersten UI-Korrekturen; neue Konten, Autorisierung, persistente Fachmodelle und mobile Pakete sind noch nicht implementiert. Der alte Express-/SQLite-Code bleibt Referenz, kein abgesichertes Backend für diese Zielarchitektur.
+
+```mermaid
+flowchart TD
+  Patient[Patientenclient: gemeinsame Vue-Oberfläche] --> API[Gemeinsame Backend-API]
+  Arzt[Ärzteportal] --> API
+  Patient --> Native[Native Verpackung und Plattformadapter: APK / IPA]
+  Native <-->|BLE: Messwerte und Gerätekommunikation| Sohle[Sohle]
+  Native -.->|Companion-Pfad zu prüfen| Watch[Apple Watch]
+  Sohle -.->|unabhängiger lokaler Pfad nachzuweisen| Band[Waveshare: lokale Warnkette]
+  API --> Auth[Identität und Sessions]
+  Auth --> Mail[E-Mail-Verifikation und Wiederherstellung]
+  API --> Rechte[Serverseitige Rechte und Betreuung]
+  Rechte --> Fach[Pläne, Geräte und Messsitzungen]
+  Auth --> DB[Persistenz mit Migrationen]
+  Fach --> DB
+  Rechte --> DB
+  DB --> Backup[Backup und geprüfte Wiederherstellung]
+```
+
+Login identifiziert den Aufrufer; die API prüft anschließend für jede Fachaktion Eigentum, Rolle und aktive Betreuung. Clients erhalten keinen direkten Datenbankzugriff. Messungen laufen lokal vom Gerät in den Patientenclient und anschließend über einen authentifizierten Upload zur API; genaue Puffergrenzen und Uploadzeitpunkte bleiben zu bestimmen. Die lokale Warnkette braucht einen eigenen, vom Backend unabhängigen Nachweis. Ein Plan läuft vom Arzt über die API zum Patientenclient und Gerät; erst eine passende Gerätebestätigung belegt die Anwendung.
+
+| Bereich | Verantwortung und zentrale Abhängigkeit | Maßgebliche Anforderungen |
+|---|---|---|
+| Gemeinsame Oberfläche und mobile Verpackung | Patientenabläufe aus bestehendem Vue-Code; Plattformadapter und signierte APK-/IPA-Builds separat nachweisen | PAT, UX, DEV; Abschnitte 2 und 9 |
+| Ärzteportal | Zugeordnete Patienten und Pläne; benötigt Identität und serverseitige Betreuungsrechte | DOC, REL, PLN |
+| Konten und Anmeldung | Registrierung, Verifikation, Login/Logout, Sessionwiderruf, Reset und Arzt-MFA; benötigt Auth-Auswahl, Mailweg und sichere Speicherung | ACC-01–04, SEC |
+| Rechte und Betreuung | Arztprüfung, Einladungen, Bestätigung und Wechsel; benötigt verifizierte Identität | REL-01–03, ACC-02 |
+| Fachliche API | Validierte und autorisierte Schnittstellen, Fehler und Transaktionen; benötigt Rechte- und Datenmodell | Abschnitt 6, SEC |
+| Datenbank und Migrationen | Konten-/Fachdaten und Beziehungen dauerhaft speichern, Versionen und Integrität sichern; benötigt Datenbesitz, Volumen und Aufbewahrungsregeln | Abschnitt 6, DAT, PRI |
+| Pläne und Geräte | Versionierte Vorgabe, Besitzer und tatsächliche Gerätebestätigung; benötigt Betreuung und Gerätevertrag | PLN-01–03, DEV-01–03 |
+| Messsitzungen und Verlauf | Quelle, Zeit, Qualität und Planbezug; Offlinepuffer, wiederholbarer Upload, Historie und Export | DAT-01–04, HIS-01–02 |
+| BLE, Warnarmband und Watch | Native Transporte, Wiederverbindung, lokale Warnung und Companion-Grenzen; benötigt reale Hardware-/Plattformnachweise | ALT, WAT-01; Abschnitte 2 und 9 |
+| Datenschutz und Betrieb | Löschung, Export, Aufbewahrung, Hosting, Monitoring, Backups/Restore und Release; betrifft alle Bereiche von Beginn an | PRI, SEC; Abschnitte 8–10 |
+
+### Konto- und Sessionzustände
+
+Fachlicher Entwurf zur Ausarbeitung von ACC-01–04 und SEC-01–05, noch keine implementierte Anmeldung. Konto, Session, Arztprüfung und Betreuungsbeziehung werden getrennt geprüft; eine verifizierte E-Mail bestätigt die Erreichbarkeit dieser Adresse, keine ärztliche Berechtigung. Ein aktiver Login allein erlaubt keine fremden Datenzugriffe.
+
+| Kontozustand | Erlaubte Aktionen im Zielmodell | Verbotene Aktionen |
+|---|---|---|
+| Unverifiziert | Verifikation abschließen oder erneut anfordern; Wiederherstellung anfordern | Geschützte Gesundheitsdaten lesen/schreiben, Betreuungseinladungen senden, Arztfunktionen nutzen |
+| Verifiziert und nicht gesperrt | Nach erfolgreicher Anmeldung eigene freigegebene Aktionen; Fachzugriffe zusätzlich nach Rolle, Betreuung und gegebenenfalls MFA | Fremde Daten ohne Berechtigung, eigene Arztfreigabe, Umgehen von Planhoheit und Gerätebestätigung |
+| Gesperrt | Kontakt-/Wiederherstellungsweg nach festgelegtem Verfahren; öffentliche Informationen | Neue fachlich nutzbare Sessions und sämtliche geschützten Fachaktionen, auch mit zuvor ausgestellter Session |
+
+Sperrung überlagert den Verifikationsstatus, statt ihn zu löschen. Ein Löschantrag ist ein gesonderter Datenschutzvorgang nach PRI-04/05; er bedeutet weder sofortige vollständige Löschung noch eine bereits festgelegte Aufbewahrungsfrist. Kontosperre und lokale Gerätewarnung sind unterschiedliche Vorgänge; die Behandlung lokaler Gesundheitsdaten und Offlinefunktionen bei Sperrung ist noch zu spezifizieren.
+
+| Sessionzustand | Verhalten und zulässiger Übergang |
+|---|---|
+| Keine | Öffentliche Abläufe sind möglich; geschützte API-Aufrufe werden abgewiesen. Erfolgreiche Authentifizierung kann eine neue aktive Session erzeugen, sofern Konto und erforderliche Faktoren dies erlauben. |
+| Aktiv | Serverseitige Prüfung von Gültigkeit, Kontosperre und aktionsbezogenen Rechten bei jedem geschützten Zugriff. Logout oder Widerruf beendet diese Session; Zeitablauf führt zu abgelaufen. |
+| Abgelaufen | Keine Fachzugriffe und keine Wiederaktivierung durch bloße Clientanzeige. Erneute erfolgreiche Authentifizierung erzeugt eine neue Session. |
+| Widerrufen | Keine Fachzugriffe und keine Wiederverwendung. Erneute erfolgreiche Authentifizierung erzeugt gegebenenfalls eine neue Session; die widerrufene bleibt ungültig. |
+
+Eine ausstehende MFA-Prüfung ist ein unvollständiger Anmeldevorgang und verleiht keine Arzt-Fachrechte. Ein ungeprüfter Arztstatus erhält auch mit verifizierter E-Mail und aktiver Session keine Einladungs-/Behandlungsrechte. Die konkrete Arztprüfung und der Recoveryweg für verlorene Faktoren bleiben festzulegen.
+
+| Auslöser | Übergang / Nachbedingung | Negativfall für spätere Abnahme |
+|---|---|---|
+| Registrierung | Neues Konto zunächst unverifiziert; keine eigenmächtige Arztfreigabe | Manipulierte Rollenangabe erzeugt keine Arztberechtigung |
+| E-Mail-Verifikation | Gültiger Nachweis setzt Verifikationsstatus; hebt keine Sperre auf | Abgelaufener/falscher Nachweis gewährt keinen Fachzugriff; Einmalnutzung des Verifikationsnachweises beim Auth-Entwurf konkretisieren |
+| Login | Gültige Zugangsdaten und benötigte Faktoren erzeugen neue Session; Fachfreigabe zusätzlich gemäß Kontozustand und Rechten | Falsches Passwort, fehlender Faktor oder Sperre schaffen keinen geschützten Zugang |
+| Logout | Betroffene Session serverseitig widerrufen und Clientzugang entfernen | Wiederholter Aufruf mit alter Session scheitert; Logout einer Session ist nicht automatisch Logout aller Geräte |
+| Passwortreset anfordern | Begrenzter Wiederherstellungsprozess ohne Offenlegung, ob eine Adresse registriert ist; noch keine Anmeldung | Anfrage allein ändert kein Passwort und erzeugt keine nutzbare Session |
+| Passwortreset abschließen | Nur gültiger, nicht abgelaufener Einmalnachweis erlaubt Änderung; Nachweis danach verbraucht; keine Aufhebung einer Kontosperre | Wiederverwendung, falscher oder abgelaufener Nachweis scheitern |
+| Kontosperre / Sessionwiderruf | Sperre blockiert alle Fachzugriffe; Widerruf macht die ausgewählte Session unmittelbar serverseitig ungültig | Alte Session oder gecachter Rollenstatus umgehen die Sperre nicht |
+
+**Vor Implementierung zu entscheiden:** absolute und inaktive Sessionlaufzeit, Erneuerung/Rotation, Browser-/App-Speicherung, begrenzter Verifikationszugang für unverifizierte Konten sowie Berechtigung und Nachweis für Entsperrung. Für Passwortreset wird als Empfehlung der Widerruf aller bestehenden Sessions vorgesehen; Umfang und technischer Nachweis sind mit der Auth-Auswahl festzulegen. Sperrung, Reset und Widerruf dürfen keine von Clients ungeprüft gesetzten Felder sein. Auth-Lösung und Datenbank sind damit noch nicht ausgewählt; Passwörter werden nie als Klartext-Fachdaten gespeichert oder geloggt.
+
+**Abschluss dieses Modellierungsschritts:** Zustände und Übergänge sind beschrieben, erlaubte/verbotene Aktionen und spätere Negativnachweise zugeordnet, offene Regeln ausdrücklich sichtbar. Die technische Abnahme erfolgt erst mit Implementierung und tatsächlichen ACC-/SEC-Prüfungen. Das Betreuungsmodell folgt im nächsten Abschnitt; das detaillierte Datenmodell bleibt ein eigener Schritt.
+
+### Betreuungszustände und Arztwechsel
+
+Fachlicher Entwurf zu REL-01–03, noch keine implementierte Zuordnung. Einladung und Betreuungsbeziehung besitzen getrennte Zustände: Eine offene Einladung erzeugt keine Betreuung und keinen Zugriff auf Gesundheitsdaten. Für Arztaktionen gelten zusätzlich Konto-/Sessionprüfung, bestätigte Arztberechtigung und erforderliche MFA gemäß ACC; Patientenannahme erfordert die authentifizierte, verifizierte Zielidentität. Kenntnis einer E-Mail, Patienten-ID oder eines Einladungslinks allein genügt nicht.
+
+| Einladungszustand | Erlaubte Aktion / Übergang | Zugriffsgrenze |
+|---|---|---|
+| Offen | Zielpatient kann ausdrücklich annehmen oder ablehnen; berechtigter Aussteller kann zurückziehen; Fristablauf führt zu abgelaufen | Kein Fachzugriff durch die Einladung; Annahme nur nach erneuter serverseitiger Prüfung von Zielidentität, Ablauf und Arztfreigabe |
+| Angenommen | Erfolgreiche Annahme hat die erlaubte Zuordnung einmalig hergestellt | Kein erneuter Verbrauch; Zugriff entsteht nur aus der tatsächlich aktiven Beziehung |
+| Abgelehnt, zurückgezogen oder abgelaufen | Terminal für diese Einladung; eine weitere Einladung ist ein neuer Vorgang | Keine Annahme oder Reaktivierung durch erneuten Linkaufruf |
+
+| Beziehungszustand | Erlaubte Aktionen | Verbotene Aktionen |
+|---|---|---|
+| Keine aktive Betreuung | Eigene Patientenaktionen nach Kontorechten; Zuordnung über gültige Einladung vorbereiten | Arztzugriff ohne aktive, freigegebene Beziehung |
+| Aktiv | Verantwortlicher Arzt darf zugeordnete Daten und Pläne im erlaubten Umfang bearbeiten; Patient sieht die Zuordnung | Zweiter gleichberechtigter Verantwortlicher, ungefragte Übertragung fremder Rechte |
+| Beendet | Ende und frühere Zuständigkeit nachvollziehbar erhalten; weitere Vorgänge nur nach gesondert geklärter Berechtigung | Fachzugriff allein aufgrund der früheren Beziehung; automatische Reaktivierung durch alte Einladung oder Session |
+
+Ein Entzug der Arztfreigabe oder eine Kontosperre blockiert Fachaktionen unabhängig davon, ob eine Beziehung historisch als aktiv geführt wird. Ob daraus zusätzlich eine Beziehungsbeendigung entsteht und wer eine Betreuung beenden darf, ist vor Implementierung zu bestimmen. Bis dahin lässt sich daraus kein Entsperrungs- oder Wiederaufnahmeweg ableiten.
+
+| Auslöser | Übergang / Nachbedingung | Negativnachweis für spätere Abnahme |
+|---|---|---|
+| Einladung ausstellen | Geprüfter, berechtigter Arzt erstellt eine befristete, an eine Zielidentität gebundene Einladung | Ungeprüfter/gesperrter Arzt und manipulierte Ziel-ID erzeugen keinen Fachzugriff |
+| Patient nimmt an | Einladung wird einmalig verbraucht und zulässige Beziehung atomar aktiviert; alle Voraussetzungen werden bei der Annahme erneut geprüft | Falsche Identität, Ablauf, Zurückziehung, verlorene Arztfreigabe und Wiederholung scheitern |
+| Beziehung beenden / Zugriff entziehen | Berechtigter Vorgang beendet den laufenden Beziehungszugriff serverseitig; Historie bleibt zuordenbar | Bestehende Session, erratene Daten-ID und alte Einladung stellen den entzogenen Zugriff nicht wieder her |
+| Arztwechsel bestätigen | Ausdrückliche Patientenbestätigung einer neuen gültigen Einladung; alter Verantwortlicher wird beendet und neuer aktiviert, ohne fremde Rechte ungeprüft zu übernehmen | Zwei konkurrierende Annahmen erzeugen niemals zwei aktive Verantwortliche; Fehler lassen keinen halbfertigen Wechsel zurück |
+
+Die Datenhaltung muss die Invariante **höchstens ein verantwortlicher Arzt je Patient** zusätzlich zur API-Prüfung atomar absichern. Einladungskonsum, Prüfung des aktuellen Zustands und Aktivierung beziehungsweise Wechsel bilden eine konsistente Operation. Wiederholte und konkurrierende Anfragen dürfen weder doppelte Beziehungen noch teilweise vollzogene Wechsel erzeugen. Der konkrete Mechanismus wird mit dem Datenmodell festgelegt.
+
+**Offen vor Implementierung:** Einladungsdauer, Zielidentitätsbindung vor abgeschlossener Registrierung, berechtigte Aussteller eines Entzugs/Beendigungswunsches sowie Übergangsregeln bei Arztwechsel. Historischer Datenzugriff nach Betreuungsende, Aufbewahrung und Fortgeltung bestehender Pläne sind gesondert zu entscheiden; die beendete Beziehung allein begründet keinen weiteren Zugriff. Historische Planversion samt Autor bleibt nachvollziehbar, wird aber durch einen Wechsel weder automatisch neu freigegeben noch stillschweigend als ungültig erklärt. Bis zur Klärung darf die Implementierung keine automatische Planfortgeltung oder neue Zugriffsberechtigung behaupten.
+
+**Abschluss dieses Modellierungsschritts:** Einladungs- und Beziehungszustände, Übergänge und Zugriffsgrenzen sind getrennt beschrieben; REL-01–03 besitzt konkrete spätere Negativnachweise einschließlich Konkurrenz und Wiederholung. Technische Durchsetzung und Abnahme sind noch offen. Datenbesitz und minimales fachliches Datenmodell folgen als eigener Schritt.
+
+### Datenzuordnung und minimales fachliches Datenmodell
+
+Fachlicher Entwurf für ACC, REL, PLN, DEV, DAT und PRI. Die folgenden Entitäten bezeichnen Verantwortlichkeiten und Beziehungen, noch keine Tabellen, Datenbank oder implementierten Schnittstellen. „Besitz“ meint hier technische Zuordnung und Zugriffsprüfung; daraus wird kein rechtliches Eigentum an personenbezogenen Daten abgeleitet. Identitätsdaten, klinische Daten und Betriebsnachweise erhalten jeweils ihren begründeten Zweck und Zugriffsumfang.
+
+| Entität / Verantwortung | Minimale Zuordnung und Kardinalität | Rechtequelle und Integrität |
+|---|---|---|
+| Identität und Session | Eine interne Identität je Konto; eine Identität hat null bis viele Sessions. Auth-Nachweise und gegebenenfalls externe Auth-ID werden dieser stabilen Identität zugeordnet. | Konto-/Sessionmodell; keine vom Client frei wählbare Nutzer-ID. E-Mail ist Kontakt-/Verifikationsmerkmal, kein dauerhafter fachlicher Beziehungsschlüssel. |
+| Patientenprofil | Jedes Profil verweist auf genau eine Identität; pro Identität höchstens ein Patientenprofil im ersten Modell. Fachliche Datensätze verweisen auf das Patientenprofil. | Eigene freigegebene Patientenaktionen; personenbezogene Felder nur nach begründetem Bedarf. Kombination von Arzt- und Patientenrolle sowie Vertretung sind gesondert zu klären. |
+| Arztprofil und Freigabe | Jedes Arztprofil verweist auf genau eine Identität; pro Identität höchstens ein Arztprofil. Prüfstatus und Freigabenachweis sind von E-Mail-Verifikation getrennt. | Nur befugter Prüfprozess setzt Freigabe; eine Rolle allein gewährt keinen Zugriff auf Patientenverläufe. |
+| Einladung und Betreuungsbeziehung | Einladung: genau ein ausstellender Arzt und eine gebundene Zielidentität; Vorregistrierungsbindung bleibt offen. Beziehung: genau ein Arzt und ein Patient; beide können viele historische Beziehungen haben. | Zustände gemäß Betreuungsmodell; pro Patient höchstens eine aktive verantwortliche Beziehung. Einladung ist kein Fachzugriffsrecht. |
+| Gerät und zeitliche Zuordnung | Ein Gerät hat null bis viele historische Zuordnungen; jede Zuordnung gehört genau einem Gerät und einem Patienten mit Beginn/Ende. Für ein patientengebundenes Gerät überschneiden sich aktive Zuordnungen nicht. | Verifizierte Gerätebindung gemäß DEV; Geräteteilung und Zeit-/Übergabegrenzen vor Unterstützung klären. Ein Gerätewechsel überträgt keine fremden Messdaten. |
+| Planversion | Jede Version gehört genau einem Patienten und einem nachvollziehbaren ärztlichen Autor; ein Patient kann viele Versionen haben. Grenze, Einheit, Erstellzeit und Gültigkeit bleiben am Versionsstand erhalten. | Erzeugung nur gemäß aktiver Betreuung und Planhoheit. Fachliche Änderungen erzeugen eine neue Version; eine spätere Arztzuordnung schreibt den historischen Autor nicht um. |
+| Gerätebestätigung | Jede Bestätigung bezieht sich auf genau eine Planversion und die betreffende Gerätezuordnung; je Version/Zuordnung sind mehrere Übertragungsversuche möglich. | Eindeutiger Versions-/Gerätebezug und nachgewiesene Bestätigung; Auslösung oder Patientenbestätigung allein bedeutet nicht „angewendet“. |
+| Messsitzung | Jede reale Sitzung gehört genau einem Patienten und der erfassten Gerätezuordnung; ein Patient hat null bis viele Sitzungen. Quelle real/demo, Zeitbasis, Qualität und historischer Planbezug sind festgehalten. Für Demo-Sitzungen ist vor dem Schema zu klären, ob keine oder eine ausdrücklich synthetische Gerätezuordnung verwendet wird. | Authentifizierter Upload plus fachliche Zuordnungsprüfung; Uploadzeitpunkt ersetzt nicht die tatsächliche Messzeit. Fehlende Geräte-/Planbestätigung als unbekannt oder ausstehend kennzeichnen. |
+| Messpunkt / Ereignis | Jeder Punkt gehört genau einer Sitzung; eine Sitzung kann null bis viele Punkte enthalten. Einheit, Mess-/Empfangszeit, Sequenz beziehungsweise Wiedererkennungsmerkmal und Qualitätsstatus sind nachvollziehbar. | Wiederholter Upload erzeugt keine Duplikate; Qualitätslücken oder ungültige Werte werden nicht zu scheinbar gültigen Messungen. Ein wirksamer Planwechsel innerhalb einer Sitzung braucht versionierte Abschnitte oder einen neuen Sitzungsabschnitt. |
+| Auditereignis | Jedes Ereignis hält Zeitpunkt, Akteur beziehungsweise ausdrücklich gekennzeichneten Systemakteur, Aktion und fachliche Referenz fest; ein Vorgang kann mehrere Ereignisse erzeugen. | Zweckgebundener, geschützter Betriebsnachweis; keine Passwörter, Tokens oder unnötigen Gesundheitswerte. Zugriff wird nicht allein aus der Patientenbeziehung abgeleitet. |
+| Datenschutzvorgang | Jeder Vorgang betrifft eine identifizierte betroffene Person und einen geprüften Antrag mit Art, Status und Bearbeitungsnachweis; eine Person kann mehrere Vorgänge haben. | Identitätsgeprüfter Prozess gemäß PRI; Anfrage erzeugt weder pauschalen Fachzugriff noch ein ungeprüftes Löschversprechen. |
+
+**Übergreifende Integritätsregeln:** Authentifizierung liefert die Identität; jede Lese-, Änderungs- und Exportaktion prüft zusätzlich Rolle, Zweck und erlaubte aktive Beziehung beziehungsweise eigene Zuordnung. Fremde IDs oder eine feste Nutzer-ID ersetzen diese Prüfung nicht. Die maßgeblichen Fremdbezüge müssen konsistent bleiben: Sitzung, Gerätezuordnung, Plan und Gerätebestätigung dürfen nicht versehentlich zu verschiedenen Patienten gehören. Bei verspätetem Upload bleibt die damalige Zuordnung maßgeblich für die Datenherkunft; sie begründet keinen heutigen Zugriff. Geräte- und Arztwechsel schreiben historische Daten nicht auf den neuen Träger oder Behandler um. Eine Auswertung verwendet den damals nachgewiesenen Planstand, niemals stillschweigend den aktuellen Grenzwert. Demo-Daten verändern keine echten Therapieverläufe.
+
+**Noch festzulegen:** konkrete minimale Profilfelder, Kombination mehrerer Rollen, Umfang historischer Datenfreigabe für neue Behandler, zeitliche Geräteübergabe, Umgang mit fehlendem oder wechselndem Plan und Kriterien zur Upload-Wiedererkennung. Je Datenart sind Aufbewahrung, Löschung, Sperrung, Auditbedarf und Verhalten in Backups zu klären. Referenzen dürfen dabei weder unbemerkt verwaisen noch durch pauschales kaskadierendes Löschen erforderliche Historie entfernen. Diese Regeln legen noch keine Fristen oder zulässigen Zugriffe nach Betreuungsende fest.
+
+**Abschluss dieses Modellierungsschritts:** Verantwortlichkeiten, Zuordnungen, Kardinalitäten und Integritätsgrenzen sind beschrieben; die Rechtequelle und offene Aufbewahrungs-/Zugriffsfragen bleiben sichtbar. Technische Schemata, Migrationen und Abnahme auf Testdaten stehen aus. Nächster einzelner Schritt ist der Vergleich von Auth-Optionen anhand dieser Modelle.
+
+### Auth-Optionen: Vergleich und Empfehlung
+
+**Aktueller Beschluss nach dem Vergleich:** Nutzer wählt am 07.11.2026 Better Auth. Der folgende Vergleich und seine Auth0-Empfehlung bleiben als Entscheidungsgrundlage erhalten; umgesetzt wird der begrenzte lokale Better-Auth-Durchstich gemäß [Entscheidungsprotokoll](decisions.md).
+
+Stand/Abruf: 07.11.2026. Dokumentationsvergleich für ACC/SEC und das obige Konto-/Sessionmodell; keine Installation, Anbieterfreigabe oder Laufzeitprüfung. In allen Varianten bleiben Arztprüfung, Betreuung, Datenbesitz und Sperrung maßgebliche Regeln der eigenen Backend-API. Auth-Claims allein ersetzen diese Prüfung nicht. Die fachliche Datenbank und ihre Migrationen bleiben auch bei einem verwalteten Identitätsdienst erforderlich.
+
+| Option | Nachgewiesene Bausteine laut offizieller Dokumentation | Web/App-Grenzen und Betriebsfolgen |
+|---|---|---|
+| **Better Auth, selbst betrieben** | E-Mail-/Passwortanmeldung mit Verifikation und Reset; datenbankgestützte Sessions und Widerruf; TOTP/Backupcodes über 2FA-Plugin [A1–A3] | Nahe an Vue und einer eigenen JavaScript-API; Authschema und Migrationen selbst betreiben. Cookie-/Cache-Konfiguration beeinflusst Widerruf. Die gelesenen Quellen belegen keinen fertigen Capacitor-Pfad: WebView-Cookies, externe Anmeldung, Rücksprung und geschützter Gerätespeicher müssen gesondert nachgewiesen werden. Mailversand, Hosting, Updates, Backups und Wiederherstellung liegen beim Team. Der archivierte Versuch ist kein Nachweis der neuen App. |
+| **Verwaltetes OIDC, konkret Auth0 als Vergleichskandidat** | Verifikation, Reset und MFA sind dokumentiert; einige MFA-Faktoren hängen vom Tarif ab [A4–A6]. Offizieller Vue-/Capacitor-Leitfaden mit Systembrowser und Deep-Link-Rücksprung [A7] | Weniger eigener Identitätsserverbetrieb, dafür Anbieter-/Tarifbindung und Prüfung von Datenregion, AV-Vertrag, Unterauftragnehmern, Export und Ausstieg. Eigene Fach-DB und API bleiben erforderlich. Login-/Provider-Session, Refresh-Token und API-Zugang sind getrennt zu behandeln: Logout invalidiert bereits ausgestellte Access-Tokens nicht automatisch [A8]. Native sichere Tokenablage ist durch einen Quickstart allein nicht nachgewiesen. Preise, konkrete Vertragsleistungen und Verfügbarkeit wurden nicht geprüft. |
+| **Keycloak, selbst betriebenes OIDC** | Verifikation, Passwortwiederherstellung und OTP-Flows im Administrationshandbuch; OIDC-Endpunkte für Login, Logout und Introspection [A9–A10] | Webadapter unterstützt öffentliche Clients und PKCE; dokumentierte, teilweise als veraltet markierte Cordova-Pfade belegen keine fertige Capacitor-Integration [A11]. Eigener Identitätsdienst mit Datenbank, SMTP, TLS, Updates, Überwachung und Restore zusätzlich zum Fachbackend. Flexibel, aber für das kleine Team voraussichtlich mehr Betriebsaufwand; diese Aufwandseinschätzung ist eine Bewertung, keine gemessene Stundenzahl. |
+
+**Gemeinsame mobile Prüfkriterien:** Für einen OIDC-App-Client Authorization Code mit PKCE (S256), Systembrowser und exakt registrierten Rücksprung verwenden; kein Clientsecret in der APK/IPA. Callback-Zuordnung, Abbruch, Wiederholung, App-Neustart und sichere Ablage in Keychain/Keystore müssen real geprüft werden. Ein Web-Login belegt diese Eigenschaften nicht. Für Browser kann eine serverseitige Session mit sicherem HttpOnly-Cookie sinnvoll sein; Web- und Mobiltransport brauchen jeweils ein begründetes Konzept. Bei eigenständig validierten JWTs reicht Provider-Logout nicht für sofortigen API-Entzug: Die API braucht eine nachweisbare Widerrufs-/Sperrprüfung gemäß ACC-03/REL-02; kurze Tokenlaufzeit allein erfüllt „unmittelbar ungültig“ nicht. Bei Better Auth gilt derselbe Nachweis für gegebenenfalls aktivierte Sessioncaches.
+
+**Erweiterung um Google-Login und Zukunftsfähigkeit:** Google-Anmeldung ist bei allen drei Kandidaten dokumentiert: Better Auth als Social Provider [A12], Auth0 als Social Connection [A13], Keycloak als Identity Broker [A9, Abschnitt Google]. Passkeys sind ebenfalls dokumentiert: Better Auth über Plugin [A14], Auth0 für Database Connections [A15], Keycloak über WebAuthn/Passkeys [A9]. Dadurch entscheidet Google-Unterstützung allein den Vergleich nicht. Native Passkeys, Wiederherstellung und geräteübergreifende Anmeldung müssen mit den tatsächlichen Zielgeräten geprüft werden; Anbieterfeature bedeutet keine bereits funktionierende Capacitor-Integration.
+
+| Zukunftskriterium | Konkrete Auswirkung auf die Auswahl |
+|---|---|
+| Einheitliche Arzt-MFA trotz Social Login | Better Auth fordert 2FA standardmäßig bei Credential-Logins, aber nicht bei OAuth/Social oder Passkeys; zusätzliche Hook-/Freigabelogik wäre erforderlich [A3]. Auth0 dokumentiert MFA-Richtlinien mit Tarifgrenzen [A6]; Keycloak konfigurierbare Flows, deren Passkey-Standardfluss OTP überspringen kann [A9]. Bei jedem Kandidaten muss die API das erforderliche Authentifizierungsniveau vor Arztaktionen nachweislich durchsetzen. Google-Login allein belegt keine projektspezifische MFA-Erfüllung. |
+| Bewusstes Verknüpfen mehrerer Anmeldewege | Better Auth hat implizites Linking standardmäßig aktiv; `disableImplicitLinking` ist für den hier empfohlenen expliziten Ablauf zu prüfen [A16]. Auth0 trennt Identitäten standardmäßig und verlangt für sicheres Linking Authentifizierung beider Konten; Verfügbarkeit ist tarifabhängig [A17]. Keycloak bietet Reauthentifizierung beim Broker-Linking und warnt vor unkontrolliertem AutoLink [A9]. |
+| Anbieterwechsel und Datenkontrolle | Bei Better Auth liegt das Authschema im eigenen Betrieb; das beseitigt keine Migration von Hashformaten, MFA oder Passkeys. Keycloak kann Realms/Benutzer exportieren, wobei der Export kein vollständiges Backup ist und z. B. Sessions/Ereignisse ausschließt [A18]. Auth0-Bulkprofilexport ist laut Dokumentation nicht im Free-Tarif enthalten; Passwort-/MFA-Export braucht einen geprüften Supportprozess ohne garantierten Termin oder Zusage jeder Anfrage [A19–A20]. OIDC allein macht Credentials nicht portabel. |
+
+**Empfohlener Anmeldeumfang:** E-Mail-basierter Zugang mit Verifikation und Recovery sowie Google als optionaler Weg; bei iOS zusätzlich eine nach Apple 4.8 geeignete gleichwertige Alternative einplanen. Passkeys als spätere gezielte Verbesserung vorsehen, sobald Konto-Wiederherstellung, Domain und Plattformpfad geprüft sind. Für Ärzte unabhängig vom gewählten Loginweg erforderliche MFA und separate Arztprüfung durchsetzen. Diese Ausgestaltung ist eine Empfehlung zum Nutzerwunsch Google-Login; die genaue Aktivierung erfolgt im jeweiligen abgenommenen Implementierungsschritt.
+
+**iOS und Apple 4.8:** Verwendet die App Google oder einen anderen Social Login für das primäre Appkonto, verlangt die aktuelle Richtlinie eine gleichwertige weitere Loginoption mit begrenzter Datenerhebung, privater E-Mail-Adresse und ohne Werbeinteraktionssammlung ohne Zustimmung [A21]. Die Regel nennt diese Eigenschaften und schreibt nicht pauschal ausschließlich Sign in with Apple vor. Sign in with Apple ist die hier empfohlene zu prüfende Option; ein gewöhnliches E-Mail-/Passwortformular belegt die geforderten Eigenschaften noch nicht. Ausnahmen bestehen unter anderem bei ausschließlich eigenem Kontosystem oder verpflichtendem bestehendem Bildungs-/Unternehmenskonto. Für die geplante allgemein zugängliche Patienten-App mit optionalem Google-Login ist eine solche Ausnahme bisher nicht belegt; sie darf nicht vorausgesetzt werden. Vor Einreichung aktuelle Regel und tatsächlichen Loginumfang erneut prüfen.
+
+**Identitätsregel für alle Wege:** Eine stabile interne Konto-ID bleibt Bezug der Gesundheitsdaten. Externe Identität anhand des validierten Ausstellers und Subjects zuordnen; Google weist ausdrücklich auf `sub` statt E-Mail als dauerhaften Schlüssel hin [A22]. Gleiche E-Mail oder Apple-Relay-Adresse darf keine automatische Zusammenführung von Patientendaten auslösen. Verknüpfung nur nach ausdrücklicher Nutzeraktion und erneutem Nachweis beider betroffenen Konten; Rollen/Betreuung werden dadurch nicht übertragen. Entknüpfen darf keinen Nutzer ohne verbleibenden zulässigen Zugang beziehungsweise Recoveryweg zurücklassen. Nur erforderliche Login-Scopes erheben, keine Gesundheitsdaten in Providerprofilen oder Claims ablegen.
+
+**Konkrete Empfehlung für OrthoSohle, kein Stackbeschluss:** Auth0 als ersten Testkandidaten für eine verwaltete OIDC-Lösung wählen, mit getrennten Web-/Native-Clients, Google als optionalem Provider und eigener fachlicher Identität/Rechteprüfung. Ausschlaggebend sind der offizielle Vue-/Capacitor-Pfad [A7], konfigurierbare MFA und weniger eigener Identitätsserverbetrieb; dies ist eine Projektempfehlung für das kleine Team, keine Zusage von Produktreife oder des niedrigsten Preises. Den Quickstart nicht ungeprüft übernehmen: Er benennt iOS-SSO-Grenzen und schlägt für Neustartpersistenz unter anderem LocalStorage vor; für diese Gesundheits-App ist stattdessen die sichere native Ablage gesondert nachzuweisen. Betreiber, zulässige Region/Verträge und Budget sind unbekannt. Vor Anbieterbindung müssen der benötigte MFA-/Linking-/Exportumfang, realistische aktive Nutzerzahl und laufende Gesamtkosten schriftlich passen; es wird kein kostenloser Produktivbetrieb angenommen. Preisbeträge wurden nicht verifiziert und werden daher nicht behauptet.
+
+Falls diese Bedingungen nicht erfüllt sind, Better Auth als bevorzugte selbst betriebene Alternative prüfen, mit explizitem Linking und besonderem Nachweis von Social-MFA sowie mobiler Sessionintegration. Keycloak erst bevorzugen, wenn eine verantwortete Betriebsplattform oder konkreter Föderationsbedarf besteht. Zukunftsfähigkeit sichern stabile interne IDs, standardisierte OIDC-Grenzen bei OIDC-Einsatz, ein dokumentierter Export-/Wiederanmeldeplan und überprüfbare Sessionrechte; noch keine zusätzlichen Adapterpakete oder Abstraktionen auf Vorrat anlegen.
+
+**Nächste einzelne Machbarkeitsprüfung nach Auswahl eines Testkandidaten:** Mit ausschließlich synthetischem Konto eine geschützte minimale API-Aktion aufrufen, die benutzte Session serverseitig widerrufen und exakt denselben alten Zugang erneut verwenden. Abschluss: Zugriff vorher erlaubt, nach bestätigtem Widerruf abgewiesen; erneute Anmeldung schafft einen neuen Zugang; Session-/Token-/Cachepfad und Ergebnis sind nachvollziehbar protokolliert, ohne Secrets zu loggen. Voraussetzung sind ein abgegrenztes Testsetup und die ausgewählte Integrationsform. Ohne Testtenant beziehungsweise lokalen Identitätsdienst bleibt das ein geplanter Nachweis. Mobiler PKCE-/Deep-Link-Rücksprung folgt danach als eigener Schritt; ohne echten Android-/iOS-Buildweg bleibt dessen Plattformabnahme offen.
+
+Offene Auswahlpunkte: Verantwortlicher für Identitätsbetrieb und Störungen, Budget/Nutzerzahl, Hostingregion/Verträge, Mailzustellung und Recovery, notwendige MFA-Faktoren, Widerrufsstrategie, mobile Speicher-/Callbackbibliothek sowie Migrations-/Exportweg. Diese Punkte vor einer dauerhaften Anbieter-/Datenbankentscheidung klären.
+
+Offizielle Quellen, jeweils abgerufen am 07.11.2026:
+
+- A1: Better Auth, [Email & Password](https://better-auth.com/docs/authentication/email-password).
+- A2: Better Auth, [Session Management](https://better-auth.com/docs/concepts/session-management).
+- A3: Better Auth, [Two-Factor Authentication](https://better-auth.com/docs/plugins/2fa).
+- A4: Auth0, [Verify Emails](https://auth0.com/docs/manage-users/user-accounts/verify-emails).
+- A5: Auth0, [Change Users’ Passwords](https://auth0.com/docs/authenticate/database-connections/password-change).
+- A6: Auth0, [Multi-Factor Authentication](https://auth0.com/docs/secure/multi-factor-authentication).
+- A7: Auth0, [Ionic Vue with Capacitor Quickstart](https://auth0.com/docs/quickstart/native/ionic-vue).
+- A8: Auth0 Support, [Invalidating an Access Token after User Logout](https://support.auth0.com/center/s/article/Invalidate-the-API-token-after-user-logout).
+- A9: Keycloak, [Server Administration Guide](https://www.keycloak.org/docs/latest/server_admin/), insbesondere E-Mail, Reset Credentials und OTP.
+- A10: Keycloak, [Securing applications and services with OpenID Connect](https://www.keycloak.org/securing-apps/oidc-layers).
+- A11: Keycloak, [JavaScript adapter](https://www.keycloak.org/securing-apps/javascript-adapter), öffentliche Clients, PKCE und Cordova.
+- A12: Better Auth, [Google](https://better-auth.com/docs/authentication/google).
+- A13: Auth0, [Add Google Login](https://auth0.com/docs/authenticate/identity-providers/social-identity-providers/google).
+- A14: Better Auth, [Passkey](https://better-auth.com/docs/plugins/passkey).
+- A15: Auth0, [Passkey Authentication for Database Connections](https://auth0.com/docs/authenticate/database-connections/passkeys).
+- A16: Better Auth, [User & Accounts – Account Linking](https://better-auth.com/docs/concepts/users-accounts#account-linking).
+- A17: Auth0, [User Account Linking](https://auth0.com/docs/manage-users/user-accounts/user-account-linking).
+- A18: Keycloak, [Importing and exporting realms](https://www.keycloak.org/server/importExport).
+- A19: Auth0, [Bulk Export User Data](https://auth0.com/docs/manage-users/user-migration/bulk-user-exports).
+- A20: Auth0, [Export Password Hashes and MFA Secrets](https://auth0.com/docs/manage-users/user-migration/export-password-hashes-and-mfa-secrets).
+- A21: Apple Developer, [App Review Guidelines, 4.8 Login Services](https://developer.apple.com/app-store/review/guidelines/#login-services).
+- A22: Google for Developers, [OpenID Connect – ID token claims](https://developers.google.com/identity/openid-connect/openid-connect).
+
+### Vom Systembild zum einzelnen Arbeitsschritt
+
+Zuerst wird pro Bereich der Nutzerablauf beschrieben, danach Datenbesitz und Zustände, dann Schnittstellen und zuletzt ein kleiner durchgängiger Implementierungsschritt. Bestehende Anforderungs-IDs und Abnahmekriterien bleiben maßgeblich. Folgende Vertiefungsfolge ergänzt die Meilensteine aus Abschnitt 10; sie ersetzt deren Voraussetzungen nicht:
+
+1. **Konten, Rechte und Datenmodell konkretisieren:** Konto-/Arztstatus, Sessionablauf und Betreuungszustände sowie ihre Beziehungen darstellen. Abschluss: erlaubte und verbotene Aktionen sind je Zustand benannt, Identitätsdaten und Gesundheitsdaten zugeordnet, offene Auth-/DB-/Mailentscheidungen mit Kriterien erfasst.
+2. **Technische Grundlagen abgleichen:** Auth-, Persistenz- und API-Optionen anhand des Modells bewerten; parallel mobilen BLE-/Buildpfad früh prüfen. Abschluss je kleinem Vergleich: begründete Empfehlung, Betriebsfolgen und verbleibende Plattformblocker liegen vor. Ein Vergleich ist keine Implementierungsfreigabe für sämtliche Optionen.
+3. **Erster geschützter Durchstich:** Ein synthetisches Konto kann sich anmelden, eigene minimale Daten über die API speichern und nach erneutem Anmelden lesen. Abschluss in getrennten kleinen Aufgaben: Persistenz über Neustart nachgewiesen, abgemeldete/fremde Zugriffe abgewiesen; kein fester Nutzer-ID-Ersatz für Authentifizierung.
+4. **Betreuung, Plan und Gerät vertiefen:** Jeweils Zustandsmodell und eine einzelne Transition umsetzen, z. B. Einladung bestätigen oder Planversion anlegen. Abschluss nach REL/PLN/DEV einschließlich verbotener Übergänge; Geräte-ACK erst mit tatsächlichem Nachweis als angewendet darstellen.
+5. **Sitzung, Upload und Verlauf ergänzen:** Je ein kleiner Schritt für gültige Messung, Speicherung, Retry und Wiederabruf. Abschluss nach DAT/HIS einschließlich Lücken, Quelle und Planbezug.
+6. **Oberflächen, mobile Integration und Betrieb vervollständigen:** Auf den abgesicherten Abläufen aufbauen; Datenschutz, Sicherheit, Backup und Auslieferung bereits während aller vorherigen Schritte mitführen. Abschluss je Schritt nach UX/PRI/SEC und Plattformnachweis; Gesamtfreigabe gemäß M7/M8.
+
+Jeder delegierte Schritt benennt Bereich, Anforderungs-ID, Umfang, erwartete Zustände, konkrete Abschlussnachweise und unabhängigen Reviewer. Ein UI-Detail wird nur dann priorisiert, wenn es einen solchen Ablauf verbessert oder einen relevanten Fehler behebt.
+
+Die fachlichen Datentypen und Zuordnungen stehen im obigen Datenmodell. Physische Speicherung, Aufbewahrung und Indizes sind anhand der tatsächlichen Zugriffe und Datenvolumina festzulegen.
 
 API muss Eingaben und Rechte serverseitig prüfen, einheitliche Fehler liefern, Listen begrenzen/paginieren, Transaktionen verwenden und Schemaänderungen reproduzierbar migrieren. Clientseitige Rollenanzeigen und CORS sind kein Zugriffsschutz. Alte unzugeordnete Daten nur über dokumentierte Migration mit überprüfter Zuordnung übernehmen, niemals pauschal an ein neu angelegtes Konto hängen.
 
