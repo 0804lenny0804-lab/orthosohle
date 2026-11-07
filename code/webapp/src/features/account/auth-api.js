@@ -32,3 +32,13 @@ export async function authRequest(path, body) {
     clearTimeout(timeout);
   }
 }
+
+// Consume only status flags, never display provider messages or retain them in history.
+export function consumeVerificationError(url) {
+  const failed = url.searchParams.get('verification') === 'invalid' || url.searchParams.has('error');
+  if (failed) {
+    url.searchParams.delete('verification');
+    url.searchParams.delete('error');
+  }
+  return failed;
+}

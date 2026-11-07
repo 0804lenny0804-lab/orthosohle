@@ -4,13 +4,23 @@
       <h2 id="account-title" class="h4">Konto</h2>
       <p class="alert alert-warning" id="account-scope">
         Lokale Testkonten: Bitte ausschließlich erfundene Angaben verwenden.
-        Diese Anmeldung schützt noch keine Messdaten. E-Mail-Verifikation, Google-Login und Arztzugang folgen später.
+        Diese Anmeldung schützt noch keine Messdaten. Bestätigungslinks werden nur lokal abgelegt; echte E-Mails, Google-Login und Arztzugang folgen später.
       </p>
       <p role="status" aria-live="polite">{{ statusText }}</p>
+      <p v-if="callbackError" class="alert alert-danger" role="alert">{{ callbackError }}</p>
       <p v-if="state.error" class="alert alert-danger" role="alert">{{ state.error }}</p>
       <p v-if="state.notice" class="alert alert-info" role="status">{{ state.notice }}</p>
 
       <div v-if="state.identityId">
+        <p>{{ state.email }}: {{ state.emailVerified ? 'E-Mail bestätigt' : 'E-Mail noch nicht bestätigt' }}</p>
+        <p v-if="!state.emailVerified" class="small">
+          Öffne den Bestätigungslink aus dem lokalen Test-Mailausgang und prüfe danach deinen Status erneut.
+          Dies bestätigt noch keine Arztberechtigung oder Messdatenfreigabe.
+        </p>
+        <button v-if="!state.emailVerified" type="button" class="btn btn-outline-primary me-2 mb-2"
+          :disabled="state.busy" @click="accountSession.resendVerification">Bestätigungslink erneut anfordern</button>
+        <button type="button" class="btn btn-outline-secondary me-2 mb-2"
+          :disabled="state.busy" @click="accountSession.refresh">Status erneut prüfen</button>
         <button type="button" class="btn btn-primary" :disabled="state.busy" @click="accountSession.signOut">
           {{ state.busy ? 'Bitte warten …' : 'Abmelden' }}
         </button>
@@ -49,12 +59,14 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { accountSession } from './session.js';
+import { consumeVerificationError } from './auth-api.js';
 
 const { state } = accountSession;
 const registering = ref(false);
 const name = ref('');
 const email = ref('');
 const password = ref('');
+const callbackError = ref('');
 const statusText = computed(() => ({
   loading: 'Anmeldestatus wird geprüft …',
   authenticated: 'Du bist mit einem lokalen Testkonto angemeldet.',
@@ -79,5 +91,12 @@ async function submit() {
   }
 }
 
-onMounted(() => accountSession.refresh());
+onMounted(() => {
+  const url = new URL(window.location.href);
+  if (consumeVerificationError(url)) {
+    callbackError.value = 'Der Bestätigungslink ist ungültig, abgelaufen oder bereits verwendet. Bitte einen neuen Link anfordern.';
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  }
+  accountSession.refresh();
+});
 </script>

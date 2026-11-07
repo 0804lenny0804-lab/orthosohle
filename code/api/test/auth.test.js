@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -11,7 +11,7 @@ import { createAuth } from '../src/auth.js';
 import { createApp } from '../src/app.js';
 import { readConfig } from '../src/config.js';
 
-async function fixture(t) {
+async function fixture(t, { verificationExpiresIn = 3600 } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'orthosohle-auth-'));
   const secret = randomBytes(48).toString('base64url');
   let runtime;
@@ -29,6 +29,7 @@ async function fixture(t) {
     baseURL = `http://127.0.0.1:${server.address().port}`;
     const config = readConfig({ LOCAL_AUTH_ENABLED: 'true', BETTER_AUTH_SECRET: secret,
       AUTH_BASE_URL: baseURL, AUTH_DATABASE_PATH: join(directory, 'auth.sqlite') });
+    config.verificationExpiresIn = verificationExpiresIn;
     runtime = createAuth(config, { forMigration: migrate });
     if (migrate) {
       const { runMigrations } = await getMigrations(runtime.auth.options);
@@ -43,9 +44,17 @@ async function fixture(t) {
   return {
     async restart() { await stop(); await start(); },
     async request(path, { cookie, body, origin = baseURL } = {}) {
-      return fetch(`${baseURL}${path}`, { method: body ? 'POST' : 'GET', headers: {
+      return fetch(`${baseURL}${path}`, { redirect: 'manual', method: body ? 'POST' : 'GET', headers: {
         ...(cookie ? { Cookie: cookie } : {}), ...(body ? { 'Content-Type': 'application/json', Origin: origin } : {}),
       }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    },
+    async mails() {
+      const outbox = join(directory, 'auth.sqlite.mail-outbox');
+      const names = await readdir(outbox);
+      return Promise.all(names.map(async name => ({
+        path: join(outbox, name),
+        mail: JSON.parse(await readFile(join(outbox, name), 'utf8')),
+      })));
     },
     get auth() { return runtime.auth; },
   };
@@ -86,7 +95,7 @@ test('registration, invalid login, valid session and replay after logout', async
   const me = await f.request('/api/me', { cookie });
   assert.equal(me.status, 200);
   assert.equal(me.headers.get('cache-control'), 'no-store');
-  assert.deepEqual(await me.json(), { id });
+  assert.deepEqual(await me.json(), { id, email: account.email, emailVerified: false });
   assert.equal((await f.request('/api/auth/sign-out', { cookie, body: {} })).status, 200);
   assert.equal((await f.request('/api/me', { cookie })).status, 401);
   assert.equal(f.auth.options.session.cookieCache.enabled, false);
@@ -100,7 +109,7 @@ test('account and session persist when server and SQLite connection reopen', asy
   await f.restart();
   const me = await f.request('/api/me', { cookie });
   assert.equal(me.status, 200);
-  assert.deepEqual(await me.json(), { id });
+  assert.deepEqual(await me.json(), { id, email: account.email, emailVerified: false });
   const login = await signIn(f);
   assert.equal(login.status, 200);
   assert.equal((await login.json()).user.id, id);
@@ -130,8 +139,70 @@ test('explicit local web origin can register, sign in, reload identity and sign 
   assert.match(login.headers.getSetCookie().join(';'), /HttpOnly/i);
   assert.match(login.headers.getSetCookie().join(';'), /SameSite=Lax/i);
   const cookie = cookies(login);
-  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id });
-  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id });
+  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, email: account.email, emailVerified: false });
+  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, email: account.email, emailVerified: false });
   assert.equal((await f.request('/api/auth/sign-out', { body: {}, origin, cookie })).status, 200);
+  assert.equal((await f.request('/api/me', { cookie })).status, 401);
+});
+
+
+function verificationPath(mail) {
+  const url = new URL(mail.verificationURL);
+  url.searchParams.delete('callbackURL');
+  return `${url.pathname}${url.search}`;
+}
+
+test('local verification mail is private, verifiable once, and creates no session', async t => {
+  const f = await fixture(t);
+  await signUp(f);
+  const [{ mail, path }] = await f.mails();
+  assert.equal(mail.mode, 'LOCAL SYNTHETIC TEST MAIL — NOT SENT');
+  assert.equal(new URL(mail.verificationURL).hostname, '127.0.0.1');
+  assert.equal(new URL(mail.verificationURL).searchParams.get('callbackURL'), 'http://127.0.0.1:5173/#account');
+  if (process.platform !== 'win32') {
+    assert.equal((await stat(path)).mode & 0o777, 0o600);
+    assert.equal((await stat(join(path, '..'))).mode & 0o777, 0o700);
+  }
+  const verified = await f.request(verificationPath(mail));
+  assert.equal(verified.status, 200);
+  assert.equal(verified.headers.get('set-cookie'), null);
+  assert.equal(verified.headers.get('referrer-policy'), 'no-referrer');
+  assert.equal((await f.request('/api/me')).status, 401);
+  assert.equal((await f.request(verificationPath(mail))).status, 401);
+  const cookie = cookies(await signIn(f));
+  const me = await (await f.request('/api/me', { cookie })).json();
+  assert.equal(me.emailVerified, true);
+  assert.deepEqual(Object.keys(me).sort(), ['email', 'emailVerified', 'id']);
+});
+
+test('invalid and expired verification cannot change account status', async t => {
+  const f = await fixture(t, { verificationExpiresIn: 1 });
+  await signUp(f);
+  const [{ mail }] = await f.mails();
+  const bad = new URL(mail.verificationURL);
+  bad.searchParams.delete('callbackURL');
+  bad.searchParams.set('token', 'invalid-token');
+  assert.equal((await f.request(`${bad.pathname}${bad.search}`)).status, 401);
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  assert.equal((await f.request(verificationPath(mail))).status, 401);
+  const cookie = cookies(await signIn(f));
+  assert.equal((await (await f.request('/api/me', { cookie })).json()).emailVerified, false);
+});
+
+test('resend stays private, callback is restricted and parallel replay succeeds only once', async t => {
+  const f = await fixture(t);
+  await signUp(f);
+  const cookie = cookies(await signIn(f));
+  assert.equal((await f.request('/api/auth/send-verification-email', {
+    cookie, body: { email: account.email },
+  })).status, 200);
+  const mails = await f.mails();
+  assert.equal(mails.length, 2);
+  const path = verificationPath(mails[1].mail);
+  assert.equal((await f.request(`${path}&callbackURL=${encodeURIComponent('https://foreign.invalid')}`)).status, 403);
+  const result = await Promise.all([f.request(path), f.request(path)]);
+  assert.deepEqual(result.map(r => r.status).sort(), [200, 401]);
+  assert.equal((await f.request(path)).status, 401);
+  assert.equal((await f.request('/api/auth/sign-out', { cookie, body: {} })).status, 200);
   assert.equal((await f.request('/api/me', { cookie })).status, 401);
 });

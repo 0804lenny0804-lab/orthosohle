@@ -23,13 +23,13 @@ npm start --prefix code/api
 
 Der Server bindet ausschließlich `127.0.0.1`; Basisadresse standardmäßig `http://127.0.0.1:3000`. `LOCAL_AUTH_ENABLED=true` und ein explizites Secret sind Pflicht. Die Standard-DB liegt unter `code/api/data/local/auth.sqlite` und wird von Git ausgeschlossen; alternativ einen absoluten `AUTH_DATABASE_PATH` setzen. Schemaänderungen laufen bewusst separat über Better Auths Migrationsfunktion, nicht beim Serverstart. Sie ist ein lokaler Entwicklungsweg, noch kein abgenommener Produktions-Migrations-/Rollbackprozess.
 
-Die Better-Auth-Routen liegen unter `/api/auth/`; `GET /api/me` liefert ausschließlich die eigene authentifizierte ID oder `401`. Die Web-App besitzt jetzt einen eigenen lokalen Kontobereich; Gesundheitsdatenrouten und fachliche Kontozuordnung fehlen weiterhin. Der Loopback-Prototyp erlaubt synthetische E-Mail-/Passwortkonten ohne Mailverifikation; Verifikation, Reset-Mail, Arzt-MFA, Google/Apple und mobile Sessions sind weitere Schritte. Implizites Account-Linking und Cookie-Sessioncache sind deaktiviert; der Server prüft Sessions gegen SQLite. Ratenbegrenzung liegt ebenfalls in SQLite; derzeit teilt lokaler Verkehr ohne vertrauenswürdigen IP-Header einen Pfad-Bucket. Keine frei gesetzten Proxyheader als Lösung vertrauen. HTTP ohne Secure-Cookie ist hier auf den expliziten lokalen Betrieb begrenzt; Hosting/TLS ist nicht eingerichtet.
+Die Better-Auth-Routen liegen unter `/api/auth/`; `GET /api/me` liefert eigene ID, E-Mail und Verifikationsstatus oder `401`; keine Tokens. Die Web-App besitzt jetzt einen eigenen lokalen Kontobereich; Gesundheitsdatenrouten und fachliche Kontozuordnung fehlen weiterhin. Der Loopback-Prototyp erlaubt synthetische E-Mail-/Passwortkonten mit lokaler E-Mail-Bestätigung; Reset-Mail, Arzt-MFA, Google/Apple und mobile Sessions sind weitere Schritte. Implizites Account-Linking und Cookie-Sessioncache sind deaktiviert; der Server prüft Sessions gegen SQLite. Ratenbegrenzung liegt ebenfalls in SQLite; derzeit teilt lokaler Verkehr ohne vertrauenswürdigen IP-Header einen Pfad-Bucket. Keine frei gesetzten Proxyheader als Lösung vertrauen. HTTP ohne Secure-Cookie ist hier auf den expliziten lokalen Betrieb begrenzt; Hosting/TLS ist nicht eingerichtet.
 
 ```bash
 npm test --prefix code/api
 ```
 
-Fünf HTTP-/Konfigurationstests mit automatisch entfernter temporärer DB prüfen fehlende Session, Registrierung/Login, falsches Passwort, `200` mit Session, `401` beim Replay nach Logout, persistente Konten/Sessions nach Neuerzeugung der API-/SQLite-Instanzen sowie akzeptierten expliziten Web-Origin und abgewiesenen Fremd-Origin. Das ist kein Browser-, Geräte- oder vollständiger Sicherheitsnachweis.
+Acht HTTP-/Konfigurationstests mit automatisch entfernter temporärer DB prüfen fehlende Session, Registrierung/Login, falsches Passwort, `200` mit Session, `401` beim Replay nach Logout, persistente Konten/Sessions nach Neuerzeugung der API-/SQLite-Instanzen sowie akzeptierten expliziten Web-Origin und abgewiesenen Fremd-Origin. Das ist kein Browser-, Geräte- oder vollständiger Sicherheitsnachweis.
 
 Referenzen für die verwendete Integration (abgerufen 07.11.2026): [Better Auth Express](https://better-auth.com/docs/integrations/express), [programmatische Migrationen](https://better-auth.com/docs/concepts/database#programmatic-migrations), [Sessions](https://better-auth.com/docs/concepts/session-management), [Account-Linking](https://better-auth.com/docs/concepts/users-accounts#account-linking).
 
@@ -46,7 +46,23 @@ npm run dev --prefix code/webapp
 
 Unter **Konto** ein ausschließlich synthetisches Testkonto erstellen und danach anmelden. Neuladen prüft die vorhandene Cookie-Session erneut serverseitig; Abmelden widerruft sie. Tokens werden nicht im LocalStorage abgelegt; Formpasswörter werden nach jedem abgeschickten Versuch gelöscht. Nicht erreichbarer Server und unbestätigter Sessionstatus sind eigene Zustände mit erneuter Prüfung. Die bestehende Messoberfläche bleibt ein ausdrücklich gekennzeichneter, noch keinem Konto zugeordneter Prototyp.
 
-Die neue Anmeldemaske hat keine Mailverifikation, Passwortreset-Oberfläche, Google-/Apple-Anmeldung oder Arzt-MFA. Die PWA-Konfiguration enthält keinen API-Runtime-Cache; der vorhandene Service Worker übernimmt nur den Asset-Precache. Auslieferung eines gebauten Frontends mitsamt API unter einem Origin ist noch nicht eingerichtet; `vite preview` richtet keinen Entwicklungsproxy ein.
+Die neue Anmeldemaske hat einen lokalen Verifikationsstatus, aber keine echte Mailzustellung, Passwortreset-Oberfläche, Google-/Apple-Anmeldung oder Arzt-MFA. Die PWA-Konfiguration enthält keinen API-Runtime-Cache; der vorhandene Service Worker übernimmt nur den Asset-Precache. Auslieferung eines gebauten Frontends mitsamt API unter einem Origin ist noch nicht eingerichtet; `vite preview` richtet keinen Entwicklungsproxy ein.
+
+## Lokale Test-E-Mail-Bestätigung
+
+Registrierung schreibt einen Bestätigungslink ausschließlich in den privaten lokalen Mailausgang: standardmäßig `code/api/data/local/auth.sqlite.mail-outbox/`, bei anderem Datenbankpfad direkt unter `<AUTH_DATABASE_PATH>.mail-outbox/`. Diese Ablage liegt bei den Standardwerten unter der ignorierten lokalen Datenablage. Sie wird nie per HTTP angeboten. JSON-Datei lokal öffnen und `verificationURL` im Browser aufrufen; keine Links oder Tokens in normale Logs, Screenshots oder Git kopieren. Es wird keine echte E-Mail versendet. Dateien haben unter POSIX Modus 0600, der Ausgang 0700; Windows-Zugriffsrechte separat prüfen. Lokale Testmails nach Benutzung löschen.
+
+Der Link verwendet die lokale API direkt und führt ausschließlich zum konfigurierten Konto-Ursprung zurück; dadurch läuft der sensible Link nicht durch Vites Fehlerprotokollierung. `Referrer-Policy: no-referrer` schützt den Rücksprung. Der Konto-Tab zeigt den serverseitigen Status und bietet erneutes Anfordern/Prüfen. Fehler beim Bestätigen erscheinen generisch und werden aus der Callback-URL entfernt. Es wird keine neue Session durch Verifikation erstellt. Ein unverifiziertes Konto kann weiterhin nur seine Identität prüfen; es existiert keine fachliche Gesundheitsdatenfreigabe.
+
+Better Auth 1.7.18 verwendet für diese Links standardmäßig ein Ablauf-JWT, das von sich aus wiederholt Erfolg liefern kann. Deshalb speichert dieser begrenzte Durchstich zusätzlich ausschließlich den SHA-256-Fingerabdruck des von Better Auth ausgegebenen Tokens in dessen bestehender Verification-Ablage. Vor der Bibliotheksprüfung wird ein gültiger Ausgabemarker mit `consumeVerificationValue` atomar verbraucht; `reserveVerificationValue` verhindert Wiederverwendung auch bei parallelem Neuerstellen desselben Markers. Die Signaturprüfung und Kontoverifikation bleiben bei Better Auth. Links gelten höchstens eine Stunde; fehlgeschlagene Verarbeitung verbraucht den Nachweis vorsorglich, dann neu anfordern. Diese internen Adapter-APIs sind an die fixierte Version gebunden und brauchen bei Updates erneute Prüfung. Keine eigene Token-Signatur oder zusätzliche Anmeldesession.
+
+```bash
+npm test --prefix code/api
+node --test code/webapp/test/account-callback.test.js
+npm run build --prefix code/webapp
+```
+
+Tests ergänzen gültige/falsche/abgelaufene Nachweise, Replay und parallelen Verbrauch, private Dateirechte sowie Callbackfehler. Echte Mailzustellung und Browser-/Geräteabnahme sind eigenständige Nachweise. Quelle: [Better Auth Email](https://better-auth.com/docs/concepts/email), abgerufen am 07.11.2026; Einmalverbrauch zusätzlich gegen die installierten Adapter-/Routentypen der Version 1.7.18 geprüft.
 
 ## Geplanter Zuschnitt
 

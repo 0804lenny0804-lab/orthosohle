@@ -2,6 +2,7 @@ import { chmodSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import Database from 'better-sqlite3';
 import { betterAuth } from 'better-auth';
+import { localVerification } from './local-verification.js';
 
 export function createAuth(config, { forMigration = false } = {}) {
   mkdirSync(dirname(config.databasePath), { recursive: true, mode: 0o700 });
@@ -14,7 +15,8 @@ export function createAuth(config, { forMigration = false } = {}) {
     secret: config.secret,
     database,
     trustedOrigins: [config.baseURL, config.webOrigin],
-    // shortcut: loopback identity probe only; mail verification is a later step.
+    ...localVerification(config, () => auth.$context),
+    // Unverified synthetic accounts may inspect their identity, never health data.
     emailAndPassword: { enabled: true, autoSignIn: false },
     account: { accountLinking: { enabled: true, disableImplicitLinking: true } },
     session: { cookieCache: { enabled: false } },

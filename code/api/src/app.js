@@ -6,6 +6,7 @@ export function createApp(auth) {
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
     res.set('Cache-Control', 'no-store');
+    res.set('Referrer-Policy', 'no-referrer');
     next();
   });
   app.all('/api/auth/*splat', toNodeHandler(auth));
@@ -13,7 +14,7 @@ export function createApp(auth) {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
     if (!session) return res.status(401).json({ error: 'authentication_required' });
     // Only the authenticated identity is returned, never tokens or health data.
-    return res.json({ id: session.user.id });
+    return res.json({ id: session.user.id, email: session.user.email, emailVerified: session.user.emailVerified });
   });
   app.use((_error, _req, res, _next) => {
     res.status(500).json({ error: 'internal_error' });
