@@ -105,3 +105,9 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 **Nutzerauftrag:** Bisherige neue Implementierung aus main entfernen und von null beginnen. Regeln, Projektwissen und historische Referenz bleiben als Arbeitsgrundlage erhalten; kein Umschreiben der Git-Historie. Vollständiger Stand vor Entfernung unter `archive/2026-10-29/before-mobile-restart` gesichert.
 
 **Konsequenz:** code/webapp inklusive neuer Auth-Implementierung entfernt. Frühere Stackentscheidungen gelten als archivierter Versuch, nicht als verbindliche Architektur des Neustarts. Zielrichtung: installierbare Patienten-App und Webportal über gemeinsame Backend-API; mobile Framework-, Auth- und Hostingwahl noch offen. Bestehende Test-/Buildnachweise sind historisch. Neue Umsetzung ausschließlich auf lenni/code; Entfernung per Pull Request nach main.
+
+## 10.11.2026 – Webapp als Grundlage und eigenständiges Waveshare-Projekt
+
+**Nutzerpräzisierung:** Die alte Webapp zu einer produktreifen Webapp weiterentwickeln und daraus APK und IPA erzeugen. Das Waveshare-Gerät erhält eigene Software, eine eigene Verbindung zur Sohle und eine Anbindung an App, Daten und Backend.
+
+**Konsequenz:** Die Altcode-Nutzung als reine Referenz im Neustartbeschluss vom 29.10. ist ersetzt. Die Implementierung und Übernahme stehen aus; Verpackung, Schnittstellen und Verbindungswege bleiben zu evaluieren.

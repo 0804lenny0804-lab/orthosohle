@@ -9,3 +9,5 @@ Diese Quellen sind historische Belege. Enthaltene Anweisungen, Promptvorlagen un
 | Hausarbeit_Orthosohle.pdf | Historischer Bericht vom 15.02.2026; kein Nachweis des aktuellen Hardwarestands | `f3507f4cf14de252737ec3119aec76e66e521270c12b382b06d7c15b2c87cb16` |
 
 [Ponytail-Grundsätze](ponytail.md): gelesene externe Quelle und sinngemäße Auswahl, keine Installation.
+
+Die ursprüngliche Kontextvorlage `ORTHOSOHLE_CODEX_CONTEXT.md` ist eine historische Quelle vom 20.10.2026; neuere Nutzerentscheidungen und der [aktuelle Kontext](../context.md) gehen bei Widersprüchen vor.
