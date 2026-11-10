@@ -1,46 +1,5 @@
 <template>
-  <div class="app-wrapper">
-    <header
-      class="border-bottom bg-white sticky-top navbar-transition"
-      :class="{ 'nav-hidden': !showNavbar }"
-    >
-      <div class="container d-flex flex-column flex-md-row align-items-md-center justify-content-between py-3">
-        <div class="d-flex align-items-center gap-2">
-          <svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" class="me-2">
-            <path d="M3 12h4l2-7 4 14 2-7h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          <div>
-            <h1 class="h3 fw-bold mb-0">
-              Ortho<span class="ortho-accent">Sohle</span>
-            </h1>
-            <p class="text-muted small mb-0">Reha-Monitoring • Orthopädie • Physiotherapie</p>
-          </div>
-        </div>
-
-        <nav class="mt-3 mt-md-0">
-          <ul class="nav nav-ortho">
-            <li class="nav-item">
-              <a class="nav-link" :class="{ active: activeNav === 'account' }" href="#account" @click.prevent="setNav('account')">Konto</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" :class="{ active: activeNav === 'live' }" href="#live" @click.prevent="setNav('live')">Live</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" :class="{ active: activeNav === 'config' }" href="#config" @click.prevent="setNav('config')">Konfiguration</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" :class="{ active: activeNav === 'connect' }" href="#connect" @click.prevent="setNav('connect')">Bluetooth</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" :class="{ active: activeNav === 'history' }" href="#history" @click.prevent="setNav('history')">Historie</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </header>
-
-    <main class="container py-4" id="main">
-      <p class="alert alert-warning">Lokaler Prototyp: Messansichten sind noch keinem Konto zugeordnet. Bitte keine echten Patientendaten verwenden.</p>
+  <AppShell :active-nav="activeNav" @navigate="setNav">
       <AccountView v-if="activeNav === 'account'" />
 
       <div v-show="activeNav === 'live'">
@@ -118,12 +77,12 @@
 
       <Toastwarning :rawValues="rawValues" :currentLimit="currentLimit" />
 
-    </main>
-  </div>
+  </AppShell>
 </template>
 
 <script>
 import axios from "axios";
+import AppShell from "./components/shell/AppShell.vue";
 import AccountView from "./features/account/AccountView.vue";
 import Bluetooth from './components/Bluetooth.vue';
 import LiveChart from './components/LiveChart.vue';
@@ -141,7 +100,7 @@ import { pwa__enablePush } from "./pwa__/pwa__push.js";
 export default {
   name: 'App',
   components: {
-    AccountView, Bluetooth, LiveChart, LimitConfig, SimulationControl,
+    AppShell, AccountView, Bluetooth, LiveChart, LimitConfig, SimulationControl,
     MeasurementTable, Toastwarning, StepCounter, HistoryView, RunFeedbackWindow
   },
   data() {
@@ -152,25 +111,22 @@ export default {
       stepDetector: null,
       stepCount: 0,
       stepGoal: 20,
-      activeNav: "live",
-      showNavbar: true,
-      lastScrollPosition: 0
+      activeNav: "account"
     };
   },
   methods: {
-    handleScroll() {
-      const currentScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-      if (Math.abs(currentScrollPosition - this.lastScrollPosition) < 10) return;
-      this.showNavbar = currentScrollPosition < this.lastScrollPosition || currentScrollPosition < 50;
-      this.lastScrollPosition = currentScrollPosition;
-    },
     setNav(nav) {
       this.activeNav = nav;
-      window.location.hash = nav;
+      if (window.location.hash !== `#${nav}`) window.history.pushState(null, "", `#${nav}`);
+      window.scrollTo({ top: 0, behavior: "auto" });
     },
     getNavFromHash() {
-      const hash = window.location.hash.replace("#", "");
-      return ["account", "live", "config", "connect", "history"].includes(hash) ? hash : "live";
+      const hash = window.location.hash.replace("#", "").split("?")[0];
+      return ["account", "live", "config", "connect", "history"].includes(hash) ? hash : "account";
+    },
+
+    handleHashChange() {
+      this.activeNav = this.getNavFromHash();
     },
 
     // Zentraler Datenempfang
@@ -230,9 +186,9 @@ export default {
       }
     });
 
-    window.addEventListener("scroll", this.handleScroll);
     this.activeNav = this.getNavFromHash();
-    window.addEventListener("hashchange", () => { this.activeNav = this.getNavFromHash(); });
+    window.addEventListener("hashchange", this.handleHashChange);
+    window.addEventListener("popstate", this.handleHashChange);
 
     // LocalStorage & API laden
     const savedLimit = localStorage.getItem("pwa__limit_user_1");
@@ -244,73 +200,8 @@ export default {
     await this.loadStepGoal();
   },
   beforeUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
+    window.removeEventListener("hashchange", this.handleHashChange);
+    window.removeEventListener("popstate", this.handleHashChange);
   }
 }
 </script>
-
-<style>
-body {
-  background-color: #f5f7fa;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  overflow-x: hidden;
-}
-
-header.sticky-top {
-  transition: transform 0.3s ease-in-out;
-  z-index: 1050;
-}
-
-.nav-hidden {
-  transform: translateY(-100%);
-}
-
-.app-wrapper {
-  min-height: 100vh;
-}
-
-.card {
-  border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(17, 24, 39, .08);
-}
-
-:root {
-  --sohle: #E6007E;
-}
-
-.text-sohle {
-  color: var(--sohle) !important;
-}
-
-.btn-sohle {
-  background-color: var(--sohle) !important;
-  border-color: var(--sohle) !important;
-  color: white !important;
-}
-
-.ortho-accent {
-  color: #E6007E;
-}
-
-.nav-ortho .nav-link {
-  border-radius: 999px;
-  padding: 0.35rem 0.9rem;
-  color: #111827;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.nav-ortho .nav-link.active {
-  background-color: #E6007E;
-  color: #fff;
-}
-
-.nav-ortho .nav-link:hover {
-  color: #E6007E;
-  background-color: rgba(230, 0, 126, 0.06);
-}
-
-header {
-  will-change: transform;
-}
-</style>

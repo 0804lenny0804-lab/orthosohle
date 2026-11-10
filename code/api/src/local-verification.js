@@ -1,24 +1,18 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { chmodSync, lstatSync, mkdirSync, writeFileSync } from 'node:fs';
-import { APIError, createAuthMiddleware } from 'better-auth/api';
+import { createHash } from 'node:crypto';
+import { APIError } from 'better-auth/api';
+import { writeLocalMail } from './local-mail.js';
 
 const fingerprint = token => createHash('sha256').update(token).digest('hex');
 
 export function localVerification(config, getContext) {
   const expiresIn = config.verificationExpiresIn ?? 3600;
   const callbackURL = `${config.webOrigin}/#account`;
-  const outbox = `${config.databasePath}.mail-outbox`;
   return {
     emailVerification: {
       sendOnSignUp: true,
       autoSignInAfterVerification: false,
       expiresIn,
       async sendVerificationEmail({ user, token }) {
-        mkdirSync(outbox, { recursive: true, mode: 0o700 });
-        if (!lstatSync(outbox).isDirectory() || lstatSync(outbox).isSymbolicLink()) {
-          throw new Error('Local mail outbox must be a private directory.');
-        }
-        chmodSync(outbox, 0o700);
         const context = await getContext();
         // Only tokens issued by Better Auth receive this marker; never raw tokens in SQLite.
         await context.internalAdapter.createVerificationValue({
@@ -29,16 +23,14 @@ export function localVerification(config, getContext) {
         const url = new URL('/api/auth/verify-email', config.baseURL);
         url.searchParams.set('token', token);
         url.searchParams.set('callbackURL', callbackURL);
-        writeFileSync(`${outbox}/${randomUUID()}.json`, JSON.stringify({
-          mode: 'LOCAL SYNTHETIC TEST MAIL — NOT SENT',
+        writeLocalMail(config, {
           to: user.email,
           subject: 'Lokales Testkonto: E-Mail bestätigen',
           verificationURL: url.href,
-        }, null, 2), { mode: 0o600, flag: 'wx' });
+        });
       },
     },
-    hooks: {
-      before: createAuthMiddleware(async ctx => {
+    async before(ctx) {
         if (ctx.path !== '/verify-email') return;
         const token = ctx.query?.token;
         if (ctx.query?.callbackURL && ctx.query.callbackURL !== callbackURL) {
@@ -61,7 +53,6 @@ export function localVerification(config, getContext) {
         });
         if (!reserved) reject();
         // Better Auth still validates its JWT and updates the user; no custom signing/decoding.
-      }),
     },
   };
 }

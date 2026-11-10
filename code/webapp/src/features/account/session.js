@@ -29,9 +29,11 @@ async function perform(action) {
   state.notice = '';
   try {
     await action();
+    return true;
   } catch (error) {
     state.error = error.message;
     if (!error.status || error.status >= 500) state.status = 'unavailable';
+    return false;
   } finally {
     state.busy = false;
   }
@@ -43,7 +45,7 @@ export const accountSession = {
   register: ({ name, email, password }) => perform(async () => {
     await authRequest('/api/auth/sign-up/email', { name, email, password });
     await loadIdentity();
-    state.notice = 'Lokales Testkonto erstellt. Der Bestätigungslink liegt im lokalen Test-Mailausgang. Du kannst dich anmelden und deinen Status prüfen.';
+    state.notice = 'Falls die Registrierung möglich war, liegt ein Bestätigungslink im lokalen Test-Mailausgang. Bitte zuerst die E-Mail bestätigen und danach anmelden.';
   }),
   signIn: ({ email, password }) => perform(async () => {
     await authRequest('/api/auth/sign-in/email', { email, password });
@@ -52,9 +54,18 @@ export const accountSession = {
       throw new Error('Anmeldung konnte nicht bestätigt werden. Bitte die Cookie-Einstellungen prüfen.');
     }
   }),
-  resendVerification: () => perform(async () => {
-    await authRequest('/api/auth/send-verification-email', { email: state.email });
-    state.notice = 'Bestätigungslink erneut im lokalen Test-Mailausgang abgelegt. Es wurde keine E-Mail versendet.';
+  resendVerification: ({ email }) => perform(async () => {
+    await authRequest('/api/auth/send-verification-email', { email });
+    state.notice = 'Falls das Testkonto noch nicht bestätigt ist, liegt ein neuer Link im lokalen Test-Mailausgang. Es wurde keine E-Mail versendet.';
+  }),
+  requestReset: ({ email }) => perform(async () => {
+    await authRequest('/api/auth/request-password-reset', { email });
+    state.notice = 'Falls das Testkonto existiert, liegt ein Link zum Zurücksetzen im lokalen Test-Mailausgang. Es wurde keine E-Mail versendet.';
+  }),
+  resetPassword: ({ token, newPassword }) => perform(async () => {
+    await authRequest('/api/auth/reset-password', { token, newPassword });
+    await loadIdentity();
+    state.notice = 'Passwort geändert und bestehende Sitzungen beendet. Bitte neu anmelden.';
   }),
   signOut: () => perform(async () => {
     await authRequest('/api/auth/sign-out', {});
