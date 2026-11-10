@@ -30,6 +30,9 @@ export async function authRequest(path, body) {
         INVALID_NAME: 'Der Anzeigename muss 1 bis 100 Zeichen enthalten.',
         INVALID_TOKEN: 'Der Kontolink ist ungültig, abgelaufen oder bereits verwendet. Bitte einen neuen Link anfordern.',
         EMAIL_ALREADY_VERIFIED: 'Die E-Mail ist bereits bestätigt. Bitte anmelden oder den Status erneut prüfen.',
+        INVALID_CODE: 'Der Authenticator-Code ist falsch oder abgelaufen. Bitte einen aktuellen Code eingeben.',
+        INVALID_BACKUP_CODE: 'Der Wiederherstellungscode ist ungültig oder wurde bereits verwendet.',
+        TWO_FACTOR_REQUIRED: 'Die Zwei-Faktor-Anmeldung wurde während des Anmeldeversuchs aktiviert. Bitte melde dich erneut an und gib danach deinen zweiten Faktor ein.',
       };
       const errorCode = details.code || details.error;
       const knownCode = Object.hasOwn(messages, errorCode) ? errorCode : '';

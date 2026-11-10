@@ -11,6 +11,7 @@ import { createApp } from '../src/app.js';
 import { readConfig } from '../src/config.js';
 import { migratePatientProfiles } from '../src/patient-profile-migration.js';
 import { migratePhysicianReview } from '../src/physician-review-migration.js';
+import { migrateTwoFactorSessions } from '../src/two-factor-session-migration.js';
 
 export const account = {
   name: 'Synthetic Test',
@@ -58,6 +59,7 @@ export async function fixture(t, {
       await runMigrations();
       migratePatientProfiles(runtime.database);
       migratePhysicianReview(runtime.database);
+      migrateTwoFactorSessions(runtime.database);
       runtime.close();
       runtime = createAuth(config);
     }

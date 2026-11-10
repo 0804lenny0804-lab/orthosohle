@@ -10,7 +10,20 @@
       <p v-if="state.error" class="alert alert-danger" role="alert">{{ state.error }}</p>
       <p v-if="state.notice" class="alert alert-info" role="status">{{ state.notice }}</p>
 
-      <form v-if="mode === 'reset' || (!state.identityId && state.status === 'anonymous')"
+      <form v-if="mode === 'totp-login' && !state.identityId" @submit.prevent="submitTotpLogin">
+        <fieldset :disabled="state.busy">
+          <legend class="h5">Zwei-Faktor-Code</legend>
+          <p>Gib den aktuellen Code aus deiner Authenticator-App ein, um die Anmeldung abzuschließen.</p>
+          <label for="login-totp-code" class="form-label">{{ loginFactor === 'totp' ? '6-stelliger Code' : 'Wiederherstellungscode' }}</label>
+          <input id="login-totp-code" v-model="loginCode" class="form-control mb-3" :inputmode="loginFactor === 'totp' ? 'numeric' : undefined"
+            :autocomplete="loginFactor === 'totp' ? 'one-time-code' : 'off'" :pattern="loginFactor === 'totp' ? '[0-9]{6}' : undefined"
+            :minlength="loginFactor === 'totp' ? 6 : 1" :maxlength="loginFactor === 'totp' ? 6 : 64" required />
+          <button class="btn btn-primary" type="submit">{{ state.busy ? 'Bitte warten …' : 'Anmeldung bestätigen' }}</button>
+          <button class="btn btn-link" type="button" @click="toggleLoginFactor">{{ loginFactor === 'totp' ? 'Wiederherstellungscode verwenden' : 'Authenticator-Code verwenden' }}</button>
+          <button class="btn btn-link" type="button" @click="setMode('login')">Abbrechen</button>
+        </fieldset>
+      </form>
+      <form v-else-if="mode === 'reset' || (!state.identityId && state.status === 'anonymous')"
         @submit.prevent="submit" :aria-describedby="mode === 'login' || mode === 'register' ? 'account-scope' : undefined">
         <fieldset :disabled="state.busy">
           <legend class="h5">{{ titles[mode] }}</legend>
@@ -49,6 +62,42 @@
         </fieldset>
       </form>
       <div v-else-if="state.identityId">
+        <section class="border rounded p-3 mb-4" aria-labelledby="two-factor-title">
+          <h3 id="two-factor-title" class="h5">Zwei-Faktor-Anmeldung</h3>
+          <p v-if="state.twoFactorEnabled" class="small text-muted">Aktiv. Bei jeder neuen Anmeldung ist zusätzlich ein aktueller Authenticator-Code erforderlich.</p>
+          <p v-else class="small text-muted">Freiwillig: Mit einer Authenticator-App wird bei neuen Anmeldungen ein zusätzlicher Code verlangt.</p>
+          <form v-if="!state.twoFactorEnabled && !totpURI" @submit.prevent="beginTwoFactorSetup">
+            <label for="two-factor-password" class="form-label">Passwort zur Bestätigung</label>
+            <input id="two-factor-password" v-model="twoFactorPassword" class="form-control mb-2" type="password"
+              autocomplete="current-password" maxlength="128" required />
+            <button class="btn btn-outline-primary" type="submit" :disabled="state.busy">Authenticator einrichten</button>
+          </form>
+          <div v-if="totpURI" class="mt-3">
+            <p>Füge den folgenden Schlüssel in deiner Authenticator-App hinzu und bestätige mit dem angezeigten Code. Der Schlüssel ist ein Geheimnis; teile ihn nicht.</p>
+            <label for="two-factor-uri" class="form-label">Einrichtungs-URI</label>
+            <textarea id="two-factor-uri" class="form-control mb-3" rows="3" readonly :value="totpURI"></textarea>
+            <form @submit.prevent="verifyTwoFactorSetup">
+              <label for="setup-totp-code" class="form-label">6-stelliger Bestätigungscode</label>
+              <input id="setup-totp-code" v-model="setupCode" class="form-control mb-2" inputmode="numeric"
+                autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required />
+              <button class="btn btn-primary" type="submit" :disabled="state.busy">Zwei-Faktor-Anmeldung aktivieren</button>
+            </form>
+          </div>
+          <div v-if="recoveryCodes.length" class="alert alert-warning mt-3" role="status">
+            <strong>Wiederherstellungscodes werden nur einmal angezeigt.</strong>
+            <p class="small mb-1">Bewahre sie sicher und getrennt vom Gerät auf. Diese Codes werden nicht protokolliert.</p>
+            <ul><li v-for="code in recoveryCodes" :key="code"><code>{{ code }}</code></li></ul>
+          </div>
+          <form v-if="state.twoFactorEnabled && !disableTwoFactorForm" class="mt-2" @submit.prevent="disableTwoFactorForm = true">
+            <button class="btn btn-link px-0" type="submit">Zwei-Faktor-Anmeldung ausschalten</button>
+          </form>
+          <form v-if="disableTwoFactorForm" class="mt-2" @submit.prevent="disableTwoFactor">
+            <label for="disable-two-factor-password" class="form-label">Passwort zur Bestätigung</label>
+            <input id="disable-two-factor-password" v-model="twoFactorPassword" class="form-control mb-2" type="password"
+              autocomplete="current-password" maxlength="128" required />
+            <button class="btn btn-outline-danger" type="submit" :disabled="state.busy">Ausschalten bestätigen</button>
+          </form>
+        </section>
         <PatientProfile :key="state.identityId" :identity-id="state.identityId" />
         <PhysicianReview :key="`physician-${state.identityId}`" :identity-id="state.identityId" :email-verified="state.emailVerified" />
         <form class="profile-form mb-4" @submit.prevent="saveProfile">
@@ -91,6 +140,13 @@ const profileName = ref('');
 const email = ref('');
 const password = ref('');
 const passwordRepeat = ref('');
+const loginCode = ref('');
+const loginFactor = ref('totp');
+const setupCode = ref('');
+const twoFactorPassword = ref('');
+const totpURI = ref('');
+const recoveryCodes = ref([]);
+const disableTwoFactorForm = ref(false);
 const resetToken = ref('');
 const callbackError = ref('');
 const titles = { login: 'Anmelden', register: 'Konto erstellen', verify: 'Bestätigungslink anfordern',
@@ -107,6 +163,8 @@ function setMode(value) {
   resetToken.value = '';
   callbackError.value = '';
   accountSession.clearFeedback();
+  loginCode.value = '';
+  loginFactor.value = 'totp';
 }
 
 async function submit() {
@@ -119,7 +177,8 @@ async function submit() {
     if (mode.value === 'register') {
       if (await accountSession.register({ name: name.value.trim(), email: email.value.trim(), password: password.value })) mode.value = 'login';
     } else if (mode.value === 'login') {
-      await accountSession.signIn({ email: email.value.trim(), password: password.value });
+      const result = await accountSession.signIn({ email: email.value.trim(), password: password.value });
+      if (result?.requiresTwoFactor) mode.value = 'totp-login';
     } else if (mode.value === 'verify') {
       await accountSession.resendVerification({ email: email.value.trim() });
     } else if (mode.value === 'request-reset') {
@@ -133,6 +192,46 @@ async function submit() {
   } finally { clearPasswords(); }
 }
 
+async function submitTotpLogin() {
+  const verified = loginFactor.value === 'totp'
+    ? await accountSession.verifySignInCode(loginCode.value.trim())
+    : await accountSession.verifySignInBackupCode(loginCode.value.trim());
+  if (verified) {
+    loginCode.value = '';
+    mode.value = 'login';
+  }
+}
+
+function toggleLoginFactor() {
+  loginFactor.value = loginFactor.value === 'totp' ? 'backup' : 'totp';
+  loginCode.value = '';
+  accountSession.clearFeedback();
+}
+
+async function beginTwoFactorSetup() {
+  const result = await accountSession.enableTwoFactor(twoFactorPassword.value);
+  twoFactorPassword.value = '';
+  if (result?.totpURI) {
+    totpURI.value = result.totpURI;
+    recoveryCodes.value = Array.isArray(result.backupCodes) ? result.backupCodes : [];
+  }
+}
+
+async function verifyTwoFactorSetup() {
+  if (await accountSession.verifyEnrollmentCode(setupCode.value.trim())) {
+    setupCode.value = '';
+    totpURI.value = '';
+  }
+}
+
+async function disableTwoFactor() {
+  if (await accountSession.disableTwoFactor(twoFactorPassword.value)) {
+    twoFactorPassword.value = '';
+    recoveryCodes.value = [];
+    disableTwoFactorForm.value = false;
+  }
+}
+
 async function saveProfile() {
   await accountSession.saveProfile(profileName.value.trim());
 }
@@ -140,6 +239,15 @@ async function saveProfile() {
 watch(() => state.name, (value) => {
   profileName.value = value;
 }, { immediate: true });
+
+watch(() => state.identityId, () => {
+  // Clear authenticator material when the active account changes.
+  totpURI.value = '';
+  recoveryCodes.value = [];
+  setupCode.value = '';
+  twoFactorPassword.value = '';
+  disableTwoFactorForm.value = false;
+});
 
 function handleAccountCallback() {
   const url = new URL(window.location.href);
@@ -165,6 +273,12 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('hashchange', handleAccountCallback);
   clearPasswords();
+  twoFactorPassword.value = '';
+  setupCode.value = '';
+  loginCode.value = '';
+  loginFactor.value = 'totp';
+  totpURI.value = '';
+  recoveryCodes.value = [];
   resetToken.value = '';
 });
 </script>

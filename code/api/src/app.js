@@ -19,7 +19,8 @@ export function createApp(auth, config = {}) {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
     if (!session) return res.status(401).json({ error: 'authentication_required' });
     // Only the authenticated profile is returned, never tokens or health data.
-    return res.json({ id: session.user.id, name: session.user.name, email: session.user.email, emailVerified: session.user.emailVerified });
+    return res.json({ id: session.user.id, name: session.user.name, email: session.user.email,
+      emailVerified: session.user.emailVerified, twoFactorEnabled: session.user.twoFactorEnabled === true });
   });
   app.use('/api/patient-profile', createPatientProfileRouter(auth, database, webOrigin));
   app.use('/api/measurement-sessions', createMeasurementSessionRouter(auth, database, webOrigin));
