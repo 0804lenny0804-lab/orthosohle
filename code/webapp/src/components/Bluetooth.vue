@@ -40,6 +40,7 @@
 
 <script setup>
 import { onUnmounted, ref } from "vue";
+import { decodeLegacyBleFloat32 } from "./legacy-ble-float32.js";
 
 const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
 const CHARACTERISTIC_UUID = "12345678-1234-1234-1234-1234567890cd";
@@ -66,17 +67,14 @@ function onDisconnected() {
 function onCharacteristicChanged(event) {
   if (isDisposed) return;
   const dv = event.target.value;
-  if (!dv || dv.byteLength < 4) return;
-
-  // Arduino: BLEFloatCharacteristic => Float32 little-endian
-  const kg = dv.getFloat32(0, true);
-  if (!Number.isFinite(kg) || kg < 0) return;
+  const kg = decodeLegacyBleFloat32(dv);
+  if (kg === null) return;
 
   const timestamp = new Date().toISOString();
   connectedKg.value = kg;
 
   // exakt wie Simulation.vue
-  emit("raw-value", kg);
+  emit("raw-value", { kg, timestamp });
 
   measurements.value.unshift({ kg: kg, timestamp: timestamp });
   if (measurements.value.length > 5) measurements.value.pop();

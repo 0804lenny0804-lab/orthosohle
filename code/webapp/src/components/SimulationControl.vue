@@ -54,7 +54,7 @@ export default {
           console.log("SIM", value);
 
           // 1) Rohwert an den Graphen (App.vue)
-          this.$emit("raw-value", value);
+          this.$emit("raw-value", { kg: value, timestamp: new Date().toISOString() });
 
           index++;
 

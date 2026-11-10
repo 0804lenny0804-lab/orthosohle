@@ -133,9 +133,10 @@ export default {
     },
 
     // Zentraler Datenempfang
-    onRawValue(value) {
-      const numericValue = Number(value);
-      const timestamp = new Date();
+    onRawValue({ kg, timestamp: receivedAt }) {
+      const numericValue = Number(kg);
+      const timestamp = new Date(receivedAt);
+      if (!Number.isFinite(numericValue) || Number.isNaN(timestamp.getTime())) return;
 
       // 1. Daten für Live-Graph speichern
       this.rawValues.push({ value: numericValue, timestamp: timestamp.toISOString() });
