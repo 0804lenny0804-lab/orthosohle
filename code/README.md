@@ -13,3 +13,7 @@ Das ist die Zielrichtung, keine implementierte Verbindung. Gemeinsame API-Vertr�
 Framework, Auth-Lösung, Datenbank und Hosting vor der nächsten Implementierung anhand der mobilen Anforderungen neu bewerten. Erste Abnahme: installierbarer iOS-/Android-Durchstich und nachgewiesener BLE-/Hintergrundpfad, soweit Hardware verfügbar. Ohne Hardware nur synthetische Eingaben als solche prüfen.
 
 Neue Module erst mit konkretem Code anlegen. Maßgeblich bleiben [Regeln](../AGENTS.md), [Produktanforderungen](../context/requirements.md) und [aktueller Kontext](../context/context.md). Der [alte GitLab-Code](../context/legacy/README.md) bleibt unveränderte Referenz.
+
+## Lokaler ESP32-Simulator-Durchstich
+
+[simulator-bridge](simulator-bridge/README.md) ist ein lokaler Browser-Prototyp: Er erzeugt synthetische Schrittwerte nach dem Muster des archivierten Simulators und schreibt sie per Web Bluetooth an das Waveshare-Display. Die zugehörige Arduino-Firmware liegt unter [firmware/esp32s3-display-receiver](firmware/esp32s3-display-receiver/). Dies ist ein Desktop-/Chromium-Hardwaretest, keine Integration in eine neue Patienten-App und kein unterstützter iPhone-BLE-Pfad.
