@@ -1,73 +1,11 @@
 import assert from 'node:assert/strict';
-import { randomBytes } from 'node:crypto';
-import { once } from 'node:events';
-import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
-import { createServer } from 'node:http';
-import { tmpdir } from 'node:os';
+import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import test from 'node:test';
-import { getMigrations } from 'better-auth/db/migration';
-import { createAuth } from '../src/auth.js';
 import { createApp } from '../src/app.js';
 import { readConfig } from '../src/config.js';
 import { migratePatientProfiles } from '../src/patient-profile-migration.js';
-
-async function fixture(t, { verificationExpiresIn = 3600, resetExpiresIn = 3600 } = {}) {
-  const directory = await mkdtemp(join(tmpdir(), 'orthosohle-auth-'));
-  const secret = randomBytes(48).toString('base64url');
-  let runtime;
-  let server;
-  let baseURL;
-  async function stop() {
-    if (server?.listening) await new Promise(resolve => server.close(resolve));
-    runtime?.close();
-    runtime = undefined;
-  }
-  async function start(migrate = false) {
-    server = createServer();
-    server.listen(0, '127.0.0.1');
-    await once(server, 'listening');
-    baseURL = `http://127.0.0.1:${server.address().port}`;
-    const config = readConfig({ LOCAL_AUTH_ENABLED: 'true', BETTER_AUTH_SECRET: secret,
-      AUTH_BASE_URL: baseURL, AUTH_DATABASE_PATH: join(directory, 'auth.sqlite') });
-    config.verificationExpiresIn = verificationExpiresIn;
-    config.resetExpiresIn = resetExpiresIn;
-    runtime = createAuth(config, { forMigration: migrate });
-    if (migrate) {
-      const { runMigrations } = await getMigrations(runtime.auth.options);
-      await runMigrations();
-      migratePatientProfiles(runtime.database);
-      runtime.close();
-      runtime = createAuth(config);
-    }
-    server.on('request', createApp(runtime.auth, { database: runtime.database, webOrigin: config.webOrigin }));
-  }
-  t.after(async () => { await stop(); await rm(directory, { recursive: true, force: true }); });
-  await start(true);
-  return {
-    async restart() { await stop(); await start(); },
-    async request(path, { cookie, body, rawBody, origin = baseURL, method, contentType, omitOrigin = false } = {}) {
-      const requestMethod = method || (body !== undefined || rawBody !== undefined ? 'POST' : 'GET');
-      return fetch(`${baseURL}${path}`, { redirect: 'manual', method: requestMethod, headers: {
-        ...(cookie ? { Cookie: cookie } : {}),
-        ...(requestMethod !== 'GET' && !omitOrigin ? { Origin: origin } : {}),
-        ...(contentType ? { 'Content-Type': contentType }
-          : body !== undefined || rawBody !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      }, ...(body !== undefined ? { body: JSON.stringify(body) }
-        : rawBody !== undefined ? { body: rawBody } : {}) });
-    },
-    async mails() {
-      const outbox = join(directory, 'auth.sqlite.mail-outbox');
-      const names = await readdir(outbox);
-      return Promise.all(names.map(async name => ({
-        path: join(outbox, name),
-        mail: JSON.parse(await readFile(join(outbox, name), 'utf8')),
-      })));
-    },
-    get auth() { return runtime.auth; },
-    get database() { return runtime.database; },
-  };
-}
+import { account, cookies, fixture, signIn, signUp } from './test-support.js';
 
 const sampleSession = (sessionId, overrides = {}) => ({
   sessionId, source: 'ble', startedAt: '2026-11-10T10:00:00.000Z', endedAt: '2026-11-10T10:00:03.000Z',
@@ -147,26 +85,6 @@ test('measurement sessions require verified profile, isolate two accounts, valid
   assert.deepEqual(afterRestart.sessions.map(item => item.id).sort(), [good.sessionId, partialStart.sessionId].sort());
   assert.deepEqual((await (await f.request(path, { cookie: cookieB })).json()).sessions, []);
 });
-
-const account = { name: 'Synthetic Test', email: 'synthetic@example.invalid', password: 'Synthetic-test-password-42!' };
-function cookies(response) {
-  const value = response.headers.getSetCookie().map(line => line.split(';')[0]).join('; ');
-  assert.ok(value.includes('session_token='));
-  return value;
-}
-async function signUp(f, verify = true, user = account) {
-  const response = await f.request('/api/auth/sign-up/email', { body: user });
-  assert.equal(response.status, 200);
-  const id = (await response.json()).user.id;
-  if (verify) {
-    const message = (await f.mails()).find(entry => entry.mail.to === user.email);
-    assert.equal((await f.request(verificationPath(message.mail))).status, 200);
-  }
-  return id;
-}
-async function signIn(f, password = account.password, user = account) {
-  return f.request('/api/auth/sign-in/email', { body: { email: user.email, password } });
-}
 
 test('profile name is session-owned, validated, and persists across restart', async t => {
   const f = await fixture(t);
@@ -321,6 +239,9 @@ test('loopback configuration requires opt-in, explicit secret and local URL', ()
     AUTH_BASE_URL: 'https://example.com' }), /loopback/);
   assert.throws(() => readConfig({ LOCAL_AUTH_ENABLED: 'true', BETTER_AUTH_SECRET: 'x'.repeat(40),
     AUTH_WEB_ORIGIN: 'https://foreign.invalid' }), /AUTH_WEB_ORIGIN/);
+  assert.equal(readConfig({ LOCAL_AUTH_ENABLED: 'true', BETTER_AUTH_SECRET: 'x'.repeat(40) }).physicianReviewNotifyEmail, null);
+  assert.throws(() => readConfig({ LOCAL_AUTH_ENABLED: 'true', BETTER_AUTH_SECRET: 'x'.repeat(40),
+    PHYSICIAN_REVIEW_NOTIFY_EMAIL: 'not an email' }), /PHYSICIAN_REVIEW_NOTIFY_EMAIL/);
 });
 
 test('registration, invalid login, valid session and replay after logout', async t => {

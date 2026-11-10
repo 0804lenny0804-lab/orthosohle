@@ -50,6 +50,7 @@
       </form>
       <div v-else-if="state.identityId">
         <PatientProfile :key="state.identityId" :identity-id="state.identityId" />
+        <PhysicianReview :key="`physician-${state.identityId}`" :identity-id="state.identityId" :email-verified="state.emailVerified" />
         <form class="profile-form mb-4" @submit.prevent="saveProfile">
           <div class="mb-3">
             <label for="profile-name" class="form-label">Anzeigename</label>
@@ -81,6 +82,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { accountSession } from './session.js';
 import { consumeAccountCallback } from './auth-api.js';
 import PatientProfile from './PatientProfile.vue';
+import PhysicianReview from './PhysicianReview.vue';
 
 const { state } = accountSession;
 const mode = ref('login');

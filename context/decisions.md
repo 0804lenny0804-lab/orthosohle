@@ -127,3 +127,5 @@ Der Nutzer verwendet „Therapeut“ als andere Bezeichnung für den behandelnde
 ## 10.11.2026 – Manuelle Freigabe von Arztkonten
 
 Der Nutzer entscheidet, Arztkonten manuell freizugeben. Wer die Prüfung durchführt, welche Nachweise gelten und wie Freigaben erneuert oder widerrufen werden, ist noch festzulegen. Eine Arztfreigabe ersetzt keine bestätigte Betreuungsbeziehung.
+
+Der Nutzer präzisiert am 10.11.2026, dass die spätere Bestätigung per Bestätigungslink in einer E-Mail erfolgen soll, ohne gesonderte Adminansicht. Das legt weder eine selbst erteilte Freigabe noch den Empfänger oder eine Prüferrolle fest. Bis sichere Prüferidentität, Autorisierung, MFA und Bootstrap geklärt sind, wird kein Freigabelink implementiert. Falls umgesetzt, löst ein GET keinerlei Statuswechsel aus; eine ausdrückliche geschützte POST-Bestätigung ist erforderlich.

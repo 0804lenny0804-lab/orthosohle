@@ -23,5 +23,18 @@ export function readConfig(env = process.env) {
   const databasePath = env.AUTH_DATABASE_PATH
     || fileURLToPath(new URL('../data/local/auth.sqlite', import.meta.url));
   if (!isAbsolute(databasePath)) throw new Error('AUTH_DATABASE_PATH must be absolute.');
-  return { secret, baseURL: url.origin, port: Number(url.port || 80), webOrigin: webURL.origin, databasePath };
+  const physicianReviewNotifyEmail = env.PHYSICIAN_REVIEW_NOTIFY_EMAIL || null;
+  if (physicianReviewNotifyEmail !== null && (typeof physicianReviewNotifyEmail !== 'string'
+      || physicianReviewNotifyEmail.length > 254
+      || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(physicianReviewNotifyEmail))) {
+    throw new Error('PHYSICIAN_REVIEW_NOTIFY_EMAIL must be set to one explicit email address.');
+  }
+  return {
+    secret,
+    baseURL: url.origin,
+    port: Number(url.port || 80),
+    webOrigin: webURL.origin,
+    databasePath,
+    physicianReviewNotifyEmail,
+  };
 }

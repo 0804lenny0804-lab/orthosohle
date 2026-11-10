@@ -21,6 +21,8 @@ export async function authRequest(path, body) {
     if (!response.ok) {
       const details = await response.json().catch(() => ({}));
       const messages = {
+        notification_recipient_not_configured: 'Die Arztprüfung kann derzeit nicht beantragt werden, weil die zuständige Prüfstelle serverseitig noch nicht eingerichtet ist. Es wurde kein Antrag gespeichert.',
+        notification_not_materialized: 'Der Antrag kann gespeichert sein, aber der Benachrichtigungseintrag konnte noch nicht lokal abgelegt werden. Bitte Status prüfen und erneut versuchen.',
         EMAIL_NOT_VERIFIED: 'Bitte zuerst die E-Mail bestätigen. Einen neuen Link kannst du unten anfordern.',
         PASSWORD_TOO_SHORT: 'Das Passwort muss mindestens 8 Zeichen enthalten.',
         PASSWORD_TOO_LONG: 'Das Passwort darf höchstens 128 Zeichen enthalten.',
@@ -29,10 +31,11 @@ export async function authRequest(path, body) {
         INVALID_TOKEN: 'Der Kontolink ist ungültig, abgelaufen oder bereits verwendet. Bitte einen neuen Link anfordern.',
         EMAIL_ALREADY_VERIFIED: 'Die E-Mail ist bereits bestätigt. Bitte anmelden oder den Status erneut prüfen.',
       };
-      const knownCode = Object.hasOwn(messages, details.code) ? details.code : '';
-      const message = response.status >= 500 ? 'Der Kontoserver ist nicht erreichbar. Bitte später erneut versuchen.'
+      const errorCode = details.code || details.error;
+      const knownCode = Object.hasOwn(messages, errorCode) ? errorCode : '';
+      const message = knownCode ? messages[knownCode]
+        : response.status >= 500 ? 'Der Kontoserver ist nicht erreichbar. Bitte später erneut versuchen.'
         : response.status === 429 ? 'Zu viele Versuche. Bitte kurz warten und erneut versuchen.'
-        : knownCode ? messages[knownCode]
         : response.status === 401 ? 'Die Anmeldung ist fehlgeschlagen. Bitte E-Mail und Passwort prüfen.'
         : 'Die Anfrage konnte nicht abgeschlossen werden. Bitte Angaben prüfen oder erneut anmelden.';
       throw new AuthRequestError(message, response.status, knownCode);

@@ -2,9 +2,11 @@ import express from 'express';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import { createPatientProfileRouter } from './patient-profile-routes.js';
 import { createMeasurementSessionRouter } from './measurement-session-routes.js';
+import { createPhysicianReviewRouter } from './physician-review-routes.js';
 
-export function createApp(auth, { database, webOrigin } = {}) {
-  if (!database || !webOrigin) throw new Error('Patient profile database and web origin are required.');
+export function createApp(auth, config = {}) {
+  const { database, webOrigin } = config;
+  if (!database || !webOrigin) throw new Error('API database and web origin are required.');
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -21,6 +23,7 @@ export function createApp(auth, { database, webOrigin } = {}) {
   });
   app.use('/api/patient-profile', createPatientProfileRouter(auth, database, webOrigin));
   app.use('/api/measurement-sessions', createMeasurementSessionRouter(auth, database, webOrigin));
+  app.use('/api/physician-review', createPhysicianReviewRouter(auth, database, config));
   app.use((error, _req, res, _next) => {
     if (error?.type === 'entity.parse.failed') return res.status(400).json({ error: 'invalid_json' });
     if (error?.type === 'entity.too.large') return res.status(413).json({ error: 'body_too_large' });
