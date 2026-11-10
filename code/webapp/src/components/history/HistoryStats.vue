@@ -5,9 +5,10 @@
         Durchschnittliche Belastung
       </h5>
 
-      <p class="fs-4 fw-bold">
+      <p v-if="avgPeak !== null" class="fs-4 fw-bold">
         {{ avgPeak }} kg
       </p>
+      <p v-else class="text-muted small mb-0">Keine Messwerte in der Vorschau.</p>
     </div>
   </div>
 </template>

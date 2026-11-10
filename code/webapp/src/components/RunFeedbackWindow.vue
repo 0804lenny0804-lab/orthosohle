@@ -2,7 +2,7 @@
   <section class="card">
     <div class="card-body">
       <h2 class="h5 mb-1 text-sohle">Lauf & Feedback</h2>
-      <p class="text-muted small mb-3">Starte einen Lauf, beende ihn und gib Feedback ab.</p>
+      <p class="text-muted small mb-3">Lokaler Demo-Lauf ohne dauerhafte oder serverseitige Speicherung.</p>
 
       <!-- STATUS -->
       <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between mb-3">
@@ -91,23 +91,24 @@
           <label class="form-label fw-bold">Bewertung</label>
           <div class="d-flex flex-wrap gap-2">
             <label class="btn btn-outline-success" :class="{ active: rating === 'gut' }">
-              <input class="d-none" type="radio" value="gut" v-model="rating" />
+              <input class="form-check-input me-1" type="radio" name="run-rating" value="gut" v-model="rating" />
               Gut
             </label>
             <label class="btn btn-outline-warning" :class="{ active: rating === 'mittel' }">
-              <input class="d-none" type="radio" value="mittel" v-model="rating" />
+              <input class="form-check-input me-1" type="radio" name="run-rating" value="mittel" v-model="rating" />
               Mittel
             </label>
             <label class="btn btn-outline-danger" :class="{ active: rating === 'schlecht' }">
-              <input class="d-none" type="radio" value="schlecht" v-model="rating" />
+              <input class="form-check-input me-1" type="radio" name="run-rating" value="schlecht" v-model="rating" />
               Schlecht
             </label>
           </div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label fw-bold">Kommentar</label>
+          <label class="form-label fw-bold" for="run-comment">Kommentar</label>
           <textarea
+            id="run-comment"
             class="form-control"
             rows="3"
             v-model.trim="comment"
@@ -117,7 +118,7 @@
 
         <div class="d-flex gap-2">
           <button class="btn btn-sohle" @click="submitFeedback" :disabled="loading || !rating">
-            Feedback speichern
+            Feedback nur in der Vorschau erfassen
           </button>
           <button class="btn btn-outline-secondary" @click="skipFeedback" :disabled="loading">
             Überspringen
@@ -127,7 +128,7 @@
 
       <!-- DONE -->
       <div v-if="state === 'submitted'" class="alert alert-success mt-3 mb-0">
-        ✅ Feedback gespeichert.
+        Demo-Feedback wurde nur im Arbeitsspeicher erfasst. Es ist keinem Konto zugeordnet und nicht gespeichert.
       </div>
 
       <div v-if="error" class="alert alert-danger mt-3 mb-0">
@@ -138,9 +139,6 @@
 </template>
 
 <script>
-import axios from "axios";
-import { API_URL } from "../api.js";
-
 export default {
   name: "RunFeedbackWindow",
 
@@ -165,7 +163,6 @@ export default {
       nowMs: Date.now(),
       timerId: null,
 
-      storageKey: "orthosohle_current_run",
     };
   },
 
@@ -174,7 +171,7 @@ export default {
       if (this.state === "idle") return "bereit";
       if (this.state === "running") return "läuft";
       if (this.state === "feedback") return "Feedback";
-      return "gespeichert";
+      return "Vorschau abgeschlossen";
     },
 
     elapsedMs() {
@@ -225,117 +222,33 @@ export default {
       }
     },
 
-    saveToStorage() {
-      const payload = {
-        state: this.state,
-        runId: this.runId,
-        startedAt: this.startedAt,
-        endedAt: this.endedAt,
-      };
-      localStorage.setItem(this.storageKey, JSON.stringify(payload));
-    },
-
-    loadFromStorage() {
-      const raw = localStorage.getItem(this.storageKey);
-      if (!raw) return;
-      try {
-        const payload = JSON.parse(raw);
-        if (payload?.state && payload?.runId) {
-          this.state = payload.state;
-          this.runId = payload.runId;
-          this.startedAt = payload.startedAt ?? null;
-          this.endedAt = payload.endedAt ?? null;
-        }
-      } catch {}
-    },
-
-    clearStorage() {
-      localStorage.removeItem(this.storageKey);
-    },
-
-    async startRun() {
+    startRun() {
       this.error = "";
-      this.loading = true;
-
-      try {
-        const startedAt = new Date().toISOString();
-
-        const res = await axios.post(`${API_URL}/api/runs/start`, {
-          startedAt,
-          stepGoal: this.stepGoal,
-        });
-
-        this.runId = res.data.runId;
-        this.startedAt = startedAt;
-        this.endedAt = null;
-        this.rating = "";
-        this.comment = "";
-
-        this.state = "running";
-        this.startTimer();
-        this.saveToStorage();
-      } catch (e) {
-        this.error = "Lauf konnte nicht gestartet werden.";
-        console.error(e);
-      } finally {
-        this.loading = false;
-      }
+      this.runId = `demo-${Date.now()}`;
+      this.startedAt = new Date().toISOString();
+      this.endedAt = null;
+      this.rating = "";
+      this.comment = "";
+      this.state = "running";
+      this.startTimer();
     },
 
-    async endRun() {
+    endRun() {
       if (!this.runId) return;
-
-      this.error = "";
-      this.loading = true;
-
-      try {
-        const endedAt = new Date().toISOString();
-
-        await axios.post(`${API_URL}/api/runs/${this.runId}/end`, {
-          endedAt,
-          stepsTotal: this.stepCount,
-        });
-
-        this.endedAt = endedAt;
-        this.state = "feedback";
-        this.stopTimer();
-        this.saveToStorage();
-      } catch (e) {
-        this.error = "Lauf konnte nicht beendet werden.";
-        console.error(e);
-      } finally {
-        this.loading = false;
-      }
+      this.endedAt = new Date().toISOString();
+      this.state = "feedback";
+      this.stopTimer();
     },
 
-    async submitFeedback() {
+    submitFeedback() {
       if (!this.runId) return;
-
-      this.error = "";
-      this.loading = true;
-
-      try {
-        await axios.post(`${API_URL}/api/runs/${this.runId}/feedback`, {
-          rating: this.rating,
-          comment: this.comment,
-        });
-
-        this.state = "submitted";
-        this.saveToStorage();
-        this.clearStorage();
-      } catch (e) {
-        this.error = "Feedback konnte nicht gespeichert werden.";
-        console.error(e);
-      } finally {
-        this.loading = false;
-      }
+      if (!this.rating) return;
+      this.state = "submitted";
     },
 
-    async skipFeedback() {
+    skipFeedback() {
       this.stopTimer();
       this.state = "submitted";
-      this.saveToStorage();
-      this.clearStorage();
     },
 
     resetUI() {
@@ -347,12 +260,10 @@ export default {
       this.rating = "";
       this.comment = "";
       this.error = "";
-      this.clearStorage();
     },
   },
 
   mounted() {
-    this.loadFromStorage();
     if (this.state === "running") {
       this.startTimer();
     }

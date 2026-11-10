@@ -1,9 +1,10 @@
 <template>
   <div class="card mb-4">
     <div class="card-body d-flex gap-3 align-items-center">
-      <label class="fw-bold">Zeitraum:</label>
+      <label class="fw-bold" for="history-range">Zeitraum:</label>
 
       <select
+        id="history-range"
         v-model.number="localRange"
         class="form-select w-auto"
         @change="$emit('update', localRange)"

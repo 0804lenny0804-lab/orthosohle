@@ -4,6 +4,7 @@
     <p class="text-muted">
       Simuliert einen realistischen Kraftverlauf.
     </p>
+    <p class="small text-muted">Die Werte sind synthetisch, flüchtig und werden weder gespeichert noch übertragen.</p>
 
     <div class="d-flex justify-content-center gap-3">
       <button class="btn btn-success btn-lg"
@@ -22,18 +23,14 @@
 </template>
 
 <script>
-import axios from "axios";
-// pwa__ use existing API_URL constant
-import { API_URL } from "../api.js";
-
-
 export default {
   name: "SimulationControl",
   emits: ["raw-value"],   // 👈 ganz wichtig!
 
   data() {
     return {
-      isRunning: false
+      isRunning: false,
+      timerId: null,
     };
   },
 
@@ -49,7 +46,7 @@ export default {
         const waveform = this.generatePhysiologicalStep();
         let index = 0;
 
-        const sendNext = async () => {
+        const sendNext = () => {
           if (!this.isRunning) return;
 
           const value = waveform[index];
@@ -60,29 +57,15 @@ export default {
           // 1) Rohwert an den Graphen (App.vue)
           this.$emit("raw-value", value);
 
-          // 2) Rohwert ans Backend (Peak Detection)
-          // 2) Rohwert ans Backend (Peak Detection)
-          try {
-            // pwa__ send raw load sample to backend
-            await axios.post(`${API_URL}/api/peaks`, {
-              timestamp: new Date().toISOString(),
-              peak: value,
-              day: new Date().toISOString().slice(0, 10),
-            });
-          }
-          catch (err) {
-            console.error("Simulation Fehler:", err);
-          }
-
           index++;
 
           if (index >= waveform.length) {
             console.log("🔄 Pause 8 Sekunden");
-            setTimeout(runStep, 8000);
+            this.timerId = setTimeout(runStep, 8000);
             return;
           }
 
-          setTimeout(sendNext, 200);
+          this.timerId = setTimeout(sendNext, 200);
         };
 
         sendNext();
@@ -155,8 +138,11 @@ export default {
 
     stopSimulation() {
       this.isRunning = false;
+      clearTimeout(this.timerId);
+      this.timerId = null;
     },
   },
+  beforeUnmount() { this.stopSimulation(); },
 };
 
 </script>

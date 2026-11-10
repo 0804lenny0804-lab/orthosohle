@@ -35,14 +35,14 @@
 
         <section class="card mt-4">
           <div class="card-body">
-            <RunFeedbackWindow :stepCount="stepCount" :stepGoal="stepGoal" :peaksCount="measurements.length" />
+            <RunFeedbackWindow :key="demoEpoch" :stepCount="stepCount" :stepGoal="stepGoal" />
           </div>
         </section>
 
         <section id="simulation" class="card mt-4">
           <div class="card-body">
             <h2 class="h5 mb-3 text-sohle">Simulation</h2>
-            <SimulationControl @raw-value="onRawValue" />
+            <SimulationControl :key="demoEpoch" @raw-value="onRawValue" />
           </div>
         </section>
       </div>
@@ -54,10 +54,10 @@
             <LimitConfig
               :currentLimit="currentLimit"
               :stepGoal="stepGoal"
-              @updated="currentLimit = $event"
+              @updated="updateDemoLimit"
               @step-goal-updated="stepGoal = $event"
             />
-            <button class="btn btn-outline-secondary mt-3" @click="pwa__onEnablePush">Push aktivieren</button>
+            <p class="small text-muted mt-3 mb-0">Push-Benachrichtigungen sind im lokalen Prototyp noch nicht mit einem Konto oder Server verbunden.</p>
           </div>
         </section>
       </div>
@@ -66,13 +66,13 @@
         <section id="connect-page" class="card">
           <div class="card-body">
             <h2 class="h5 mb-1 text-sohle">Bluetooth</h2>
-            <Bluetooth @raw-value="onRawValue" />
+        <Bluetooth :key="demoEpoch" @raw-value="onRawValue" />
           </div>
         </section>
       </div>
 
       <div v-if="activeNav === 'history'">
-        <HistoryView :measurements="measurements" />
+        <HistoryView :measurements="measurements" :limit-history="limitHistory" />
       </div>
 
       <Toastwarning :rawValues="rawValues" :currentLimit="currentLimit" />
@@ -81,7 +81,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { watch } from "vue";
 import AppShell from "./components/shell/AppShell.vue";
 import AccountView from "./features/account/AccountView.vue";
 import Bluetooth from './components/Bluetooth.vue';
@@ -93,9 +93,9 @@ import { StepDetector } from './components/stepdetector.js'; // Pfad prüfen!
 import Toastwarning from './components/Toastwarning.vue';
 import StepCounter from './components/stepcounter.vue';
 import HistoryView from './components/history/HistoryView.vue';
-import { API_URL } from "./api.js";
 import RunFeedbackWindow from "./components/RunFeedbackWindow.vue";
-import { pwa__enablePush } from "./pwa__/pwa__push.js";
+import { accountSession } from "./features/account/session.js";
+import { clearLegacyDemoStorage, createDemoSessionState } from "./features/demo/demo-state.js";
 
 export default {
   name: 'App',
@@ -105,13 +105,11 @@ export default {
   },
   data() {
     return {
-      measurements: [],
-      rawValues: [],
-      currentLimit: null,
+      ...createDemoSessionState(),
       stepDetector: null,
-      stepCount: 0,
-      stepGoal: 20,
-      activeNav: "account"
+      activeNav: "account",
+      demoEpoch: 0,
+      stopIdentityWatch: null
     };
   },
   methods: {
@@ -129,6 +127,11 @@ export default {
       this.activeNav = this.getNavFromHash();
     },
 
+    updateDemoLimit(value) {
+      this.currentLimit = value;
+      this.limitHistory.push({ timestamp: new Date().toISOString(), limit_value: value });
+    },
+
     // Zentraler Datenempfang
     onRawValue(value) {
       const numericValue = Number(value);
@@ -144,62 +147,33 @@ export default {
       }
     },
 
-    async pwa__onEnablePush() {
-      try {
-        await pwa__enablePush({ userId: 1 });
-        alert("Push aktiviert ✅");
-      } catch (e) {
-        alert("Fehler: " + e.message);
-      }
-    },
-    async loadStepGoal() {
-      try {
-        const res = await axios.get(`${API_URL}/api/step-goal/1`);
-        if (res.data) this.stepGoal = res.data.stepGoal;
-      } catch (e) { console.warn("Kein Ziel geladen"); }
-    },
-    async loadLimit() {
-      try {
-        const res = await axios.get(`${API_URL}/api/limits/1`);
-        if (res.data) this.currentLimit = res.data.limit_value;
-      } catch (e) { console.warn("Kein Limit geladen"); }
+    resetDemoState() {
+      Object.assign(this, createDemoSessionState());
+      this.demoEpoch += 1;
+      this.stepDetector = new StepDetector({
+        threshold: 15,
+        minWindow: 8,
+        onPeak: ({ peak, timestamp }) => {
+          this.stepCount += 1;
+          this.measurements.unshift({ value: peak, timestamp: new Date(timestamp).toISOString(), time: new Date(timestamp).toLocaleTimeString() });
+          if (this.measurements.length > 20) this.measurements.pop();
+        }
+      });
     }
   },
 
   async mounted() {
-    // INITIALISIERUNG DES SCHRITTZÄHLERS
-    this.stepDetector = new StepDetector({
-      threshold: 15,
-      minWindow: 8,
-      onPeak: ({ peak, timestamp }) => {
-        // Diese Funktion wird aufgerufen, wenn stepdetector.js einen Schritt erkennt
-        this.stepCount++;
-
-        // Messwert in Tabelle eintragen
-        this.measurements.unshift({
-          value: peak,
-          time: new Date(timestamp).toLocaleTimeString()
-        });
-        if (this.measurements.length > 20) this.measurements.pop();
-
-        console.log("Schritt erkannt! Peak:", peak, "Total:", this.stepCount);
-      }
-    });
+    clearLegacyDemoStorage(window.localStorage);
+    this.resetDemoState();
+    this.stopIdentityWatch = watch(() => accountSession.state.identityId, () => this.resetDemoState());
 
     this.activeNav = this.getNavFromHash();
     window.addEventListener("hashchange", this.handleHashChange);
     window.addEventListener("popstate", this.handleHashChange);
 
-    // LocalStorage & API laden
-    const savedLimit = localStorage.getItem("pwa__limit_user_1");
-    if (savedLimit) this.currentLimit = Number(savedLimit);
-    const savedGoal = localStorage.getItem("pwa__stepGoal_user_1");
-    if (savedGoal) this.stepGoal = Number(savedGoal);
-
-    await this.loadLimit();
-    await this.loadStepGoal();
   },
   beforeUnmount() {
+    this.stopIdentityWatch?.();
     window.removeEventListener("hashchange", this.handleHashChange);
     window.removeEventListener("popstate", this.handleHashChange);
   }

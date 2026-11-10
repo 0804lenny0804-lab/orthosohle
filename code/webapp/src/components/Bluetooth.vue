@@ -2,6 +2,7 @@
   <div class="card shadow-sm mx-auto mt-5" style="max-width: 700px;">
     <div class="card-body text-center">
       <h3 class="fw-bold text-ortho mb-3">Bluetooth – Arduino Verbindung</h3>
+      <p class="small text-muted">Gerätewerte werden nur vorübergehend in der Vorschau angezeigt, keinem Konto zugeordnet und nicht übertragen.</p>
 
       <button
         class="btn btn-lg btn-sohle shadow-sm mb-3"
@@ -39,7 +40,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onUnmounted, ref } from "vue";
 
 const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
 const CHARACTERISTIC_UUID = "12345678-1234-1234-1234-1234567890cd";
@@ -55,19 +56,24 @@ const connectedKg = ref(null);
 
 let bleDevice = null;
 let bleCharacteristic = null;
+let isDisposed = false;
 
 function onDisconnected() {
+  if (isDisposed) return;
   btInfo.value = "Bluetooth getrennt.";
   connectedKg.value = null;
 }
 
 function onCharacteristicChanged(event) {
-  var dv = event.target.value;
+  if (isDisposed) return;
+  const dv = event.target.value;
+  if (!dv || dv.byteLength < 4) return;
 
   // Arduino: BLEFloatCharacteristic => Float32 little-endian
-  var kg = dv.getFloat32(0, true);
+  const kg = dv.getFloat32(0, true);
+  if (!Number.isFinite(kg) || kg < 0) return;
 
-  var timestamp = new Date().toISOString();
+  const timestamp = new Date().toISOString();
   connectedKg.value = kg;
 
   // exakt wie Simulation.vue
@@ -90,10 +96,15 @@ async function discoverBluetoothDevices() {
   btBusy.value = true;
 
   try {
-    bleDevice = await navigator.bluetooth.requestDevice({
+    const selectedDevice = await navigator.bluetooth.requestDevice({
       filters: [{ services: [SERVICE_UUID] }],
       optionalServices: [SERVICE_UUID],
     });
+    if (isDisposed) {
+      selectedDevice.gatt?.disconnect();
+      return;
+    }
+    bleDevice = selectedDevice;
 
     btInfo.value = "Geraet gewaehlt: " + (bleDevice.name || "Unbenannt");
 
@@ -115,11 +126,22 @@ async function connectToSelectedDevice() {
   btBusy.value = true;
 
   try {
-    var server = await bleDevice.gatt.connect();
-    var service = await server.getPrimaryService(SERVICE_UUID);
-    bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+    const server = await bleDevice.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE_UUID);
+    const characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+    if (isDisposed) {
+      bleDevice.gatt.disconnect();
+      return;
+    }
+    bleCharacteristic = characteristic;
 
-    await bleCharacteristic.startNotifications();
+    await characteristic.startNotifications();
+    if (isDisposed) {
+      characteristic.removeEventListener("characteristicvaluechanged", onCharacteristicChanged);
+      await characteristic.stopNotifications().catch(() => {});
+      bleDevice?.gatt?.disconnect();
+      return;
+    }
 
     // Falls erneut verbunden wird: alten Listener entfernen (verhindert Doppel-Events)
     try {
@@ -135,6 +157,22 @@ async function connectToSelectedDevice() {
     btBusy.value = false;
   }
 }
+
+onUnmounted(() => {
+  isDisposed = true;
+  if (bleCharacteristic) {
+    bleCharacteristic.removeEventListener("characteristicvaluechanged", onCharacteristicChanged);
+    void bleCharacteristic.stopNotifications().catch(() => {});
+  }
+  if (bleDevice) {
+    bleDevice.removeEventListener("gattserverdisconnected", onDisconnected);
+    if (bleDevice.gatt?.connected) bleDevice.gatt.disconnect();
+  }
+  bleCharacteristic = null;
+  bleDevice = null;
+  measurements.value = [];
+  connectedKg.value = null;
+});
 </script>
 
 <style scoped>

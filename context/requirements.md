@@ -311,6 +311,19 @@ Native Rücksprünge, sichere mobile Sessionablage, iPhone-/Android-Tastaturverh
 
 **Paketabschluss:** Die ausführbaren lokalen Abläufe und die neue Navigation sind implementiert, passend getestet und unabhängig reviewed; Dokumentation und Startbefehle entsprechen dem Ergebnis. Ein fachlicher Commit umfasst diese zusammengehörige Lieferung samt notwendigen Prüfungen und Unterlagen; temporäre Dateien, lokale Mailausgänge, Datenbanken und generierte Builds werden gemäß AGENTS ausgeschlossen. Nicht ausführbare externe Provider-, Zustell- und Geräteprüfungen bleiben einzeln als offen geführt. Bei solchen Blockern wird ausdrücklich „lokales Konto-/Navigationspaket abgenommen, externe Abnahme offen“ berichtet und keine vollständige produktive Loginfreigabe behauptet.
 
+### Arbeitspaket: Lokale Demo-Daten vom Konto trennen
+
+**Ziel:** Die übernommene Web-Demo darf durch feste `userId: 1`, globale Browser-Speicherwerte oder fehlende Fach-API-Routen keinen Eindruck von Konto- oder Serverspeicherung vermitteln. Das Paket baut ausschließlich die lokale Prototypgrenze klar; es implementiert noch keine medizinische Datenhaltung.
+
+| Unteraufgabe | Konkretes Ergebnis | Abschlusskriterium |
+|---|---|---|
+| 1. Veraltete Datenwege aus dem UI entfernen | Limits, Schrittziel, Simulation, Verlauf, Lauf/Feedback und Push sprechen keine im aktiven API nicht vorhandenen Fachrouten an | Suche im aktiven Frontend belegt keine aktiven Alt-Endpunktaufrufe oder feste Nutzer-ID als Eigentümer; Login-API bleibt unverändert nutzbar |
+| 2. Vorschauzustand flüchtig machen | Einstellungen, Messungen und Lauf/Feedback existieren nur im Arbeitsspeicher und haben sichtbare Demo-/Nichtgespeichert-Hinweise | Neuladen verwirft Vorschauzustand; keine Testmessung oder Lauf wird in `localStorage` gespeichert |
+| 3. Übergänge zwischen Konten bereinigen | Bei initialer Kontoermittlung, Login, Logout und Identitätswechsel wird der Demozustand verworfen; laufende Timer/Simulation werden beendet | Konto A kann nach Logout/Login als B weder alte Werte noch einen aktiven Lauf sehen; fachliche Ansichten beanspruchen keine Datenfreigabe durch UI-Anmeldung |
+| 4. Altwerte und alte Startbeschreibungen bereinigen | Nur bekannte OrthoSohle-Prototypschlüssel mit `user_1`/globalem Lauf werden gezielt entfernt; maßgebliche Doku nennt den lokalen Zustand und die fehlende Fach-API | Unbeteiligte Browser-Speicherschlüssel bleiben unberührt; Tests, Web-Build, Browserprüfung und unabhängiger Review erfolgreich |
+
+**Grenze:** Better Auth authentifiziert das Konto, aber lokale Demoansichten sind damit nicht geschützt und erhalten keine Gesundheitsdatenrechte. Ein nachfolgendes echtes Datenpaket muss Schema/Migration und serverseitigen Eigentümer aus der Session umsetzen. Keine Client-`userId`, LocalStorage-Namespace oder sichtbare Anmeldung gilt als Autorisierung.
+
 ### Vom Systembild zum einzelnen Arbeitsschritt
 
 Zuerst wird pro Bereich der Nutzerablauf beschrieben, danach Datenbesitz und Zustände, dann Schnittstellen und zuletzt ein kleiner durchgängiger Implementierungsschritt. Bestehende Anforderungs-IDs und Abnahmekriterien bleiben maßgeblich. Folgende Vertiefungsfolge ergänzt die Meilensteine aus Abschnitt 10; sie ersetzt deren Voraussetzungen nicht:

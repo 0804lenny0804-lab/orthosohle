@@ -24,13 +24,14 @@
     </div>
 
     <p v-if="!hasData" class="text-muted mt-3 small text-center">
-      Keine Peaks > 12 kg im gewählten Zeitraum.
+      Keine Vorschauwerte > 12 kg im gewählten Zeitraum.
     </p>
   </div>
 </template>
 
 <script>
 import Chart from "chart.js/auto";
+import { limitForPeak } from "./limit-for-peak.js";
 
 export default {
   name: "PeakChart",
@@ -66,15 +67,7 @@ export default {
   },
   methods: {
     getLimitForPeak(peak) {
-      if (!this.limits.length) return 0;
-      const pt = new Date(peak.timestamp);
-      let foundLimit = this.limits[0].limit_value;
-      for (const l of this.limits) {
-        if (new Date(l.timestamp) <= pt) {
-          foundLimit = l.limit_value;
-        } else break;
-      }
-      return foundLimit;
+      return limitForPeak(this.limits, peak.timestamp);
     },
     scheduleRender() {
       if (this.renderQueued) return;
@@ -101,7 +94,7 @@ export default {
   if (!this.hasData) return;
 
   const limitData = this.filteredPeaks.map(p => this.getLimitForPeak(p));
-  const optimalLowData = limitData.map(l => Math.max(0, l - 3));
+  const optimalLowData = limitData.map(l => l === null ? null : Math.max(0, l - 3));
   const peakValues = this.filteredPeaks.map(p => Number(p.peak_value));
   const labels = this.filteredPeaks.map(p => {
     const d = new Date(p.timestamp);
@@ -171,6 +164,7 @@ export default {
             const val = ctx.raw;
             const lim = limitData[ctx.dataIndex];
             const optLow = optimalLowData[ctx.dataIndex];
+            if (lim === null) return '#666';
             if (val > lim) return 'red';
             if (val >= optLow) return 'green';
             return '#666';

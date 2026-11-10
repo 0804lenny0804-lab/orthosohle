@@ -1,6 +1,6 @@
 # OrthoSohle – aktueller Projektkontext
 
-Stand: 07.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start und Dateien der aktiven Anwendung in [code/README.md](../code/README.md).
+Stand: 10.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start und Dateien der aktiven Anwendung in [code/README.md](../code/README.md).
 
 ## Ziel und aktueller Schwerpunkt
 
@@ -14,14 +14,14 @@ Stand: 07.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 - Verifikation 06.11.2026: aktives Frontend vollständig bytegleich zur Legacy-Quelle übernommen; `npm ci` und `npm run build --prefix code/webapp` mit Node 24.19.0 erfolgreich. Das ist ausschließlich ein Web/PWA-Buildnachweis.
 - Erster Verbesserungsschritt: Bluetooth-Ansicht zeigt fehlende Web-Bluetooth-Unterstützung und sperrt die Auswahl; der Web-Build war erfolgreich, Browser- und Gerätetest stehen noch aus. Die übrige Verbindung nutzt weiterhin den bisherigen Web-Bluetooth-Pfad.
 - Live-Diagramm: feste 40-kg-Achsgrenze entfernt; die Grenzlinie erhält auch bei weniger als zwei Messwerten zwei Positionen. Web-Build und synthetische Prüfung der Datenreihen und Chart.js-Skala erfolgreich; Canvas-/Browserprüfung steht aus. Ein einzelner Messpunkt bleibt bislang unsichtbar.
-- Die PWA allein erzeugt keine APK/IPA. Better Auth ist als Auth-Basis gewählt; native Verpackung, mobile BLE-Anbindung, Push und Hosting sind noch offen. Bestehende feste Nutzer-ID, API-Cache und Prototypzustände müssen vor Nutzung mit echten Gesundheitsdaten bearbeitet werden.
+- Die PWA allein erzeugt keine APK/IPA. Better Auth ist als Auth-Basis gewählt; native Verpackung, mobile BLE-Anbindung, Push und Hosting sind noch offen. Alte Demoaufrufe mit fester Nutzer-ID wurden entfernt; Testwerte sind flüchtige Browser-Vorschau und werden beim Identitätswechsel zurückgesetzt. Echte Fachdaten-API und Datenbesitz fehlen weiterhin.
 - Zielrichtung bleibt: gemeinsame Web-Oberfläche/API-Basis, installierbarer Patientenclient und Ärzteportal. Die Migration erfolgt in kleinen, modularen und unabhängigen Review-Schritten gemäß [Agentenablauf](../AGENTS.md) und [Rollen](agents/).
 
 ## Nachweise und Grenzen
 
 Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Aktuell prüfbar: Repositorystruktur, Dokumentationslinks, Backlog und unveränderte Originaldateien. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
 
-## Nächster konkreter Schritt
+## Systembild und offener Funktionsumfang
 
 Das übergeordnete [Systembild](requirements.md#systembild-und-verantwortlichkeiten) führt Verantwortlichkeiten und Datenflüsse zusammen. Konto- und Sessionzustände sind als fachlicher Entwurf in [requirements.md](requirements.md#konto--und-sessionzustände) beschrieben: erlaubte/verbotene Aktionen, Übergänge und offene Session-/Recoveryregeln. Der lokale API-/Web-Durchstich umfasst Registrierung, E-Mail-Bestätigung, Passwortanmeldung, serverseitige Sessionprüfung, Logout und Passwortreset mit privatem lokalen Test-Mailausgang. Echte Zustellung und fachliche Autorisierung stehen noch aus.
 
@@ -29,13 +29,15 @@ Das [Betreuungsmodell](requirements.md#betreuungszustände-und-arztwechsel) besc
 
 Das [minimale fachliche Datenmodell](requirements.md#datenzuordnung-und-minimales-fachliches-datenmodell) beschreibt Datenzuordnung, Kardinalitäten und Integritätsregeln für Identität, Profile, Betreuung, Geräte, Pläne, Messungen sowie Audit-/Datenschutzvorgänge. Technische Zuordnung bedeutet kein rechtliches Dateneigentum; Speicherung, Migrationen und offene Aufbewahrungsregeln sind noch nicht implementiert.
 
-Der [Auth-Vergleich](requirements.md#auth-optionen-vergleich-und-empfehlung) wurde durch die Nutzerwahl Better Auth vom 07.11.2026 konkretisiert. Erster lokaler API-Durchstich unter `code/api`: Better Auth 1.7.18, Express 5.3.0 und better-sqlite3 12.11.1, persistente Konten/Sessions, explizite lokale Freigabe und Secretpflicht, Loopback-Bindung, implizites Linking und Cookiecache aus. Acht API-Tests sind erfolgreich: Konfigurationsschutz, Registrierung/Login/Logout-Replay, Wiederöffnung der API-/SQLite-Instanzen sowie erlaubter Web-Origin und abgewiesener Fremd-Origin. Nach einem Windows-Installationsfehler mit better-sqlite3 13.0.3 wurde auf 12.11.1 gewechselt; erneute Windows-Installation ist noch zu bestätigen. Die SQLite-Daten werden temporär isoliert beziehungsweise unter ignorierter lokaler Ablage gespeichert. Lokale Test-Mailverifikation ist ergänzt; weiterhin keine reale Mailzustellung, Fachrechte, Social- oder mobile Anmeldung; kein Produktionsnachweis.
+Der [Auth-Vergleich](requirements.md#auth-optionen-vergleich-und-empfehlung) wurde durch die Nutzerwahl Better Auth vom 07.11.2026 konkretisiert. Lokaler API-Durchstich unter `code/api`: Better Auth 1.7.18, Express 5.3.0 und better-sqlite3 12.11.1, persistente Konten/Sessions, explizite lokale Freigabe und Secretpflicht, Loopback-Bindung, implizites Linking und Cookiecache aus. Dreizehn API-Tests prüfen Anmeldung, Session, Einmal-Verifikation und Passwortreset einschließlich Widerruf. Nach einem Windows-Installationsfehler mit better-sqlite3 13.0.3 wurde auf 12.11.1 gewechselt; der Installationsweg wurde vom Nutzer unter Windows-PowerShell ausgeführt. SQLite bleibt lokale Prototyp-Persistenz. Lokale Test-Mailverifikation ist ergänzt; weiterhin keine reale Mailzustellung, Fachrechte, Social- oder mobile Anmeldung; kein Produktionsnachweis.
 
 Sichtbarer Web-Durchstich: modularer Konto-Tab mit synthetischer Registrierung, E-Mail-Bestätigung, Login, serverseitiger Sessionprüfung, Logout und Reset. Featuremodule trennen Fetch-Transport, zentralen flüchtigen Sessionzustand und Vue-Darstellung. Enger lokaler Vite-Proxy und expliziter Backend-Web-Origin verbinden beide; keine Tokens im LocalStorage. Lade-/Serverfehler sind sichtbar, abgeschickte Passwörter werden gelöscht und die Messoberfläche als noch nicht kontozugeordnet gekennzeichnet. Dreizehn API- und zwei Webtests sowie Produktionsbuild sind erfolgreich. Chromium-Browserprüfung bei 360/390 px und 1440 px bestätigt keinen horizontalen Überlauf; Navigation Back/Forward folgt dem Browserzustand.
 
 Lokale Verifikation ist implementiert: privater Datei-Mailausgang neben der SQLite-Datei, serverseitiger Verifikationsstatus im Konto-Tab, erneutes Anfordern und sicherer Rücksprung ohne Tokens im Profil oder normalen Logs. Better Auth prüft seine JWTs; zusätzliche gehashte Ausgabemarker und atomare Bibliotheks-Consume-/Reserveoperationen erfüllen den lokalen Replay-Schutz. Passwortreset verwendet einen einmaligen, ablaufenden Nachweis und widerruft vorhandene Sessions. Das erteilt keine Fachrechte und erzeugt keine neue Session. API-Tests decken gültige/falsche/abgelaufene Links, gleichzeitigen Replay, Reset und Sessionwiderruf ab; Callbackfehler werden generisch angezeigt und aus der URL entfernt. Reale Mailzustellung, SSO und Geräteabnahme stehen aus.
 
-Aktuelles Arbeitspaket: lokale Kontoabläufe und mobile Navigation browserbasiert abnehmen, unabhängige Befunde schließen und die Abnahme dokumentieren. Danach nach Backlog mit Konten-/Betreuungsrechten fortfahren; produktive E-Mail-/SSO-Provider bleiben bis zu verfügbaren Zugängen externe Prüfpunkte.
+Abgeschlossen am 10.11.2026: Legacy-Demoaufrufe ohne Fach-API entfernt, bekannte feste Browser-IDs und globale gespeicherte Läufe bereinigt, Einstellungen/Messwerte/Feedback auf flüchtigen Arbeitsspeicher begrenzt und Zustand bei Login/Logout/Kontowechsel zurückgesetzt. Sechs Webtests, dreizehn API-Tests, Produktionsbuild, Projektprüfung und unabhängiger Review bestanden. Zwei synthetische Konten wurden im Browser gegeneinander geprüft: B erhielt weder Grenzwert noch aktiven Lauf von A; keine alten API-Routen wurden aufgerufen. Bluetooth-Teardown ist implementiert, aber nicht mit einem realen Gerät geprüft.
+
+Nächster sinnvoller Implementierungsschritt: einen minimalen serverseitigen, nicht medizinischen Profilwert über die authentifizierte API speichern und abrufen. Besitzer muss ausschließlich aus der validierten Better-Auth-Session kommen; Abnahme mit zwei Konten, Neustart der API und negativen Fremdzugriffsversuchen. Produktive E-Mail-/SSO-Provider bleiben bis zu verfügbaren Zugängen externe Prüfpunkte.
 
 ## Navigation ohne doppelte Pflege
 
