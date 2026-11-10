@@ -1,6 +1,15 @@
 # Softwareanforderungen und Produktmeilensteine
 
-Stand: 20.10.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe und kein Nachweis einer produktiven/medizinischen Einsatzfähigkeit. Zielauftrag: auf der alten App aufbauen, Frontend und Backend umfassend überarbeiten, Arzt-/Patientenkonten und Sicherheits-/DSGVO-Vorkehrungen ergänzen. Bestätigte Kernentscheidungen stehen in Abschnitt 2; weitere Detailfunktionen unten sind begründete Vorschläge, bis sie abgestimmt sind. Hardwarebasis des eigenständigen Armbands ist auf Nutzerentscheidung Waveshare ESP32-S3-Touch-LCD-1.28; weitere Komponenten, Provider und Frameworkänderungen sind nicht ausgewählt.
+Stand: 10.11.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe und kein Nachweis einer produktiven/medizinischen Einsatzfähigkeit. Zielauftrag: alte Webapp als Grundlage zu einem produktreifen Arzt-/Patientensystem ausbauen und daraus APK und IPA erzeugen; daneben eigene Waveshare-Software entwickeln. Bestätigte Kernentscheidungen stehen in Abschnitt 2; weitere Detailfunktionen unten sind begründete Vorschläge, bis sie abgestimmt sind. Hardwarebasis des eigenständigen Armbands ist auf Nutzerentscheidung Waveshare ESP32-S3-Touch-LCD-1.28; weitere Komponenten, Provider und Frameworkänderungen sind nicht ausgewählt.
+
+## Technische Endziele und Systemgrenzen
+
+1. **Webapp und mobile Auslieferung:** Das vorhandene Vue-/Express-System fachlich und technisch weiterentwickeln: Patienten- und Arztabläufe, Konten, Berechtigungen, Therapiepläne, Geräte und Messverläufe über ein gemeinsames Backend. Dieselbe Webapp bildet die Grundlage für Web, APK und IPA. Packaging-Technologie, native BLE-Brücke, Hintergrundbetrieb, Builds, Signierung und Store-Verteilung müssen auf iOS und Android nachgewiesen werden; eine Webansicht allein belegt diese Funktionen nicht.
+2. **Eigenes Waveshare-Projekt:** Eigene Firmware für ESP32-S3-Touch-LCD-1.28 mit Anzeige, lokaler Grenzwertprüfung, Warnung und definierten Fehlerzuständen. Eigene Verbindung zur Sohle sowie Verbindung zu App, Daten und Backend sind Ziele. Funkrollen, direkte oder vermittelte Backendverbindung, gleichzeitige Verbindungen, Synchronisation und Hardwareausstattung sind noch zu klären und zu erproben.
+3. **Gemeinsamer Datenvertrag:** Versionierte Messwerte mit Einheit, Zeit/Alter und Qualität, Geräteidentität sowie versionierte Therapiepläne und Gerätebestätigung. Offlinezustände, Datenlücken, Wiederholung und Konflikte müssen sichtbar und nachvollziehbar sein. Die lokale Warnung darf nicht vom Internet oder Telefon abhängen.
+4. **Produktqualität:** Serverseitige Autorisierung, Datenschutz, sichere Konten, reproduzierbare Builds, Betrieb, Backup und Wiederherstellung sowie belegte Geräte- und Fehlerfälle sind Teil der Abnahme. Messgenauigkeit und medizinische Einsatzfreigabe benötigen eigene Nachweise. Einzelne Anforderungen und Abnahmen stehen unten.
+
+Diese Ziele beschreiben den angestrebten Endzustand; sie sind noch nicht implementiert oder als vollständig für den Semesterzeitraum geschätzt.
 
 ## 1. Was „produktreif“ hier konkret bedeutet
 
@@ -61,7 +70,7 @@ Technischer Betrieb hat standardmäßig keinen fachlichen Zugriff auf Patientenv
 
 ## 5. Funktionale Anforderungen und Abnahme
 
-Alle IDs sind Produktanforderungen, **keine bereits implementierten Funktionen**. „Kern“ bezeichnet den vorgeschlagenen Umfang der ersten produktiven Version; ausstehende Modellentscheidungen können ihn verändern. Bestätigte Rollen-/Plan-/Plattformvorgaben gelten bereits. Nicht in den alten Backlog einrechnen, bevor Umfang und Schätzung aktualisiert wurden.
+Alle IDs sind Produktanforderungen, **keine bereits implementierten Funktionen**. „Kern“ bezeichnet den vorgeschlagenen Umfang der ersten produktiven Version; ausstehende Modellentscheidungen können ihn verändern. Bestätigte Rollen-/Plan-/Plattformvorgaben gelten bereits. Die softwareseitige Aufgabenplanung steht im Backlog; die Schätzungen sind vorläufig.
 
 | ID | Bereich | Kernanforderung | Konkrete Abnahme |
 |---|---|---|---|
@@ -97,7 +106,7 @@ Alle IDs sind Produktanforderungen, **keine bereits implementierten Funktionen**
 
 ## 6. Backend und Datenmodell – fachlicher Bedarf, noch keine Stackwahl
 
-Aktueller Nutzerauftrag vom 29.10.2026: Implementierung neu beginnen, Altcode nur als Referenz nutzen. Mobile Patienten-App und Webportal über eine gemeinsame Backend-API planen; Framework und Auth-Stack neu anhand der Anforderungen auswählen. Die neue Oberfläche kann vollständig überarbeitet werden; keine pauschale 1:1-Übernahme des alten App.vue und keine parallele unabhängige Implementierung gleicher Fachregeln. Migration und Verhaltenskorrekturen nachvollziehbar trennen. Datenbank-/Auth-/Hostingauswahl erst an Anforderungen und Betriebsaufwand messen; SQLite nicht reflexartig ersetzen oder ungeprüft für Mehrinstanzbetrieb voraussetzen.
+Nutzerpräzisierung vom 10.11.2026: Die alte Webapp ist die Grundlage der Weiterentwicklung. Webapp und daraus erzeugte Android-/iOS-Apps verwenden eine gemeinsame Backend-API. Der frühere Neustartbeschluss wird hinsichtlich der Nutzung des Altbestands ersetzt; konkrete Übernahme und notwendige Überarbeitung sind zu prüfen. Verpackung, native Schnittstellen und Auth-Stack sind offen. Die neue Oberfläche kann vollständig überarbeitet werden; keine pauschale 1:1-Übernahme des alten App.vue und keine parallele unabhängige Implementierung gleicher Fachregeln. Migration und Verhaltenskorrekturen nachvollziehbar trennen. Datenbank-/Auth-/Hostingauswahl erst an Anforderungen und Betriebsaufwand messen; SQLite nicht reflexartig ersetzen oder ungeprüft für Mehrinstanzbetrieb voraussetzen.
 
 Benötigte fachliche Datentypen: Konto/Identität; Arztprofil und Prüfstatus; Patient; Betreuungsbeziehung mit Freigabestatus; Gerät und zeitliche Zuordnung; Planversion und Gerätebestätigung; Messsitzung; Messpunkte/verdichtete Ereignisse mit Qualität; Auditereignisse; Datenschutzanfrage. Das sind Verantwortlichkeiten, noch keine verpflichtenden elf Tabellen/Services. Aufbewahrung und Indizes nach Zugriff/Volumen bestimmen.
 
@@ -174,4 +183,4 @@ Hausarbeit/Media Night bleiben eigene Semesterlieferungen mit früh laufender Be
 
 Nach Klärung der noch offenen Punkte aus Abschnitt 2: M0 konkret abschließen, Architekturspikes abgrenzen, dann pro Meilenstein vertikale Aufgaben von ca. 2–4 echten Personenstunden schneiden. Jede Aufgabe referenziert Anforderungs-ID, Abnahme, benötigte Daten/Hardware, Abhängigkeiten und Prüfnachweis. Sinnvolles Beispiel: „ACC-01: Passwortreset mit abgelaufenem Token testen und implementieren“, nicht „gesamte Auth bauen“.
 
-Den bestehenden Backlog nicht kommentarlos auf das neue Ziel umdeuten oder die alte 180-Personenstunden-Appschätzung als ausreichend ausgeben. Erst neue Aufgaben schätzen, gemeinsame Überschneidungen zusammenführen, dann Budget-/Umfangsentscheidung dokumentieren und den Backlog aktualisieren. Dieses Dokument ist die eine maßgebliche Produktspezifikation; keine zusätzliche parallele Anforderungstabelle erzeugen.
+Der softwareseitig neu geplante Backlog enthält vorläufige Schätzungen in echten Personenstunden. Nach Architekturspikes Aufgaben weiter schneiden und Aufwand nachschärfen; die Summe ist keine verbindliche Gesamtschätzung oder Freigabezusage. Dieses Dokument ist die eine maßgebliche Produktspezifikation; keine zusätzliche parallele Anforderungstabelle erzeugen.

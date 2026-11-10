@@ -4,14 +4,14 @@ Stand: 10.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 
 ## Ziel und aktueller Schwerpunkt
 
-Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: sauberer Neustart für installierbare iOS-/Android-App plus kompatibles Webportal. Das ausgewählte Waveshare-Armband ist laut Nutzer noch nicht vorhanden. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
+Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: die alte Webapp als Grundlage zu einer produktreifen Webapp weiterentwickeln und daraus installierbare Android- und iOS-Apps erzeugen. Ein separates Firmwareprojekt entwickelt die Waveshare-Armbandsoftware mit eigener Verbindung zur Sohle und Anbindung an App, Daten und Backend. Nutzer bestätigt den erfolgreichen Displaytest am ESP32-S3-Touch-LCD-1.28; BLE-Empfang des neuen Prototyps steht noch aus. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
 
 ## Belegter Softwarestand
 
 - [Altbestand](legacy/README.md): 51 unveränderte Dateien aus dem GitLab-ZIP mit [Manifest](legacy/manifest.json); ursprünglicher GitLab-Commit unbekannt. Referenz, keine Produktfreigabe.
 - Nutzerauftrag: Implementierung von null neu beginnen und den bisherigen neuen Webapp-/Auth-Code entfernen. Dieser Stand ist unter Git-Tag `archive/2026-10-29/before-mobile-restart` gesichert.
-- Aktuell keine neue Patienten-App, Anmeldung oder Datenhaltung. Ein enger Desktop-/Chromium-BLE-Durchstich liegt nun unter `code/simulator-bridge/` und `code/firmware/esp32s3-display-receiver/`: Legacy-ähnliche synthetische Schrittwerte werden zum Waveshare-Display geschrieben. Er ist kein iOS-Pfad und keine Integration in eine Patienten-App.
-- Zielrichtung: native Plattformzugriffe im iOS-/Android-Patientenclient, gemeinsame Backend-API und webbasiertes Ärzteportal. Kein mobiles Framework, neuer Auth-Stack oder Hosting ausgewählt.
+- Die neue Patienten-Webapp und Datenhaltung sind noch nicht implementiert. Ein enger Desktop-/Chromium-BLE-Durchstich liegt unter `code/simulator-bridge/` und `code/firmware/esp32s3-display-receiver/`: Legacy-ähnliche synthetische Schrittwerte werden zum Waveshare-Display geschrieben. Er ist kein iPhone-BLE-Pfad. Der Altbestand bleibt die Grundlage der Webapp-Weiterentwicklung.
+- Zielrichtung: gemeinsame Webapp für Patienten und Ärzte, daraus installierbare Android- und iOS-Apps sowie separates Waveshare-Firmwareprojekt. Verpackung, native Schnittstellen, Auth, Hosting und produktive Geräteverbindungen bleiben offen.
 
 ## Nachweise und Grenzen
 
@@ -19,7 +19,7 @@ Der einfache Display- und USB-Serielltest ist laut Nutzer am 10.11.2026 erfolgre
 
 ## Nächster konkreter Schritt
 
-Zuerst den BLE-Durchstich aus `code/simulator-bridge/README.md` am Board bauen und prüfen. Danach mobile Zielarchitektur anhand BLE, Offlineablage, sicherer Anmeldung/Deep Links, iOS-/Android-Build und Watch-Anbindung auswählen. Die Patienten-App und das Webportal erhalten später dieselben versionierten API-Verträge; gemeinsame Datenbasis allein garantiert noch keine korrekten Rechte oder Synchronisierung.
+Zuerst den BLE-Durchstich aus `code/simulator-bridge/README.md` mit dem Board prüfen. Danach den Altbestand anhand der Anforderungen als Webapp-Grundlage übernehmen und eine reproduzierbare lokale Startkette herstellen. Den Web-zu-Android/iOS-Weg einschließlich nativer BLE-Schnittstelle und Hintergrundverhalten evaluieren; Geräte- und Backendvertrag für Webapp und Firmwareprojekt konkretisieren.
 
 ## Navigation ohne doppelte Pflege
 
@@ -37,4 +37,4 @@ Zuerst den BLE-Durchstich aus `code/simulator-bridge/README.md` am Board bauen u
 
 Dieser Arbeitsstand liegt auf `paul/code` gemäß aktuellem Nutzerauftrag. Integration nach `main` erfolgt per Pull Request gemäß AGENTS.md.
 
-Der historische 600-Personenstunden-Plan ist keine belastbare Schätzung des erweiterten Produktumfangs. Offene Aufgaben und neue Schätzungen werden im Backlog gepflegt. Lokale Gitstände und Branches ergeben sich aus Git, nicht aus vorweggenommenen Commitangaben hier.
+Das Backlog ist softwareseitig neu geplant. Die Schätzungen sind vorläufige echte Personenstunden für die aufgeführten Arbeitsschritte, keine belastbare Gesamtschätzung bis zur Produktfreigabe; nach den ersten Spikes nachschärfen. Hardwarebeschaffung und Bau sind nicht Teil dieses Backlogs; Geräteprüfungen bleiben abhängig von verfügbaren Geräten. Der historische 600-Personenstunden-Plan ist keine belastbare Schätzung des erweiterten Produktumfangs. Offene Aufgaben und neue Schätzungen werden im Backlog gepflegt. Lokale Gitstände und Branches ergeben sich aus Git, nicht aus vorweggenommenen Commitangaben hier.

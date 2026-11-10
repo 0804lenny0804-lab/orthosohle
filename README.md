@@ -25,7 +25,7 @@ code/                 Aktiver Entwicklungsbereich
 scripts/              Repositoryprüfung und deren Tests
 ```
 
-„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Aktuell ist der Implementierungsbereich zurückgesetzt; es gibt noch keine neue ausführbare App. Regeln, Anforderungen und Referenzcode bleiben erhalten.
+„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Aktuell ist der Implementierungsbereich zurückgesetzt; die alte Webapp soll als Entwicklungsgrundlage übernommen werden. Eine ausführbare neue App gibt es dort noch nicht.
 
 ## Prüfungen
 
