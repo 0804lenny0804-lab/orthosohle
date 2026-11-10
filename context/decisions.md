@@ -123,3 +123,7 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 ## 10.11.2026 – Begriff Therapeut
 
 Der Nutzer verwendet „Therapeut“ als andere Bezeichnung für den behandelnden Arzt. Daraus entsteht keine zusätzliche Berufsrolle; Arztprüfung und ausdrückliche Patientenbeziehung bleiben gesonderte Voraussetzungen.
+
+## 10.11.2026 – Manuelle Freigabe von Arztkonten
+
+Der Nutzer entscheidet, Arztkonten manuell freizugeben. Wer die Prüfung durchführt, welche Nachweise gelten und wie Freigaben erneuert oder widerrufen werden, ist noch festzulegen. Eine Arztfreigabe ersetzt keine bestätigte Betreuungsbeziehung.
