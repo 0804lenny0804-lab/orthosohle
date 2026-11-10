@@ -82,3 +82,11 @@ Neue Module erst mit konkretem Code anlegen. Maßgeblich bleiben [Regeln](../AGE
 ## Eigenes Profil
 
 Im Kontobereich lässt sich der Anzeigename ändern. `POST /api/auth/update-user` mit `{ name }` verwendet Better Auths geprüfte Sitzung; der Browser übermittelt keinen Eigentümer. `/api/me` liest den gespeicherten Namen derselben Identität. Namen werden serverseitig getrimmt und auf 1–100 Zeichen begrenzt. Ein Zwei-Konten-Test prüft Isolation, Fremd-Origin, anonyme/widerrufene Sitzungen und Persistenz über einen API-Neustart. Die Anmeldung hat eine eigenständige Ansicht; nach Anmeldung stehen Desktop-Seitenleiste und mobile untere Navigation bereit. Fachliche Messdaten sind weiterhin nur flüchtig.
+
+## Patientenprofil einrichten
+
+Nach dem Aktualisieren des Codes die API stoppen, im Projektordner `npm run migrate --prefix code/api` ausführen und die API neu starten. Die Migration ergänzt die bestehende SQLite-Datei um `patient_profile`; Konten und Sessions bleiben erhalten. Der normale Start führt keine Migration aus. Eine fehlende Tabelle führt beim Start zu einem Fehler statt zu einer stillen Schemaänderung.
+
+Im Kontobereich kann ein verifiziert angemeldetes Konto mit „Patientenprofil einrichten“ ausdrücklich ein eigenes Profil anlegen. Es enthält nur eine interne UUID, eine eindeutige Fremdschlüsselzuordnung zur Konto-ID und die Erstellzeit. Keine weiteren persönlichen oder medizinischen Angaben werden abgefragt; Arztfreigaben und Betreuungsrechte entstehen dadurch nicht.
+
+`GET /api/patient-profile` liefert `{ profile: null }` oder das eigene Profil mit `id` und `createdAt`. `POST /api/patient-profile` akzeptiert nur `{}` als JSON mit dem konfigurierten Web-Origin und legt genau ein Profil je verifizierter Konto-Session an. Ein erneuter Aufruf liefert dasselbe Profil. Der Browser sendet keinen Eigentümer; fremde IDs und Rollenfelder werden abgewiesen. Die Zuordnung bildet später den Bezugspunkt für Geräte und Messsitzungen. Auth-Konten mit verknüpftem Profil können wegen des Fremdschlüssels nicht unbemerkt gelöscht werden; ein fachlicher Löschprozess ist gesondert umzusetzen.

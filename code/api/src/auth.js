@@ -32,5 +32,5 @@ export function createAuth(config, { forMigration = false } = {}) {
     advanced: { useSecureCookies: false, database: { validateSchema: !forMigration } },
     telemetry: { enabled: false },
   });
-  return { auth, close: () => database.close() };
+  return { auth, database, close: () => database.close() };
 }

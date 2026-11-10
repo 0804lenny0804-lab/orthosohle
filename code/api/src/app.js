@@ -1,7 +1,9 @@
 import express from 'express';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
+import { createPatientProfileRouter } from './patient-profile-routes.js';
 
-export function createApp(auth) {
+export function createApp(auth, { database, webOrigin } = {}) {
+  if (!database || !webOrigin) throw new Error('Patient profile database and web origin are required.');
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -16,8 +18,11 @@ export function createApp(auth) {
     // Only the authenticated profile is returned, never tokens or health data.
     return res.json({ id: session.user.id, name: session.user.name, email: session.user.email, emailVerified: session.user.emailVerified });
   });
-  app.use((_error, _req, res, _next) => {
-    res.status(500).json({ error: 'internal_error' });
+  app.use('/api/patient-profile', createPatientProfileRouter(auth, database, webOrigin));
+  app.use((error, _req, res, _next) => {
+    if (error?.type === 'entity.parse.failed') return res.status(400).json({ error: 'invalid_json' });
+    if (error?.type === 'entity.too.large') return res.status(413).json({ error: 'body_too_large' });
+    return res.status(500).json({ error: 'internal_error' });
   });
   return app;
 }

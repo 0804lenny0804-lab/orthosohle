@@ -10,6 +10,7 @@ import { getMigrations } from 'better-auth/db/migration';
 import { createAuth } from '../src/auth.js';
 import { createApp } from '../src/app.js';
 import { readConfig } from '../src/config.js';
+import { migratePatientProfiles } from '../src/patient-profile-migration.js';
 
 async function fixture(t, { verificationExpiresIn = 3600, resetExpiresIn = 3600 } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'orthosohle-auth-'));
@@ -35,19 +36,25 @@ async function fixture(t, { verificationExpiresIn = 3600, resetExpiresIn = 3600 
     if (migrate) {
       const { runMigrations } = await getMigrations(runtime.auth.options);
       await runMigrations();
+      migratePatientProfiles(runtime.database);
       runtime.close();
       runtime = createAuth(config);
     }
-    server.on('request', createApp(runtime.auth));
+    server.on('request', createApp(runtime.auth, { database: runtime.database, webOrigin: config.webOrigin }));
   }
   t.after(async () => { await stop(); await rm(directory, { recursive: true, force: true }); });
   await start(true);
   return {
     async restart() { await stop(); await start(); },
-    async request(path, { cookie, body, origin = baseURL } = {}) {
-      return fetch(`${baseURL}${path}`, { redirect: 'manual', method: body ? 'POST' : 'GET', headers: {
-        ...(cookie ? { Cookie: cookie } : {}), ...(body ? { 'Content-Type': 'application/json', Origin: origin } : {}),
-      }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    async request(path, { cookie, body, rawBody, origin = baseURL, method, contentType, omitOrigin = false } = {}) {
+      const requestMethod = method || (body !== undefined || rawBody !== undefined ? 'POST' : 'GET');
+      return fetch(`${baseURL}${path}`, { redirect: 'manual', method: requestMethod, headers: {
+        ...(cookie ? { Cookie: cookie } : {}),
+        ...(requestMethod !== 'GET' && !omitOrigin ? { Origin: origin } : {}),
+        ...(contentType ? { 'Content-Type': contentType }
+          : body !== undefined || rawBody !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      }, ...(body !== undefined ? { body: JSON.stringify(body) }
+        : rawBody !== undefined ? { body: rawBody } : {}) });
     },
     async mails() {
       const outbox = join(directory, 'auth.sqlite.mail-outbox');
@@ -58,6 +65,7 @@ async function fixture(t, { verificationExpiresIn = 3600, resetExpiresIn = 3600 
       })));
     },
     get auth() { return runtime.auth; },
+    get database() { return runtime.database; },
   };
 }
 
@@ -109,6 +117,101 @@ test('profile name is session-owned, validated, and persists across restart', as
   const freshA = cookies(await signIn(f, userA.password, userA));
   assert.equal((await (await f.request('/api/me', { cookie: freshA })).json()).name, 'Renamed A');
   assert.equal((await (await f.request('/api/me', { cookie: cookieB })).json()).name, 'Account B');
+});
+
+test('patient profile belongs only to the verified account and survives restart', async t => {
+  const f = await fixture(t);
+  const userA = { ...account, name: 'Patient Account A' };
+  const userB = { ...account, name: 'Patient Account B', email: 'patient-b@example.invalid' };
+  const idA = await signUp(f, true, userA);
+  const idB = await signUp(f, true, userB);
+  const cookieA = cookies(await signIn(f, userA.password, userA));
+  const cookieB = cookies(await signIn(f, userB.password, userB));
+  const path = '/api/patient-profile';
+  const webOrigin = 'http://127.0.0.1:5173';
+
+  assert.equal((await f.request(path)).status, 401);
+  assert.equal((await f.request(path, { body: {}, origin: webOrigin })).status, 401);
+  assert.equal((await f.request(path, { cookie: cookieA })).status, 200);
+  assert.deepEqual(await (await f.request(path, { cookie: cookieA })).json(), { profile: null });
+
+  for (const forgedBody of [
+    { id: 'forged' }, { userId: idB }, { account_user_id: idB }, { role: 'admin' },
+  ]) {
+    assert.equal((await f.request(path, { cookie: cookieA, body: forgedBody, origin: webOrigin })).status, 400);
+  }
+  assert.equal((await f.request(path, { cookie: cookieA, body: {}, origin: 'https://foreign.invalid' })).status, 403);
+  assert.equal((await f.request(path, { cookie: cookieA, body: {}, omitOrigin: true })).status, 403);
+  assert.equal((await f.request(path, { cookie: cookieA, body: {}, origin: webOrigin, contentType: 'text/plain' })).status, 415);
+  assert.equal((await f.request(path, { cookie: cookieA, rawBody: '{', origin: webOrigin })).status, 400);
+
+  // A previously valid session must lose profile access if verification is removed.
+  f.database.prepare('UPDATE user SET emailVerified = 0 WHERE id = ?').run(idA);
+  assert.equal((await f.request(path, { cookie: cookieA })).status, 403);
+  assert.equal((await f.request(path, { cookie: cookieA, body: {}, origin: webOrigin })).status, 403);
+  assert.equal(f.database.prepare('SELECT count(*) AS count FROM patient_profile').get().count, 0);
+  f.database.prepare('UPDATE user SET emailVerified = 1 WHERE id = ?').run(idA);
+
+  const first = await f.request(path, { cookie: cookieA, body: {}, origin: webOrigin });
+  assert.equal(first.status, 201);
+  const profileA = (await first.json()).profile;
+  assert.match(profileA.id, /^[0-9a-f-]{36}$/i);
+  assert.ok(profileA.createdAt);
+  assert.deepEqual(Object.keys(profileA).sort(), ['createdAt', 'id']);
+  const repeated = await f.request(path, { cookie: cookieA, body: {}, origin: webOrigin });
+  assert.equal(repeated.status, 200);
+  assert.deepEqual((await repeated.json()).profile, profileA);
+
+  const accountBBefore = await f.request(path, { cookie: cookieB });
+  assert.deepEqual(await accountBBefore.json(), { profile: null });
+  const simultaneousCreates = await Promise.all([
+    f.request(path, { cookie: cookieB, body: {}, origin: webOrigin }),
+    f.request(path, { cookie: cookieB, body: {}, origin: webOrigin }),
+  ]);
+  assert.deepEqual(simultaneousCreates.map(response => response.status).sort(), [200, 201]);
+  const profileB = (await simultaneousCreates[0].json()).profile;
+  assert.deepEqual((await simultaneousCreates[1].json()).profile, profileB);
+  assert.notEqual(profileB.id, profileA.id);
+  assert.equal(f.database.prepare('SELECT count(*) AS count FROM patient_profile').get().count, 2);
+
+  await f.request('/api/auth/sign-out', { cookie: cookieA, body: {}, origin: webOrigin });
+  assert.equal((await f.request(path, { cookie: cookieA })).status, 401);
+  assert.equal((await f.request(path, { cookie: cookieA, body: {}, origin: webOrigin })).status, 401);
+
+  await f.restart();
+  const freshA = cookies(await signIn(f, userA.password, userA));
+  assert.deepEqual((await (await f.request(path, { cookie: freshA })).json()).profile, profileA);
+  assert.equal((await f.request(path, { cookie: cookieA })).status, 401);
+  assert.equal(idA, f.database.prepare('SELECT account_user_id FROM patient_profile WHERE id = ?').get(profileA.id).account_user_id);
+  assert.equal(idB, f.database.prepare('SELECT account_user_id FROM patient_profile WHERE id = ?').get(profileB.id).account_user_id);
+});
+
+test('patient profile migration is idempotent and keeps existing Better Auth users', async t => {
+  const f = await fixture(t);
+  const userId = await signUp(f);
+  const before = f.database.prepare('SELECT id, email FROM user WHERE id = ?').get(userId);
+  const cookie = cookies(await signIn(f));
+  // Reproduce upgrading an auth-only database containing an existing user/session.
+  f.database.exec('DROP TABLE patient_profile');
+  assert.throws(() => createApp(f.auth, { database: f.database, webOrigin: 'http://127.0.0.1:5173' }), /no such table: patient_profile/);
+  migratePatientProfiles(f.database);
+  migratePatientProfiles(f.database);
+  assert.deepEqual(f.database.prepare('SELECT id, email FROM user WHERE id = ?').get(userId), before);
+  assert.equal((await (await f.request('/api/me', { cookie })).json()).id, userId);
+  assert.throws(() => f.database.prepare('INSERT INTO patient_profile VALUES (?, ?, ?)').run('orphan', 'absent-user', new Date().toISOString()), /FOREIGN KEY/);
+
+  const columns = f.database.prepare('PRAGMA table_info(patient_profile)').all();
+  assert.deepEqual(columns.map(column => column.name), ['id', 'account_user_id', 'created_at']);
+  const owner = columns.find(column => column.name === 'account_user_id');
+  assert.equal(owner.notnull, 1);
+  assert.ok(f.database.prepare("PRAGMA index_list('patient_profile')").all()
+    .some(index => index.unique && f.database.prepare(`PRAGMA index_info('${index.name}')`).all()
+      .some(column => column.name === 'account_user_id')));
+  const foreignKey = f.database.prepare('PRAGMA foreign_key_list(patient_profile)').get();
+  assert.equal(foreignKey.table, 'user');
+  assert.equal(foreignKey.from, 'account_user_id');
+  assert.equal(foreignKey.on_delete, 'RESTRICT');
+  assert.equal(f.database.prepare("SELECT count(*) AS count FROM sqlite_master WHERE name LIKE '%role%'").get().count, 0);
 });
 
 test('loopback configuration requires opt-in, explicit secret and local URL', () => {

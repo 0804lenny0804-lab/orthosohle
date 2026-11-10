@@ -32,7 +32,7 @@ B01,P2,B,Grenzwert-API-Rückgabe korrigieren,3,6,C02,GET /api/limits liefert Zah
 B02,P2,B,Zentrale Messwertpipeline einführen,5,10,C06,BLE und Simulation nutzen denselben validierten Eingang mit source-Kennung,Offen,,
 B03,P2,B,Echte Ereignisse speichern und Simulation trennen,5,10,B02,Ein erkannter Peak wird einmal gespeichert; Testdaten separat gekennzeichnet,Offen,,
 B04,P2,B,Sitzungsdaten und Zähler korrigieren,5,10,B03,Pro Lauf eigene Zähler; Messwerte besitzen Sitzungsbezug; Verlauf erneut abrufbar,Offen,,
-B05,P2,B,Schema-Migrationen und Datenbesitz ergänzen,6,12,C02,"Nutzer, Geräte und Sitzungen über Fremdschlüssel zugeordnet; Migration geprüft",Offen,,
+B05,P2,B,Schema-Migrationen und Datenbesitz ergänzen,6,12,C02,"Nutzer, Geräte und Sitzungen über Fremdschlüssel zugeordnet; Migration geprüft",In Arbeit,Codex,Patientenprofil als erster persistenter Datenanker mit Konto-Fremdschlüssel und expliziter Migration umgesetzt; Geräte und Messsitzungen noch offen; context/context.md
 B06,P2,B,Auth-Lösung integrieren,7,14,B05,"Registrierung, Login, Logout und sichere Session mit bewährter Lösung funktionieren",Offen,,
 B07,P2,B,Passwort-Reset und Profil ergänzen,5,10,B06,Reset mit Ablauf/Einmalnutzung und minimales Profil funktionieren,Offen,,
 B08,P2,B,API- und Push-Zugriffe schützen,7,14,B06,Server bestimmt Identität; Nutzer A kann Daten von B nicht lesen/ändern,Offen,,

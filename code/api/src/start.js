@@ -4,7 +4,8 @@ import { readConfig } from './config.js';
 
 const config = readConfig();
 const runtime = createAuth(config);
-const server = createApp(runtime.auth).listen(config.port, '127.0.0.1', () => {
+const server = createApp(runtime.auth, { database: runtime.database, webOrigin: config.webOrigin })
+  .listen(config.port, '127.0.0.1', () => {
   console.log(`Local identity API: ${config.baseURL}`);
 });
 server.on('error', () => {
