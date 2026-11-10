@@ -1,19 +1,14 @@
 <template>
   <div class="history-wrapper">
+    <SavedSessions :identity-id="identityId" />
     <p class="alert alert-info small" role="note">
-      Werte der aktuellen Sitzung. Ein dauerhaft gespeicherter Verlauf ist noch nicht verfügbar.
+      Die folgenden Diagramme zeigen nur flüchtige Werte dieser Browseransicht. Dauerhaft gespeicherte Sekundenaggregate stehen oben.
     </p>
     <HistoryRangeSelect :range="range" @update="onRangeChange" />
     <PeakChart :peaks="peaks" :limits="limits" />
     <StepChart :steps="steps" />
     <HistoryStats :avgPeak="avgPeak" />
     <OutlierTable :outliers="outliers" />
-    <section class="card mb-4">
-      <div class="card-body">
-        <h2 class="h5 text-sohle fw-bold">Sitzungen</h2>
-        <p class="text-muted small mb-0">Abgeschlossene Sitzungen werden noch nicht dauerhaft gespeichert.</p>
-      </div>
-    </section>
   </div>
 </template>
 
@@ -23,13 +18,15 @@ import PeakChart from "./PeakChart.vue";
 import StepChart from "./StepChart.vue";
 import HistoryStats from "./HistoryStats.vue";
 import OutlierTable from "./OutlierTable.vue";
+import SavedSessions from "../../features/measurement/SavedSessions.vue";
 
 export default {
   name: "HistoryView",
-  components: { HistoryRangeSelect, PeakChart, StepChart, HistoryStats, OutlierTable },
+  components: { HistoryRangeSelect, PeakChart, StepChart, HistoryStats, OutlierTable, SavedSessions },
   props: {
     measurements: { type: Array, default: () => [] },
     limitHistory: { type: Array, default: () => [] },
+    identityId: { type: String, default: "" },
   },
   data() { return { range: 7 }; },
   computed: {

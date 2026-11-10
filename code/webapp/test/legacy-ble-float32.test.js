@@ -21,15 +21,16 @@ test('legacy BLE decoder reads valid little-endian Float32 weights', () => {
   assert.equal(decodeLegacyBleFloat32(payload(0)), 0);
 });
 
-test('BLE and simulation events carry kg with one receive timestamp for App consumers', async () => {
+test('BLE and simulation events retain explicit source with one receive timestamp for App consumers', async () => {
   const [bluetooth, simulation, app] = await Promise.all([
     readFile(new URL('../src/components/Bluetooth.vue', import.meta.url), 'utf8'),
     readFile(new URL('../src/components/SimulationControl.vue', import.meta.url), 'utf8'),
     readFile(new URL('../src/App.vue', import.meta.url), 'utf8'),
   ]);
-  assert.match(bluetooth, /emit\("raw-value", \{ kg, timestamp \}\)/);
-  assert.match(simulation, /\{ kg: value, timestamp: new Date\(\)\.toISOString\(\) \}/);
-  assert.match(app, /onRawValue\(\{ kg, timestamp: receivedAt \}\)/);
+  assert.match(bluetooth, /emit\("raw-value", \{ kg, timestamp, source: "ble" \}\)/);
+  assert.match(simulation, /\{ kg: value, timestamp: new Date\(\)\.toISOString\(\), source: "simulation" \}/);
+  assert.match(app, /onRawValue\(\{ kg, timestamp: receivedAt, source \}\)/);
+  assert.match(app, /sessionCapture\?\.acceptSample\(\{ kg: numericValue, timestamp: timestamp\.toISOString\(\), source \}\)/);
   assert.match(app, /new Date\(receivedAt\)/);
   assert.match(app, /this\.stepDetector\.onSample\(numericValue, timestamp\)/);
 });

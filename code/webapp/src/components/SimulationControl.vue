@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-center gap-3">
       <button class="btn btn-success btn-lg"
         @click="startSimulation"
-        :disabled="isRunning">
+        :disabled="isRunning || bleBlocked">
         Start
       </button>
 
@@ -18,13 +18,17 @@
         Stopp
       </button>
     </div>
+    <p v-if="bleBlocked" class="small text-muted mt-3" role="status">
+      Die Simulation ist gesperrt, solange Bluetooth verbunden wird oder verbunden ist, damit beide Quellen nicht vermischt werden.
+    </p>
   </div>
 </template>
 
 <script>
 export default {
   name: "SimulationControl",
-  emits: ["raw-value"],   // 👈 ganz wichtig!
+  emits: ["raw-value", "running-state"],
+  props: { bleBlocked: { type: Boolean, default: false } },
 
   data() {
     return {
@@ -36,8 +40,9 @@ export default {
   methods:
   {
     startSimulation() {
-      if (this.isRunning) return;
+      if (this.isRunning || this.bleBlocked) return;
       this.isRunning = true;
+      this.$emit("running-state", true);
 
 
       const runStep = () => {
@@ -54,7 +59,7 @@ export default {
           console.log("SIM", value);
 
           // 1) Rohwert an den Graphen (App.vue)
-          this.$emit("raw-value", { kg: value, timestamp: new Date().toISOString() });
+          this.$emit("raw-value", { kg: value, timestamp: new Date().toISOString(), source: "simulation" });
 
           index++;
 
@@ -139,6 +144,7 @@ export default {
       this.isRunning = false;
       clearTimeout(this.timerId);
       this.timerId = null;
+      this.$emit("running-state", false);
     },
   },
   beforeUnmount() { this.stopSimulation(); },

@@ -69,6 +69,85 @@ async function fixture(t, { verificationExpiresIn = 3600, resetExpiresIn = 3600 
   };
 }
 
+const sampleSession = (sessionId, overrides = {}) => ({
+  sessionId, source: 'ble', startedAt: '2026-11-10T10:00:00.000Z', endedAt: '2026-11-10T10:00:03.000Z',
+  intervals: [
+    { timestamp: '2026-11-10T10:00:00.000Z', count: 10, avg: 4.2, max: 8.1 },
+    { timestamp: '2026-11-10T10:00:02.000Z', count: 7, avg: 3.8, max: 5.5 },
+  ], ...overrides,
+});
+
+test('measurement sessions require verified profile, isolate two accounts, validate, deduplicate, and persist', async t => {
+  const f = await fixture(t);
+  const userA = { ...account, name: 'Session A' };
+  const userB = { ...account, name: 'Session B', email: 'session-b@example.invalid' };
+  const idA = await signUp(f, true, userA), idB = await signUp(f, true, userB);
+  const cookieA = cookies(await signIn(f, userA.password, userA));
+  const cookieB = cookies(await signIn(f, userB.password, userB));
+  const path = '/api/measurement-sessions';
+  const webOrigin = 'http://127.0.0.1:5173';
+  assert.equal((await f.request(path, { body: sampleSession('10000000-0000-4000-8000-000000000001'), origin: webOrigin })).status, 401);
+  assert.equal((await f.request(path, { cookie: cookieA })).status, 403);
+  assert.equal((await f.request('/api/patient-profile', { cookie: cookieA, body: {}, origin: webOrigin })).status, 201);
+  assert.equal((await f.request('/api/patient-profile', { cookie: cookieB, body: {}, origin: webOrigin })).status, 201);
+  assert.equal((await f.request(path, { cookie: cookieA })).status, 200);
+  assert.deepEqual(await (await f.request(path, { cookie: cookieA })).json(), { sessions: [], nextBefore: null });
+
+  const good = sampleSession('10000000-0000-4000-8000-000000000001');
+  assert.equal((await f.request(path, { cookie: cookieA, body: good, origin: 'https://foreign.invalid' })).status, 403);
+  assert.equal((await f.request(path, { cookie: cookieA, body: good, omitOrigin: true })).status, 403);
+  assert.equal((await f.request(path, { cookie: cookieA, body: good, contentType: 'text/plain', origin: webOrigin })).status, 415);
+  assert.equal((await f.request(path, { cookie: cookieA, rawBody: '{', origin: webOrigin })).status, 400);
+  const invalid = [
+    { ...good, accountId: idB }, { ...good, profileId: 'foreign' }, { ...good, source: 'unknown' },
+    { ...good, intervals: [...good.intervals].reverse() },
+    { ...good, intervals: [{ ...good.intervals[0], max: 1 }, good.intervals[1]] },
+    { ...good, endedAt: '2026-11-10T09:00:00.000Z' },
+    { ...good, intervals: [{ ...good.intervals[0], timestamp: '2026-11-10T10:00:00.500Z' }, good.intervals[1]] },
+    { ...good, intervals: Array.from({ length: 3601 }, (_, index) => ({ timestamp: new Date(Date.parse(good.startedAt) + index * 1000).toISOString(), count: 1, avg: 1, max: 1 })) },
+  ];
+  for (const body of invalid) assert.equal((await f.request(path, { cookie: cookieA, body, origin: webOrigin })).status, 400);
+
+  const first = await f.request(path, { cookie: cookieA, body: good, origin: webOrigin });
+  assert.equal(first.status, 201);
+  const saved = (await first.json()).session;
+  assert.deepEqual(saved.gaps, [{ from: good.intervals[0].timestamp, to: good.intervals[1].timestamp }]);
+  assert.equal(saved.source, 'ble');
+  const retry = await f.request(path, { cookie: cookieA, body: { ...good, intervals: good.intervals.map(item => ({ max: item.max, avg: item.avg, count: item.count, timestamp: item.timestamp })) }, origin: webOrigin });
+  assert.equal(retry.status, 200);
+  assert.equal((await retry.json()).session.id, good.sessionId);
+  assert.equal((await f.request(path, { cookie: cookieA, body: { ...good, source: 'simulation' }, origin: webOrigin })).status, 409);
+  const ownHistory = await (await f.request(path, { cookie: cookieA })).json();
+  const foreignHistory = await (await f.request(path, { cookie: cookieB })).json();
+  assert.equal(ownHistory.sessions.length, 1);
+  assert.deepEqual(foreignHistory, { sessions: [], nextBefore: null });
+  assert.equal(f.database.prepare('SELECT count(*) AS count FROM measurement_session').get().count, 1);
+  assert.equal(f.database.prepare('SELECT count(*) AS count FROM measurement_interval').get().count, 2);
+  assert.equal(idA, f.database.prepare('SELECT account_user_id FROM patient_profile WHERE id = (SELECT patient_profile_id FROM measurement_session WHERE id = ?)').get(good.sessionId).account_user_id);
+  const partialStart = sampleSession('10000000-0000-4000-8000-000000000002', {
+    startedAt: '2026-11-10T10:00:00.650Z', endedAt: '2026-11-10T10:00:02.100Z',
+    intervals: [
+      { timestamp: '2026-11-10T10:00:00.000Z', count: 1, avg: 1, max: 1 },
+      { timestamp: '2026-11-10T10:00:02.000Z', count: 1, avg: 1, max: 1 },
+    ],
+  });
+  assert.equal((await f.request(path, { cookie: cookieA, body: partialStart, origin: webOrigin })).status, 201);
+  assert.deepEqual((await (await f.request(`${path}/${partialStart.sessionId}`, { cookie: cookieA })).json()).session.samples,
+    partialStart.intervals);
+  assert.equal((await f.request(`${path}/${partialStart.sessionId}`, { cookie: cookieB })).status, 404);
+  assert.equal((await f.request(`${path}?limit=0`, { cookie: cookieA })).status, 400);
+  const page = await (await f.request(`${path}?limit=1`, { cookie: cookieA })).json();
+  assert.equal(page.sessions.length, 1);
+  assert.ok(page.nextBefore);
+
+  await f.restart();
+  const freshA = cookies(await signIn(f, userA.password, userA));
+  const afterRestart = await (await f.request(path, { cookie: freshA })).json();
+  assert.equal(afterRestart.sessions.length, 2);
+  assert.deepEqual(afterRestart.sessions.map(item => item.id).sort(), [good.sessionId, partialStart.sessionId].sort());
+  assert.deepEqual((await (await f.request(path, { cookie: cookieB })).json()).sessions, []);
+});
+
 const account = { name: 'Synthetic Test', email: 'synthetic@example.invalid', password: 'Synthetic-test-password-42!' };
 function cookies(response) {
   const value = response.headers.getSetCookie().map(line => line.split(';')[0]).join('; ');
@@ -212,6 +291,27 @@ test('patient profile migration is idempotent and keeps existing Better Auth use
   assert.equal(foreignKey.from, 'account_user_id');
   assert.equal(foreignKey.on_delete, 'RESTRICT');
   assert.equal(f.database.prepare("SELECT count(*) AS count FROM sqlite_master WHERE name LIKE '%role%'").get().count, 0);
+});
+
+test('measurement migration is idempotent and preserves existing user, session, and profile', async t => {
+  const f = await fixture(t);
+  const userId = await signUp(f);
+  const profileResponse = await f.request('/api/patient-profile', { cookie: cookies(await signIn(f)), body: {}, origin: 'http://127.0.0.1:5173' });
+  assert.equal(profileResponse.status, 201);
+  const profile = (await profileResponse.json()).profile;
+  const session = sampleSession('20000000-0000-4000-8000-000000000001');
+  const cookie = cookies(await signIn(f));
+  const endpoint = '/api/measurement-sessions';
+  await f.request(endpoint, { cookie, body: session, origin: 'http://127.0.0.1:5173' });
+  const userBefore = f.database.prepare('SELECT id, email FROM user WHERE id = ?').get(userId);
+  const sessionsBefore = f.database.prepare('SELECT count(*) AS count FROM session').get().count;
+  f.database.exec('DROP TABLE measurement_interval; DROP TABLE measurement_session');
+  migratePatientProfiles(f.database);
+  migratePatientProfiles(f.database);
+  assert.deepEqual(f.database.prepare('SELECT id, email FROM user WHERE id = ?').get(userId), userBefore);
+  assert.equal(f.database.prepare('SELECT count(*) AS count FROM session').get().count, sessionsBefore);
+  assert.equal(f.database.prepare('SELECT id FROM patient_profile WHERE id = ?').get(profile.id).id, profile.id);
+  assert.throws(() => f.database.prepare("INSERT INTO measurement_session VALUES ('bad', 'absent-profile', 'ble', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:01.000Z', 'hash', 'now')").run(), /FOREIGN KEY/);
 });
 
 test('loopback configuration requires opt-in, explicit secret and local URL', () => {

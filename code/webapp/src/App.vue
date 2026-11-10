@@ -3,12 +3,20 @@
       <AccountView v-if="activeNav === 'account'" />
 
       <div v-show="activeNav === 'live'">
+        <SessionCapture
+          ref="sessionCapture"
+          :identity-id="identityId"
+          :ble-connected="bleConnected"
+          :simulation-running="simulationRunning"
+        />
         <div class="row g-4">
           <div class="col-lg-7">
             <section id="live" class="card">
               <div class="card-body">
                 <h2 class="h5 mb-1 text-sohle">Gewichtsanzeige & Status</h2>
-                <p class="text-muted small mb-3">Live-Werte & Verlauf</p>
+                <p class="text-muted small mb-3">
+                  {{ previewSource === 'simulation' ? 'Synthetischer Simulationsverlauf' : previewSource === 'ble' ? 'Bluetooth-Empfangsverlauf' : 'Noch keine Werte empfangen' }}
+                </p>
                 <LiveChart :rawValues="rawValues" :currentLimit="currentLimit" />
               </div>
             </section>
@@ -42,7 +50,7 @@
         <section id="simulation" class="card mt-4">
           <div class="card-body">
             <h2 class="h5 mb-3 text-sohle">Simulation</h2>
-            <SimulationControl :key="demoEpoch" @raw-value="onRawValue" />
+            <SimulationControl :key="demoEpoch" :ble-blocked="bleConnected || bleBusy" @raw-value="onRawValue" @running-state="simulationRunning = $event" />
           </div>
         </section>
       </div>
@@ -66,13 +74,13 @@
         <section id="connect-page" class="card">
           <div class="card-body">
             <h2 class="h5 mb-1 text-sohle">Bluetooth</h2>
-        <Bluetooth :key="demoEpoch" @raw-value="onRawValue" />
+        <Bluetooth :key="demoEpoch" :simulation-running="simulationRunning" @raw-value="onRawValue" @connection-state="bleConnected = $event" @connection-busy="bleBusy = $event" />
           </div>
         </section>
       </div>
 
       <div v-if="activeNav === 'history'">
-        <HistoryView :measurements="measurements" :limit-history="limitHistory" />
+        <HistoryView :measurements="measurements" :limit-history="limitHistory" :identity-id="identityId" />
       </div>
 
       <Toastwarning :rawValues="rawValues" :currentLimit="currentLimit" />
@@ -84,6 +92,7 @@
 import { watch } from "vue";
 import AppShell from "./components/shell/AppShell.vue";
 import AccountView from "./features/account/AccountView.vue";
+import SessionCapture from "./features/measurement/SessionCapture.vue";
 import Bluetooth from './components/Bluetooth.vue';
 import LiveChart from './components/LiveChart.vue';
 import LimitConfig from './components/LimitConfig.vue';
@@ -96,11 +105,12 @@ import HistoryView from './components/history/HistoryView.vue';
 import RunFeedbackWindow from "./components/RunFeedbackWindow.vue";
 import { accountSession } from "./features/account/session.js";
 import { clearLegacyDemoStorage, createDemoSessionState } from "./features/demo/demo-state.js";
+import { MAX_SESSION_VALUE } from "./features/measurement/measurement-sessions.js";
 
 export default {
   name: 'App',
   components: {
-    AppShell, AccountView, Bluetooth, LiveChart, LimitConfig, SimulationControl,
+    AppShell, AccountView, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
     MeasurementTable, Toastwarning, StepCounter, HistoryView, RunFeedbackWindow
   },
   data() {
@@ -109,6 +119,10 @@ export default {
       stepDetector: null,
       activeNav: "account",
       demoEpoch: 0,
+      bleConnected: false,
+      bleBusy: false,
+      simulationRunning: false,
+      previewSource: null,
       stopIdentityWatch: null
     };
   },
@@ -133,10 +147,22 @@ export default {
     },
 
     // Zentraler Datenempfang
-    onRawValue({ kg, timestamp: receivedAt }) {
+    onRawValue({ kg, timestamp: receivedAt, source }) {
+      if (!['ble', 'simulation'].includes(source)) return;
       const numericValue = Number(kg);
       const timestamp = new Date(receivedAt);
       if (!Number.isFinite(numericValue) || Number.isNaN(timestamp.getTime())) return;
+
+      this.$refs.sessionCapture?.acceptSample({ kg: numericValue, timestamp: timestamp.toISOString(), source });
+      if (numericValue < 0 || numericValue > MAX_SESSION_VALUE) return;
+
+      if (this.previewSource && this.previewSource !== source) {
+        this.rawValues = [];
+        this.stepCount = 0;
+        this.measurements = [];
+        this.stepDetector = this.createStepDetector();
+      }
+      this.previewSource = source;
 
       // 1. Daten für Live-Graph speichern
       this.rawValues.push({ value: numericValue, timestamp: timestamp.toISOString() });
@@ -151,7 +177,11 @@ export default {
     resetDemoState() {
       Object.assign(this, createDemoSessionState());
       this.demoEpoch += 1;
-      this.stepDetector = new StepDetector({
+      this.previewSource = null;
+      this.stepDetector = this.createStepDetector();
+    },
+    createStepDetector() {
+      return new StepDetector({
         threshold: 15,
         minWindow: 8,
         onPeak: ({ peak, timestamp }) => {
@@ -161,6 +191,9 @@ export default {
         }
       });
     }
+  },
+  computed: {
+    identityId() { return accountSession.state.identityId || ""; }
   },
 
   async mounted() {

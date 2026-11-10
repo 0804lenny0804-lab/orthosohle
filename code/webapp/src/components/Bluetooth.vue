@@ -6,12 +6,13 @@
       <button
         class="btn btn-lg btn-sohle shadow-sm mb-3"
         @click="discoverBluetoothDevices"
-        :disabled="btBusy || !bluetoothAvailable"
+        :disabled="btBusy || !bluetoothAvailable || simulationRunning"
       >
         {{ btBusy ? "Suche..." : "Bluetooth-Geraet auswaehlen" }}
       </button>
 
       <p v-if="!bluetoothAvailable" class="error" role="status">Web Bluetooth wird von diesem Gerät oder Browser nicht unterstützt.</p>
+      <p v-if="simulationRunning" class="info" role="status">Bluetooth kann nicht parallel zur Simulation verbunden werden.</p>
       <p v-if="btInfo" class="info">{{ btInfo }}</p>
       <p v-if="btError" class="error">⚠️ {{ btError }}</p>
 
@@ -45,7 +46,8 @@ import { decodeLegacyBleFloat32 } from "./legacy-ble-float32.js";
 const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
 const CHARACTERISTIC_UUID = "12345678-1234-1234-1234-1234567890cd";
 
-const emit = defineEmits(["raw-value"]);
+const emit = defineEmits(["raw-value", "connection-state", "connection-busy"]);
+const props = defineProps({ simulationRunning: { type: Boolean, default: false } });
 
 const bluetoothAvailable = typeof navigator !== "undefined" && !!navigator.bluetooth?.requestDevice;
 const btBusy = ref(false);
@@ -62,6 +64,7 @@ function onDisconnected() {
   if (isDisposed) return;
   btInfo.value = "Bluetooth getrennt.";
   connectedKg.value = null;
+  emit("connection-state", false);
 }
 
 function onCharacteristicChanged(event) {
@@ -74,16 +77,18 @@ function onCharacteristicChanged(event) {
   connectedKg.value = kg;
 
   // exakt wie Simulation.vue
-  emit("raw-value", { kg, timestamp });
+  emit("raw-value", { kg, timestamp, source: "ble" });
 
   measurements.value.unshift({ kg: kg, timestamp: timestamp });
   if (measurements.value.length > 5) measurements.value.pop();
 }
 
 async function discoverBluetoothDevices() {
+  if (props.simulationRunning) return;
   btError.value = "";
   btInfo.value = "";
   connectedKg.value = null;
+  emit("connection-state", false);
 
   if (!bluetoothAvailable) {
     btError.value = "Web Bluetooth wird von diesem Geraet/Browser nicht unterstuetzt.";
@@ -91,6 +96,7 @@ async function discoverBluetoothDevices() {
   }
 
   btBusy.value = true;
+  emit("connection-busy", true);
 
   try {
     const selectedDevice = await navigator.bluetooth.requestDevice({
@@ -112,6 +118,7 @@ async function discoverBluetoothDevices() {
     btError.value = "Fehler: " + (error && error.message ? error.message : String(error));
   } finally {
     btBusy.value = false;
+    emit("connection-busy", false);
   }
 }
 
@@ -148,7 +155,9 @@ async function connectToSelectedDevice() {
     bleCharacteristic.addEventListener("characteristicvaluechanged", onCharacteristicChanged);
 
     btInfo.value = "Verbunden mit: " + (bleDevice.name || "Unbenannt");
+    emit("connection-state", true);
   } catch (error) {
+    emit("connection-state", false);
     btError.value = "Fehler beim Verbinden: " + (error && error.message ? error.message : String(error));
   } finally {
     btBusy.value = false;
@@ -157,6 +166,7 @@ async function connectToSelectedDevice() {
 
 onUnmounted(() => {
   isDisposed = true;
+  emit("connection-state", false);
   if (bleCharacteristic) {
     bleCharacteristic.removeEventListener("characteristicvaluechanged", onCharacteristicChanged);
     void bleCharacteristic.stopNotifications().catch(() => {});
