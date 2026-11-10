@@ -21,10 +21,10 @@ export async function authRequest(path, body) {
     if (!response.ok) {
       const details = await response.json().catch(() => ({}));
       const messages = {
-        EMAIL_NOT_VERIFIED: 'Bitte zuerst die Test-E-Mail bestätigen. Einen neuen Link kannst du unten anfordern.',
+        EMAIL_NOT_VERIFIED: 'Bitte zuerst die E-Mail bestätigen. Einen neuen Link kannst du unten anfordern.',
         PASSWORD_TOO_SHORT: 'Das Passwort muss mindestens 8 Zeichen enthalten.',
         PASSWORD_TOO_LONG: 'Das Passwort darf höchstens 128 Zeichen enthalten.',
-        INVALID_EMAIL: 'Bitte eine gültige Test-E-Mail-Adresse eingeben.',
+        INVALID_EMAIL: 'Bitte eine gültige E-Mail-Adresse eingeben.',
         INVALID_NAME: 'Der Anzeigename muss 1 bis 100 Zeichen enthalten.',
         INVALID_TOKEN: 'Der Kontolink ist ungültig, abgelaufen oder bereits verwendet. Bitte einen neuen Link anfordern.',
         EMAIL_ALREADY_VERIFIED: 'Die E-Mail ist bereits bestätigt. Bitte anmelden oder den Status erneut prüfen.',

@@ -27,12 +27,14 @@ export function localRecovery(config) {
       if (ctx.path.startsWith('/reset-password/') && ctx.query?.callbackURL !== callbackURL) {
         throw new APIError('FORBIDDEN', { code: 'INVALID_CALLBACK_URL', message: 'Invalid recovery callback.' });
       }
-      if (ctx.path === '/sign-up/email') {
+      if (ctx.path === '/sign-up/email' || ctx.path === '/update-user') {
         const name = ctx.body?.name;
-        if (typeof name !== 'string' || !name.trim() || name.trim().length > 100) {
-          throw new APIError('BAD_REQUEST', { code: 'INVALID_NAME', message: 'Display name must contain 1 to 100 characters.' });
+        if (ctx.path === '/sign-up/email' || name !== undefined) {
+          if (typeof name !== 'string' || !name.trim() || name.trim().length > 100) {
+            throw new APIError('BAD_REQUEST', { code: 'INVALID_NAME', message: 'Display name must contain 1 to 100 characters.' });
+          }
+          ctx.body.name = name.trim();
         }
-        ctx.body.name = name.trim();
       }
     },
   };

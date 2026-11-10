@@ -24,7 +24,7 @@
     </div>
 
     <p v-if="!hasData" class="text-muted mt-3 small text-center">
-      Keine Vorschauwerte > 12 kg im gewählten Zeitraum.
+      Keine Messwerte > 12 kg im gewählten Zeitraum.
     </p>
   </div>
 </template>

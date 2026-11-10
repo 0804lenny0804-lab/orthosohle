@@ -1,7 +1,7 @@
 <template>
   <div class="history-wrapper">
     <p class="alert alert-info small" role="note">
-      Dieser Verlauf enthält nur Vorschauwerte aus der Simulation oder einer temporären Gerätemessung. Er ist keinem Konto zugeordnet und wird beim Abmelden oder Neuladen verworfen.
+      Werte der aktuellen Sitzung. Ein dauerhaft gespeicherter Verlauf ist noch nicht verfügbar.
     </p>
     <HistoryRangeSelect :range="range" @update="onRangeChange" />
     <PeakChart :peaks="peaks" :limits="limits" />
@@ -10,8 +10,8 @@
     <OutlierTable :outliers="outliers" />
     <section class="card mb-4">
       <div class="card-body">
-        <h2 class="h5 text-sohle fw-bold">Testläufe</h2>
-        <p class="text-muted small mb-0">Läufe und Feedback werden in dieser Vorschau nicht gespeichert und erscheinen daher nicht im Verlauf.</p>
+        <h2 class="h5 text-sohle fw-bold">Sitzungen</h2>
+        <p class="text-muted small mb-0">Abgeschlossene Sitzungen werden noch nicht dauerhaft gespeichert.</p>
       </div>
     </section>
   </div>

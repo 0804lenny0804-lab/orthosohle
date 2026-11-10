@@ -2,7 +2,7 @@
   <section class="card">
     <div class="card-body">
       <h2 class="h5 mb-1 text-sohle">Lauf & Feedback</h2>
-      <p class="text-muted small mb-3">Lokaler Demo-Lauf ohne dauerhafte oder serverseitige Speicherung.</p>
+      <p class="text-muted small mb-3">Starte eine Sitzung und erfasse anschließend dein Feedback.</p>
 
       <!-- STATUS -->
       <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between mb-3">
@@ -118,7 +118,7 @@
 
         <div class="d-flex gap-2">
           <button class="btn btn-sohle" @click="submitFeedback" :disabled="loading || !rating">
-            Feedback nur in der Vorschau erfassen
+            Feedback erfassen
           </button>
           <button class="btn btn-outline-secondary" @click="skipFeedback" :disabled="loading">
             Überspringen
@@ -128,7 +128,7 @@
 
       <!-- DONE -->
       <div v-if="state === 'submitted'" class="alert alert-success mt-3 mb-0">
-        Demo-Feedback wurde nur im Arbeitsspeicher erfasst. Es ist keinem Konto zugeordnet und nicht gespeichert.
+        Feedback erfasst. Es bleibt bis zum Neuladen oder Abmelden verfügbar.
       </div>
 
       <div v-if="error" class="alert alert-danger mt-3 mb-0">
@@ -171,7 +171,7 @@ export default {
       if (this.state === "idle") return "bereit";
       if (this.state === "running") return "läuft";
       if (this.state === "feedback") return "Feedback";
-      return "Vorschau abgeschlossen";
+      return "Abgeschlossen";
     },
 
     elapsedMs() {

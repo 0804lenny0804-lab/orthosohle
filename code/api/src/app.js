@@ -13,8 +13,8 @@ export function createApp(auth) {
   app.get('/api/me', async (req, res) => {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
     if (!session) return res.status(401).json({ error: 'authentication_required' });
-    // Only the authenticated identity is returned, never tokens or health data.
-    return res.json({ id: session.user.id, email: session.user.email, emailVerified: session.user.emailVerified });
+    // Only the authenticated profile is returned, never tokens or health data.
+    return res.json({ id: session.user.id, name: session.user.name, email: session.user.email, emailVerified: session.user.emailVerified });
   });
   app.use((_error, _req, res, _next) => {
     res.status(500).json({ error: 'internal_error' });

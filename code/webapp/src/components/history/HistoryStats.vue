@@ -8,7 +8,7 @@
       <p v-if="avgPeak !== null" class="fs-4 fw-bold">
         {{ avgPeak }} kg
       </p>
-      <p v-else class="text-muted small mb-0">Keine Messwerte in der Vorschau.</p>
+      <p v-else class="text-muted small mb-0">Keine Messwerte für diesen Zeitraum.</p>
     </div>
   </div>
 </template>

@@ -4,7 +4,6 @@
     <p class="text-muted">
       Simuliert einen realistischen Kraftverlauf.
     </p>
-    <p class="small text-muted">Die Werte sind synthetisch, flüchtig und werden weder gespeichert noch übertragen.</p>
 
     <div class="d-flex justify-content-center gap-3">
       <button class="btn btn-success btn-lg"

@@ -37,7 +37,7 @@ Lokale Verifikation ist implementiert: privater Datei-Mailausgang neben der SQLi
 
 Abgeschlossen am 10.11.2026: Legacy-Demoaufrufe ohne Fach-API entfernt, bekannte feste Browser-IDs und globale gespeicherte Läufe bereinigt, Einstellungen/Messwerte/Feedback auf flüchtigen Arbeitsspeicher begrenzt und Zustand bei Login/Logout/Kontowechsel zurückgesetzt. Sechs Webtests, dreizehn API-Tests, Produktionsbuild, Projektprüfung und unabhängiger Review bestanden. Zwei synthetische Konten wurden im Browser gegeneinander geprüft: B erhielt weder Grenzwert noch aktiven Lauf von A; keine alten API-Routen wurden aufgerufen. Bluetooth-Teardown ist implementiert, aber nicht mit einem realen Gerät geprüft.
 
-Nächster sinnvoller Implementierungsschritt: einen minimalen serverseitigen, nicht medizinischen Profilwert über die authentifizierte API speichern und abrufen. Besitzer muss ausschließlich aus der validierten Better-Auth-Session kommen; Abnahme mit zwei Konten, Neustart der API und negativen Fremdzugriffsversuchen. Produktive E-Mail-/SSO-Provider bleiben bis zu verfügbaren Zugängen externe Prüfpunkte.
+Kontobereich abgeschlossen am 10.11.2026: Anzeigename wird kontoabhängig über Better Auth gespeichert und über /api/me gelesen. 14 API- und 7 Webtests, Browserablauf Registrierung/Bestätigung/Login/Profil/Neuladen/Reset/Logout sowie mobile und Desktopdarstellung geprüft. Wiederholte Testbanner entfernt, ursprüngliche Markenfarbe und Desktop-Seitenleiste/mobile untere Navigation umgesetzt. Der nächste Datenbereich ist das fachliche Patientenprofil mit Eigentümerzuordnung, bevor Messsitzungen dauerhaft gespeichert werden. Produktive E-Mail-/SSO-Provider bleiben bis zu verfügbaren Zugängen externe Prüfpunkte.
 
 ## Navigation ohne doppelte Pflege
 

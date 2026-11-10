@@ -57,7 +57,7 @@
               @updated="updateDemoLimit"
               @step-goal-updated="stepGoal = $event"
             />
-            <p class="small text-muted mt-3 mb-0">Push-Benachrichtigungen sind im lokalen Prototyp noch nicht mit einem Konto oder Server verbunden.</p>
+            <p class="small text-muted mt-3 mb-0">Push-Benachrichtigungen sind noch nicht eingerichtet.</p>
           </div>
         </section>
       </div>

@@ -2,7 +2,6 @@
   <div class="card shadow-sm mx-auto mt-5" style="max-width: 700px;">
     <div class="card-body text-center">
       <h3 class="fw-bold text-ortho mb-3">Bluetooth – Arduino Verbindung</h3>
-      <p class="small text-muted">Gerätewerte werden nur vorübergehend in der Vorschau angezeigt, keinem Konto zugeordnet und nicht übertragen.</p>
 
       <button
         class="btn btn-lg btn-sohle shadow-sm mb-3"

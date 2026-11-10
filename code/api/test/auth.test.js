@@ -67,19 +67,49 @@ function cookies(response) {
   assert.ok(value.includes('session_token='));
   return value;
 }
-async function signUp(f, verify = true) {
-  const response = await f.request('/api/auth/sign-up/email', { body: account });
+async function signUp(f, verify = true, user = account) {
+  const response = await f.request('/api/auth/sign-up/email', { body: user });
   assert.equal(response.status, 200);
   const id = (await response.json()).user.id;
   if (verify) {
-    const [{ mail }] = await f.mails();
-    assert.equal((await f.request(verificationPath(mail))).status, 200);
+    const message = (await f.mails()).find(entry => entry.mail.to === user.email);
+    assert.equal((await f.request(verificationPath(message.mail))).status, 200);
   }
   return id;
 }
-async function signIn(f, password = account.password) {
-  return f.request('/api/auth/sign-in/email', { body: { email: account.email, password } });
+async function signIn(f, password = account.password, user = account) {
+  return f.request('/api/auth/sign-in/email', { body: { email: user.email, password } });
 }
+
+test('profile name is session-owned, validated, and persists across restart', async t => {
+  const f = await fixture(t);
+  const userA = { ...account, name: 'Account A' };
+  const userB = { ...account, name: 'Account B', email: 'second@example.invalid' };
+  const idA = await signUp(f, true, userA);
+  const idB = await signUp(f, true, userB);
+  const cookieA = cookies(await signIn(f, userA.password, userA));
+  const cookieB = cookies(await signIn(f, userB.password, userB));
+
+  const updatePath = '/api/auth/update-user';
+  assert.equal((await f.request(updatePath, { body: { name: '   ' }, cookie: cookieA })).status, 400);
+  assert.equal((await f.request(updatePath, { body: { name: 'x'.repeat(101) }, cookie: cookieA })).status, 400);
+  assert.equal((await f.request(updatePath, { body: { name: '   Renamed A   ', id: idB, userId: idB, role: 'admin' }, cookie: cookieA })).status, 200);
+  assert.equal((await f.request(updatePath, { body: { name: 'Anonymous overwrite' } })).status, 401);
+  const meA = await (await f.request('/api/me', { cookie: cookieA })).json();
+  const meB = await (await f.request('/api/me', { cookie: cookieB })).json();
+  assert.equal(meA.name, 'Renamed A');
+  assert.equal(meB.id, idB);
+  assert.equal(meB.name, 'Account B');
+
+  assert.equal((await f.request(updatePath, { body: { name: 'Foreign overwrite' }, cookie: cookieA, origin: 'https://foreign.invalid' })).status, 403);
+  assert.equal((await f.request('/api/auth/sign-out', { body: {}, cookie: cookieA })).status, 200);
+  assert.equal((await f.request(updatePath, { body: { name: 'Replay overwrite' }, cookie: cookieA })).status, 401);
+  await f.restart();
+  assert.equal((await (await f.request('/api/me', { cookie: cookieA })).status), 401);
+  const freshA = cookies(await signIn(f, userA.password, userA));
+  assert.equal((await (await f.request('/api/me', { cookie: freshA })).json()).name, 'Renamed A');
+  assert.equal((await (await f.request('/api/me', { cookie: cookieB })).json()).name, 'Account B');
+});
 
 test('loopback configuration requires opt-in, explicit secret and local URL', () => {
   assert.throws(() => readConfig({}), /LOCAL_AUTH_ENABLED/);
@@ -101,7 +131,7 @@ test('registration, invalid login, valid session and replay after logout', async
   const me = await f.request('/api/me', { cookie });
   assert.equal(me.status, 200);
   assert.equal(me.headers.get('cache-control'), 'no-store');
-  assert.deepEqual(await me.json(), { id, email: account.email, emailVerified: true });
+  assert.deepEqual(await me.json(), { id, name: account.name, email: account.email, emailVerified: true });
   assert.equal((await f.request('/api/auth/sign-out', { cookie, body: {} })).status, 200);
   assert.equal((await f.request('/api/me', { cookie })).status, 401);
   assert.equal(f.auth.options.session.cookieCache.enabled, false);
@@ -115,7 +145,7 @@ test('account and session persist when server and SQLite connection reopen', asy
   await f.restart();
   const me = await f.request('/api/me', { cookie });
   assert.equal(me.status, 200);
-  assert.deepEqual(await me.json(), { id, email: account.email, emailVerified: true });
+  assert.deepEqual(await me.json(), { id, name: account.name, email: account.email, emailVerified: true });
   const login = await signIn(f);
   assert.equal(login.status, 200);
   assert.equal((await login.json()).user.id, id);
@@ -147,8 +177,8 @@ test('explicit local web origin can register, sign in, reload identity and sign 
   assert.match(login.headers.getSetCookie().join(';'), /HttpOnly/i);
   assert.match(login.headers.getSetCookie().join(';'), /SameSite=Lax/i);
   const cookie = cookies(login);
-  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, email: account.email, emailVerified: true });
-  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, email: account.email, emailVerified: true });
+  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, name: account.name, email: account.email, emailVerified: true });
+  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, name: account.name, email: account.email, emailVerified: true });
   assert.equal((await f.request('/api/auth/sign-out', { body: {}, origin, cookie })).status, 200);
   assert.equal((await f.request('/api/me', { cookie })).status, 401);
 });
@@ -180,7 +210,7 @@ test('local verification mail is private, verifiable once, and creates no sessio
   const cookie = cookies(await signIn(f));
   const me = await (await f.request('/api/me', { cookie })).json();
   assert.equal(me.emailVerified, true);
-  assert.deepEqual(Object.keys(me).sort(), ['email', 'emailVerified', 'id']);
+  assert.deepEqual(Object.keys(me).sort(), ['email', 'emailVerified', 'id', 'name']);
 });
 
 test('invalid and expired verification cannot change account status', async t => {

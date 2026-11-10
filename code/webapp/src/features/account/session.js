@@ -1,7 +1,7 @@
 import { reactive, readonly } from 'vue';
 import { authRequest } from './auth-api.js';
 
-const state = reactive({ status: 'loading', identityId: null, email: '', emailVerified: false, busy: false, error: '', notice: '' });
+const state = reactive({ status: 'loading', identityId: null, name: '', email: '', emailVerified: false, busy: false, error: '', notice: '' });
 
 async function loadIdentity() {
   try {
@@ -10,15 +10,17 @@ async function loadIdentity() {
       throw new Error('Der Kontoserver hat keinen gültigen Anmeldestatus geliefert.');
     }
     state.identityId = identity.id;
+    state.name = typeof identity.name === 'string' ? identity.name : '';
     state.email = identity.email;
     state.emailVerified = identity.emailVerified === true;
     state.status = 'authenticated';
   } catch (error) {
     state.identityId = null;
+    state.name = '';
     state.email = '';
     state.emailVerified = false;
+    state.status = error.status === 401 ? 'anonymous' : 'unavailable';
     if (error.status !== 401) throw error;
-    state.status = 'anonymous';
   }
 }
 
@@ -32,6 +34,13 @@ async function perform(action) {
     return true;
   } catch (error) {
     state.error = error.message;
+    if (error.status === 401) {
+      state.identityId = null;
+      state.name = '';
+      state.email = '';
+      state.emailVerified = false;
+      state.status = 'anonymous';
+    }
     if (!error.status || error.status >= 500) state.status = 'unavailable';
     return false;
   } finally {
@@ -45,7 +54,7 @@ export const accountSession = {
   register: ({ name, email, password }) => perform(async () => {
     await authRequest('/api/auth/sign-up/email', { name, email, password });
     await loadIdentity();
-    state.notice = 'Falls die Registrierung möglich war, liegt ein Bestätigungslink im lokalen Test-Mailausgang. Bitte zuerst die E-Mail bestätigen und danach anmelden.';
+    state.notice = 'Falls die Registrierung möglich war, liegt ein Bestätigungslink im lokalen Mailausgang. Bitte zuerst die E-Mail bestätigen und danach anmelden.';
   }),
   signIn: ({ email, password }) => perform(async () => {
     await authRequest('/api/auth/sign-in/email', { email, password });
@@ -54,13 +63,18 @@ export const accountSession = {
       throw new Error('Anmeldung konnte nicht bestätigt werden. Bitte die Cookie-Einstellungen prüfen.');
     }
   }),
+  saveProfile: (name) => perform(async () => {
+    await authRequest('/api/auth/update-user', { name });
+    await loadIdentity();
+    state.notice = 'Dein Anzeigename wurde gespeichert.';
+  }),
   resendVerification: ({ email }) => perform(async () => {
     await authRequest('/api/auth/send-verification-email', { email });
-    state.notice = 'Falls das Testkonto noch nicht bestätigt ist, liegt ein neuer Link im lokalen Test-Mailausgang. Es wurde keine E-Mail versendet.';
+    state.notice = 'Falls das Konto noch nicht bestätigt ist, liegt ein neuer Link im lokalen Mailausgang. Es wurde keine E-Mail versendet.';
   }),
   requestReset: ({ email }) => perform(async () => {
     await authRequest('/api/auth/request-password-reset', { email });
-    state.notice = 'Falls das Testkonto existiert, liegt ein Link zum Zurücksetzen im lokalen Test-Mailausgang. Es wurde keine E-Mail versendet.';
+    state.notice = 'Falls das Konto existiert, liegt ein Link zum Zurücksetzen im lokalen Mailausgang. Es wurde keine E-Mail versendet.';
   }),
   resetPassword: ({ token, newPassword }) => perform(async () => {
     await authRequest('/api/auth/reset-password', { token, newPassword });
@@ -72,7 +86,12 @@ export const accountSession = {
     state.identityId = null;
     state.status = 'anonymous';
     state.email = '';
+    state.name = '';
     state.emailVerified = false;
     state.notice = 'Du wurdest abgemeldet.';
   }),
+  clearFeedback() {
+    state.error = '';
+    state.notice = '';
+  },
 };
