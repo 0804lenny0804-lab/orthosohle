@@ -1,17 +1,22 @@
 <template>
   <section class="patient-profile card mb-4" aria-labelledby="patient-profile-title">
     <div class="card-body">
-      <h3 id="patient-profile-title" class="h5">Patientenprofil</h3>
-      <p class="small text-muted">Verknüpft künftig Geräte und Messsitzungen mit deinem Konto.</p>
+      <h3 id="patient-profile-title" class="h5">Dein Patientenbereich</h3>
+      <p class="small text-muted">
+        Dein eigenes Patientenprofil wird deinem Konto zugeordnet und kann künftig Geräte und Messungen
+        zuordnen. Durch die Einrichtung erhalten andere Personen keinen Zugriff.
+      </p>
 
       <p v-if="status === 'loading'" role="status" aria-live="polite">Patientenprofil wird geladen …</p>
       <template v-else-if="status === 'missing'">
-        <p>Für dein Konto ist noch kein Patientenprofil eingerichtet.</p>
-        <button type="button" class="btn btn-outline-primary" :disabled="busy" @click="createProfile">
+        <p id="patient-profile-missing" class="mb-2">Für dein Konto ist noch kein eigenes Patientenprofil eingerichtet.</p>
+        <button type="button" class="btn btn-outline-primary" :disabled="busy" aria-describedby="patient-profile-missing" @click="createProfile">
           {{ busy ? 'Wird eingerichtet …' : 'Patientenprofil einrichten' }}
         </button>
       </template>
-      <p v-else-if="status === 'ready'" role="status" aria-live="polite">Dein Patientenprofil ist eingerichtet.</p>
+      <p v-else-if="status === 'ready'" role="status" aria-live="polite">
+        Dein eigenes Patientenprofil ist eingerichtet und deinem Konto zugeordnet.
+      </p>
       <div v-else-if="status === 'error'" class="alert alert-danger" role="alert">
         <p class="mb-2">{{ errorMessage }}</p>
         <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="loadProfile">

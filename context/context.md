@@ -58,3 +58,7 @@ Patientenprofil-Paket vom 10.11.2026 abgeschlossen: Ein verifiziertes Konto kann
 Dieser Chat arbeitet ab der Strukturintegration ausschließlich auf `lenni/code`; `paul/code` ist Pauls Arbeitsbranch. Integration nach `main` erfolgt per Pull Request gemäß AGENTS.md.
 
 Der historische 600-Personenstunden-Plan ist keine belastbare Schätzung des erweiterten Produktumfangs. Offene Aufgaben und neue Schätzungen werden im Backlog gepflegt. Lokale Gitstände und Branches ergeben sich aus Git, nicht aus vorweggenommenen Commitangaben hier.
+
+### Übergabe 10.11.2026 – Rollen und Messhistorie
+
+Das bestehende Patientenprofil bleibt eine explizite persönliche Zuordnung; seine Karte erklärt den Zweck und dass die Einrichtung allein keinen fremden Zugriff erteilt. Folgepakete mit Abnahmekriterien stehen in `context/requirements.md` unter „Folgepakete ab Patientenprofil“. Die Bedeutung von Therapeut und das Arztprüfverfahren sind offen. Für die gewünschte umfassende Gewichtshistorie ist die angenommene Senderate von 0,1 Sekunden unbestätigt; Messrate, Speicherbedarf und Erhalt von Spitzen und Lücken sind vor dem Speicherentwurf zu untersuchen. Nächster Schritt: Rollenklärung und Messratenanalyse anhand verfügbarer Hardware beziehungsweise Protokolldaten.
