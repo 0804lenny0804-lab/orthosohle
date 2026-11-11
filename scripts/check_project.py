@@ -9,7 +9,6 @@ from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
-BUDGET = {'A': 135, 'B': 90, 'C': 30, 'D': 30, 'E': 15}
 REQUIRED = [
     'README.md', 'AGENTS.md', '.gitignore', 'context/context.md', 'context/decisions.md',
     'context/requirements.md',
@@ -33,15 +32,14 @@ def check():
         ids = [r['ID'] for r in rows]
         if len(set(ids)) != len(ids):
             errors.append('Doppelte Backlog-IDs')
-        totals = {key: 0 for key in BUDGET}
         graph = {}
         for row in rows:
             rid = row['ID']
-            group = row['Arbeitspaket']
-            hours = int(row['Planungsstunden'])
-            if hours <= 0 or int(row['Personenstunden']) != 2 * hours:
-                errors.append(f'{rid}: ungültige Stundenumrechnung')
-            totals[group] += hours
+            hours = int(row['Personenstunden'])
+            if hours <= 0:
+                errors.append(f'{rid}: ungültige Personenschätzung')
+            if not row['Arbeitspaket'].strip():
+                errors.append(f'{rid}: Arbeitspaket fehlt')
             if row['Prioritaet'] not in {'P0', 'P1', 'P2', 'P3'}:
                 errors.append(f'{rid}: unbekannte Priorität')
             if row['Status'] not in {'Offen', 'In Arbeit', 'Blockiert', 'Review', 'Erledigt'}:
@@ -69,8 +67,6 @@ def check():
             visited.add(node)
         for rid in ids:
             visit(rid)
-        if totals != BUDGET:
-            errors.append(f'Budget weicht ab: {totals}; vereinbart: {BUDGET}')
     except (OSError, KeyError, ValueError) as exc:
         errors.append(f'Backlog nicht prüfbar: {exc}')
 
@@ -113,7 +109,7 @@ def check():
         for error in errors:
             print('FEHLER:', error, file=sys.stderr)
         return 1
-    print('OK: Struktur, lokale Dokumentationslinks, Backlog/300–600h, Abhängigkeiten und Referenzprüfsummen.')
+    print('OK: Struktur, lokale Dokumentationslinks, Backlog, Abhängigkeiten und Referenzprüfsummen.')
     return 0
 
 

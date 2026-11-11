@@ -4,22 +4,22 @@ Stand: 10.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 
 ## Ziel und aktueller Schwerpunkt
 
-Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: sauberer Neustart für installierbare iOS-/Android-App plus kompatibles Webportal. Das ausgewählte Waveshare-Armband ist laut Nutzer noch nicht vorhanden. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
+Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: die alte Webapp als Grundlage zu einer produktreifen Webapp weiterentwickeln und daraus installierbare Android- und iOS-Apps erzeugen. Ein zweites Projekt entwickelt eigene Software für das Waveshare-Armband mit eigener Verbindung zur Sohle und Anbindung an App, Daten und Backend. Das ausgewählte Waveshare-Armband ist laut Nutzer noch nicht vorhanden. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
 
 ## Belegter Softwarestand
 
 - [Altbestand](legacy/README.md): 51 unveränderte Dateien aus dem GitLab-ZIP mit [Manifest](legacy/manifest.json); ursprünglicher GitLab-Commit unbekannt. Referenz, keine Produktfreigabe.
 - Nutzerauftrag vom 06.11.2026: nah am bestehenden Web-App-Build weiterarbeiten, diesen schrittweise verbessern und als Basis für APK/IPA verwenden.
-- Erste aktive Kopie des bisherigen Vue-/Vite-Frontends liegt unter `code/webapp`; der unveränderte Ausgangscode liegt weiterhin unter `context/legacy/orthopaul/local-comm/frontend`. Diese erste Übernahme enthält noch keine Funktionserweiterung oder native Verpackung.
+- Erste aktive Kopie des bisherigen Vue-/Vite-Frontends liegt unter `code/webapp`; der unveränderte Ausgangscode liegt weiterhin unter `context/legacy/orthopaul/local-comm/frontend`. Die aktive Kopie wurde inzwischen erweitert; eine native Verpackung fehlt.
 - Verifikation 06.11.2026: aktives Frontend vollständig bytegleich zur Legacy-Quelle übernommen; `npm ci` und `npm run build --prefix code/webapp` mit Node 24.19.0 erfolgreich. Das ist ausschließlich ein Web/PWA-Buildnachweis.
 - Erster Verbesserungsschritt: Bluetooth-Ansicht zeigt fehlende Web-Bluetooth-Unterstützung und sperrt die Auswahl; der Web-Build war erfolgreich, Browser- und Gerätetest stehen noch aus. Die übrige Verbindung nutzt weiterhin den bisherigen Web-Bluetooth-Pfad.
 - Live-Diagramm: feste 40-kg-Achsgrenze entfernt; die Grenzlinie erhält auch bei weniger als zwei Messwerten zwei Positionen. Web-Build und synthetische Prüfung der Datenreihen und Chart.js-Skala erfolgreich; Canvas-/Browserprüfung steht aus. Ein einzelner Messpunkt bleibt bislang unsichtbar.
-- Die PWA allein erzeugt keine APK/IPA. Better Auth ist als Auth-Basis gewählt; native Verpackung, mobile BLE-Anbindung, Push und Hosting sind noch offen. Alte Demoaufrufe mit fester Nutzer-ID wurden entfernt; Testwerte sind flüchtige Browser-Vorschau und werden beim Identitätswechsel zurückgesetzt. Echte Fachdaten-API und Datenbesitz fehlen weiterhin.
+- Die PWA allein erzeugt keine APK/IPA. Better Auth ist als Auth-Basis gewählt; native Verpackung, mobile BLE-Anbindung, Push und Hosting sind noch offen. Alte Demoaufrufe mit fester Nutzer-ID wurden entfernt; Testwerte sind flüchtige Browser-Vorschau und werden beim Identitätswechsel zurückgesetzt. Eine lokale Messsitzungs-API ordnet Daten dem eigenen Patientenprofil zu; Produktfreigabe und Arztzugriff fehlen.
 - Zielrichtung bleibt: gemeinsame Web-Oberfläche/API-Basis, installierbarer Patientenclient und Ärzteportal. Die Migration erfolgt in kleinen, modularen und unabhängigen Review-Schritten gemäß [Agentenablauf](../AGENTS.md) und [Rollen](agents/).
 
 ## Nachweise und Grenzen
 
-Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Aktuell prüfbar: Repositorystruktur, Dokumentationslinks, Backlog und unveränderte Originaldateien. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
+Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Der aktuelle lokale App- und API-Durchstich ist gesondert prüfbar; Einzelheiten stehen in code/README.md. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
 
 ## Systembild und offener Funktionsumfang
 
@@ -27,7 +27,7 @@ Das übergeordnete [Systembild](requirements.md#systembild-und-verantwortlichkei
 
 Das [Betreuungsmodell](requirements.md#betreuungszustände-und-arztwechsel) beschreibt Einladungen getrennt von Beziehungen, ausdrückliche Annahme, Ende und atomaren Arztwechsel sowie spätere Negativnachweise. Rechte nach Ende, Planfortgeltung und Aufbewahrung bleiben offen; technische Umsetzung steht aus.
 
-Das [minimale fachliche Datenmodell](requirements.md#datenzuordnung-und-minimales-fachliches-datenmodell) beschreibt Datenzuordnung, Kardinalitäten und Integritätsregeln für Identität, Profile, Betreuung, Geräte, Pläne, Messungen sowie Audit-/Datenschutzvorgänge. Technische Zuordnung bedeutet kein rechtliches Dateneigentum; Speicherung, Migrationen und offene Aufbewahrungsregeln sind noch nicht implementiert.
+Das [minimale fachliche Datenmodell](requirements.md#datenzuordnung-und-minimales-fachliches-datenmodell) beschreibt Datenzuordnung, Kardinalitäten und Integritätsregeln für Identität, Profile, Betreuung, Geräte, Pläne, Messungen sowie Audit-/Datenschutzvorgänge. Technische Zuordnung bedeutet kein rechtliches Dateneigentum; Lokale Speicherung und Migrationen für Profile und Messsitzungen sind umgesetzt; Aufbewahrung und Löschung bleiben offen.
 
 Der [Auth-Vergleich](requirements.md#auth-optionen-vergleich-und-empfehlung) wurde durch die Nutzerwahl Better Auth vom 07.11.2026 konkretisiert. Lokaler API-Durchstich unter `code/api`: Better Auth 1.7.18, Express 5.3.0 und better-sqlite3 12.11.1, persistente Konten/Sessions, explizite lokale Freigabe und Secretpflicht, Loopback-Bindung, implizites Linking und Cookiecache aus. Dreizehn API-Tests prüfen Anmeldung, Session, Einmal-Verifikation und Passwortreset einschließlich Widerruf. Nach einem Windows-Installationsfehler mit better-sqlite3 13.0.3 wurde auf 12.11.1 gewechselt; der Installationsweg wurde vom Nutzer unter Windows-PowerShell ausgeführt. SQLite bleibt lokale Prototyp-Persistenz. Lokale Test-Mailverifikation ist ergänzt; weiterhin keine reale Mailzustellung, Fachrechte, Social- oder mobile Anmeldung; kein Produktionsnachweis.
 
@@ -70,3 +70,7 @@ Das bestehende Patientenprofil bleibt eine explizite persönliche Zuordnung; sei
 Der Legacy-BLE-Float wird nun separat validiert; Bluetooth und Simulation übergeben Wert und lokalen Empfangszeitpunkt gemeinsam an Liveanzeige und Schrittlogik. Die theoretische Speicheranalyse steht in [analysis.md](analysis.md#10-messpfad-und-speicherabschätzung-10-november-2026). Tatsächliche Gerätefrequenz, Verluste und Speicherkosten bleiben ungeprüft; das Messratenpaket ist ohne Hardwaremessung nicht abgeschlossen.
 
 Auf Nutzerentscheidung wurde ein lokaler Durchstich für Messsitzungen mit Mittelwert, Maximum und Anzahl je Empfangssekunde umgesetzt. Sitzung und Werte gehören serverseitig zum eigenen Patientenprofil; Quelle und Zeit beruhen auf Clientangaben. Eine Sitzung wird nach explizitem Stopp als Ganzes hochgeladen und ist auf eine Stunde begrenzt; vor Bestätigung verbleibt sie nur im Arbeitsspeicher. Hardwaremessung, Offlinepersistenz, Löschen/Aufbewahrung/Restore sowie Arztfreigabe und Betreuung stehen aus. Der Nutzer hat manuelle Arztfreigabe gewählt; zuständige Prüfstelle und Nachweise sind offen. Die Rollenmatrix und Anforderungen stehen in [requirements.md](requirements.md#folgepakete-ab-patientenprofil--arbeitsplanung-vom-10112026).
+
+## Zusammenführung 11.11.2026
+
+Der Dokumentationsstand von main wurde mit dem lokalen App- und API-Durchstich zusammengeführt. Der neu geplante Backlog bleibt maßgeblich und nennt vorhandene Teilergebnisse; offene Abnahmekriterien bleiben offen. Nächster Schritt: unabhängige Prüfung des Pull Requests und anschließend die offenen Auth-, Geräte- und Produktanforderungen bearbeiten.

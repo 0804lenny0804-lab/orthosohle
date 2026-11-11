@@ -129,3 +129,9 @@ Der Nutzer verwendet „Therapeut“ als andere Bezeichnung für den behandelnde
 Der Nutzer entscheidet, Arztkonten manuell freizugeben. Wer die Prüfung durchführt, welche Nachweise gelten und wie Freigaben erneuert oder widerrufen werden, ist noch festzulegen. Eine Arztfreigabe ersetzt keine bestätigte Betreuungsbeziehung.
 
 Der Nutzer präzisiert am 10.11.2026, dass die spätere Bestätigung per Bestätigungslink in einer E-Mail erfolgen soll, ohne gesonderte Adminansicht. Das legt weder eine selbst erteilte Freigabe noch den Empfänger oder eine Prüferrolle fest. Bis sichere Prüferidentität, Autorisierung, MFA und Bootstrap geklärt sind, wird kein Freigabelink implementiert. Falls umgesetzt, löst ein GET keinerlei Statuswechsel aus; eine ausdrückliche geschützte POST-Bestätigung ist erforderlich.
+
+## 10.11.2026 – Webapp als Grundlage und eigenständiges Waveshare-Projekt
+
+**Nutzerpräzisierung:** Die alte Webapp zu einer produktreifen Webapp weiterentwickeln und daraus APK und IPA erzeugen. Das Waveshare-Gerät erhält eigene Software, eine eigene Verbindung zur Sohle und eine Anbindung an App, Daten und Backend.
+
+**Konsequenz:** Die Altcode-Nutzung als reine Referenz im Neustartbeschluss vom 29.10. ist ersetzt. Die erste Übernahme und lokale Weiterentwicklung sind erfolgt; Verpackung, Schnittstellen und Verbindungswege bleiben zu evaluieren.

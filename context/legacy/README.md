@@ -11,7 +11,7 @@ orthopaul/ enthält die 51 Dateien aus der hochgeladenen GitLab-ZIP unverändert
 | Sohlensketch | [arduinocode.ino](orthopaul/local-comm/frontend/src/components/arduinocode.ino) | HX711, kg-Umrechnung und ArduinoBLE |
 | Gemeinsamer Dev-Start | [Root-package.json](orthopaul/package.json) | concurrently und nodemon |
 
-Es gibt noch keine neue Armband-Firmware, Geräteverwaltung oder Benutzerkonten. Der Code ist eine untersuchte Ausgangsbasis mit [bekannten Fehlern](../analysis.md), keine abgenommene Produktversion.
+Neue Armband-Firmware und vollständige Geräteverwaltung fehlen; lokale Benutzerkonten sind im aktiven API-Durchstich vorhanden. Der Code ist eine untersuchte Ausgangsbasis mit [bekannten Fehlern](../analysis.md), keine abgenommene Produktversion.
 
 ## Voraussetzungen und Installation
 
@@ -49,6 +49,6 @@ Das Verzeichnis enthält eine lokale Test-DB und gehört nicht in Git. SQLITE_DI
 ## Weiterarbeiten
 
 - Recherche/Prüfungen am vorhandenen Code möglich; Mess-/Firmwareänderungen setzen tatsächliche Hardwarekenntnis voraus.
-- Erste Migration (C02) als abgegrenzte Aufgabe: genau einen tatsächlich nutzbaren Bereich unter code/ übernehmen, Build/Start dokumentieren und prüfen. Dabei bekannte Fehler nicht mit einer reinen Verschiebung vermischen.
+- Erste Übernahme (C02) als abgegrenzte Aufgabe: die vorhandene Webapp als Grundlage unter code/ übernehmen, Build/Start dokumentieren und prüfen. Dabei bekannte Fehler nicht mit einer reinen Verschiebung vermischen.
 - Neue Modulnamen erst bei konkretem Inhalt wählen; keine leeren Web-/API-/Firmware-/Hardwareordner vorsorglich erzeugen.
 - README und manifest.json sichern Herkunft; das zusätzliche Quellinventar ist entfallen, da es dieselben Dateinamen doppelt führte. Den historischen Originalbestand nur bewusst mit neuer Herkunft/Prüfsumme ersetzen.

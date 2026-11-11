@@ -70,7 +70,7 @@ npm run build --prefix code/webapp
 
 Tests ergänzen gültige/falsche/abgelaufene Nachweise, Replay und parallelen Verbrauch, private Dateirechte sowie Callbackfehler. Echte Mailzustellung und Browser-/Geräteabnahme sind eigenständige Nachweise. Quelle: [Better Auth Email](https://better-auth.com/docs/concepts/email), abgerufen am 07.11.2026; Einmalverbrauch zusätzlich gegen die installierten Adapter-/Routentypen der Version 1.7.18 geprüft.
 
-## Geplanter Zuschnitt
+Die Zielstruktur umfasst eine Webapp mit gemeinsamem Backend und daraus erzeugten Android- und iOS-Apps sowie ein separates Firmwareprojekt für das Waveshare-Armband. Konkrete Codeordner entstehen mit der jeweiligen Implementierung. Die Verpackungstechnologie und Geräteanbindung sind noch zu wählen und auf Hardware zu prüfen.
 
 - Vue-Web-App als gemeinsame UI-Basis; später native Verpackung für Android (APK) und iOS (IPA) prüfen und bauen.
 - Patienten-App für iOS und Android: Geräteanbindung, Sitzungen und verständlicher lokaler Zustand.
