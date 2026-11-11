@@ -17,6 +17,16 @@ Gilt ausschließlich für dieses Repository. Aktuelle Nutzeraufträge und überg
 - Schnittstellenvalidierung, Fehlerbehandlung, Datensicherheit, Barrierefreiheit und Hardwarekalibrierung niemals zugunsten kurzer Implementierung streichen. Bewusste Abkürzungen direkt mit Grenze und Verbesserungsanlass dokumentieren: `shortcut: <Grenze>, <wann verbessern>`.
 - [Ponytail-Quelle](context/sources/ponytail.md) wurde gelesen; kein Skill installiert. Zusätzliche Tools, Skills und Agenten nur für konkreten Bedarf und entsprechendem Auftrag; keine Rollenverwaltung auf Vorrat.
 
+## Agentenablauf für die schrittweise Web-App-Migration
+
+Der aktive Vue-/Vite-Stand wird aus dem unveränderten Prototyp unter `context/legacy/orthopaul/local-comm/frontend` weiterentwickelt, mit dem Ziel später APK (Android) und IPA (iOS) aus der gemeinsamen Web-Oberfläche zu bauen. Die Referenz unter `context/legacy/` bleibt unverändert. Für beauftragte Migrationsschritte werden drei getrennte Perspektiven eingesetzt; ihre Aufgaben und Prüfkriterien stehen in [Prüfer](context/agents/code-verifier.md), [Verbesserungsagent](context/agents/improvement-agent.md) und [Reviewer](context/agents/reviewer.md). Agentenanalysen sind Empfehlungen, kein Ersatz für eigene Prüfung oder Nutzerentscheidungen zu größerer Architektur.
+
+Der Hauptagent plant und delegiert ein fachlich abgegrenztes Gesamtarbeitspaket mit Ziel, Lieferumfang, zuständigen Rollen und vorab bestimmten, überprüfbaren Abschlusskriterien. Zusammengehörige Unteraufgaben werden bis zur Paketabnahme bearbeitet; nicht nach jeder kleinen Änderung erneut auf einen Folgeauftrag warten. Das Paket umfasst einen nachvollziehbaren Nutzerablauf, nicht die gesamte App. Darin stehen erwartetes Verhalten, Grenzen sowie konkrete Prüfungen; externe Zugänge, Geräte und Werkzeuge werden als Blocker kenntlich gemacht. Der Fortschritt wird im bestehenden Backlog beziehungsweise Projektkontext geführt, ohne zusätzliche Statuskopien anzulegen.
+
+Für jeden Schritt ermittelt der Prüfer Bestand und Grenzen; der Verbesserungsagent schlägt eine kleine modulare Änderung samt Plattformoptionen vor. Der beauftragte Implementierer setzt den abgegrenzten Schritt um. Ein unabhängiger Reviewer prüft Diff, Kriterien, Anforderungen, Sicherheit und Prüfnachweise. Befunde werden behoben und soweit nötig erneut geprüft. Erst nach erfüllten Paketkriterien und Review wird das Arbeitspaket mit einem gezielten fachlichen Commit abgeschlossen; andernfalls stehen fehlende Kriterien, Grund und nächste Unteraufgabe ausdrücklich offen. Danach wird das nächste abgegrenzte Arbeitspaket anhand des tatsächlichen Stands geplant. Der Ablauf wird bei Folgeaufträgen fortgesetzt; er ist kein unbeaufsichtigter Hintergrunddienst.
+
+Vor Abschluss erzeugte Dateien prüfen: temporäre Ausgaben, verwaiste Dateien und unnötige Gerüste aus dem eigenen Schritt entfernen; fremde oder unbekannte Dateien nicht löschen. Generierte Builds und Abhängigkeiten gehören nicht in den Commit. Vorschläge zu Capacitor, BLE-Plugins, Auth, Backend oder weiteren Abhängigkeiten werden vor Implementierung mit Zweck, Grenzen und Aufwand dokumentiert; sie werden nicht allein durch eine Agentenempfehlung beschlossen. APK-/IPA-Builds, Signierung und Hardwarefähigkeit gelten erst nach tatsächlicher Plattformprüfung als belegt.
+
 ## Nachvollziehbarkeit und Produktqualität
 
 - Das Team muss jeden neuen Datenfluss und jede fachliche Regel erklären können. Aussagekräftige Namen, lesbar formatierter Quelltext und überschaubare Funktionen sind Pflicht. Kommentare erklären Gründe, Annahmen und Grenzen; keine komprimierten Einzeiler zur Einhaltung von Dateilimits.
@@ -38,6 +48,7 @@ Gilt ausschließlich für dieses Repository. Aktuelle Nutzeraufträge und überg
 | Aufgaben, Verantwortliche, Status, Schätzung und Abnahme | context/backlog.csv |
 | Umfangreiche Bestandsaufnahme / Originale / Prüfbelege | context/analysis.md / context/sources / context/checks |
 | Aktiver Anwendungscode und Start | code/; Übersicht in code/README.md |
+| Agentenrollen und Reviewablauf | context/agents/ |
 | Unveränderter Altcode und Herkunft | context/legacy/; Manifest und alte Startanleitung dort |
 | Projektwerkzeuge und zugehörige Tests | scripts/ |
 
@@ -52,7 +63,7 @@ Neue Ordner-/Dokumentnamen einheitlich englisch in kebab-case; Code folgt den vo
 1. Passende Verifikation ausführen. Neue nichttriviale Logik und Korrekturen an Warnung, Protokoll, API, Autorisierung oder Datenhaltung brauchen aussagekräftige Tests. Reine Dokumentationsänderungen brauchen keine künstlichen Unit-Tests. Hardwareprüfungen mit Datum, Quellstand, Aufbau, Erwartung, Beobachtung und Grenzen festhalten.
 2. `python3 scripts/check_project.py`, bei geändertem Prüfer auch dessen Tests, und `git diff --check` ausführen. Diff selbst lesen. Erfolgreicher Build ist kein Funktions-/Genauigkeitsnachweis; nicht ausgeführte Tests als ungeprüft nennen.
 3. Geänderten Iststand und nächste Schritte in context/context.md aktualisieren; relevante Entscheidung/Abnahme an ihrer maßgeblichen Stelle festhalten. Keine Chatprotokolle kopieren. Eine Übergabe braucht nur Ergebnis, verbleibende Fragen und nächsten konkreten Schritt.
-4. Abgeschlossene beauftragte Arbeit gezielt stagen und lokal committen, sofern kein uncommittierter Entwurf verlangt wurde. Kurze fachliche Commits, z. B. `fix(api): correct limit response`. Aufgaben mit Verantwortlichen und prüfbarer Abnahme bearbeiten, große Schritte in ca. 2–4 echte Personenstunden teilen. „Erledigt“ erst bei tatsächlicher Abnahme mit Nachweis; zweite Person prüft vor Integration.
+4. Abgeschlossene beauftragte Arbeit gezielt stagen und lokal committen, sofern kein uncommittierter Entwurf verlangt wurde. Kurze fachliche Commits, z. B. `fix(api): correct limit response`. Arbeitspakete mit Verantwortlichen und prüfbarer Abnahme bearbeiten; große Pakete intern in überschaubare Unteraufgaben teilen, ohne für jede Unteraufgabe einen eigenen Commit oder Folgeauftrag zu verlangen. „Erledigt“ erst bei tatsächlicher Abnahme mit Nachweis; zweite Person prüft vor Integration.
 5. Ergebnis, Branch/Commit, tatsächliche Prüfungen und Reständerungen knapp berichten. Git ist für HEAD/Branch maßgeblich, keine vorweggenommenen Commit-IDs in Dokumenten.
 
 ## Git-Zusammenarbeit

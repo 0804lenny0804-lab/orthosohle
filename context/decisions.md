@@ -2,6 +2,20 @@
 
 Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung, Grund und Konsequenz. Kleine lokale Implementierungsdetails gehören in Code/Commit. Offene Optionen stehen im Kontext, nicht als beschlossene Entscheidung hier. Frühere Einträge bei Ablösung erhalten und Nachfolger nennen; einzelne ADR-Dateien erst bei tatsächlichem Umfangsbedarf.
 
+## 07.11.2026 – Better Auth als Auth-Basis gewählt
+
+**Nutzerentscheidung:** Nach dem Auth-Vergleich Better Auth verwenden und weiterarbeiten. Die vorherige Auth0-Empfehlung im Vergleich ist damit nicht die gewählte Umsetzung.
+
+**Konsequenz:** Erster lokaler Node-/Express-Durchstich mit Better Auth und persistenter SQLite-DB unter `code/api`. SQLite ist die begrenzte lokale Arbeitsentscheidung für diesen Nachweis, keine Entscheidung über Produktivhosting oder Mehrinstanzbetrieb. Keine eigene Passwortkryptografie; explizites Linking, kein Cookie-Sessioncache. Synthetische Konten können sich registrieren/anmelden; `/api/me` prüft nur Identität, keine Fachrechte. Verifikation/Reset-Mail, Arzt-MFA, Social Login und native Sessions werden separat umgesetzt und geprüft. Der lokale Nachweis ist keine Produktionsfreigabe.
+
+## 06.11.2026 – Bestehende Vue-Web-App als aktive Basis
+
+**Nutzerentscheidung:** Den bestehenden Web-App-Code eng weiterführen, daraus schrittweise die neue Anwendung aufbauen und APK sowie IPA als Zielpakete berücksichtigen. Verbesserungs-, Prüf- und Reviewperspektive pro Schritt einsetzen; modular und kleinteilig arbeiten.
+
+**Grund:** Bestehende Oberfläche und Funktionen sollen weitergenutzt werden, statt eine unabhängige Neuentwicklung zu beginnen.
+
+**Konsequenz:** Vue 3/Vite-Frontend wurde als erste aktive Kopie nach `code/webapp` übernommen; `context/legacy/` bleibt unverändert. Agentenrollen und Ablauf stehen in `context/agents/` und `AGENTS.md`. Die PWA erzeugt keine APK/IPA; native Verpackung (z. B. Capacitor), BLE-Plugin, Buildkette und Signierung bleiben vor Umsetzung zu prüfen. Feste Nutzer-ID, API-Cache und sonstige Prototypgrenzen sind vor echten Patientendaten zu beheben. Nächster Schritt: aktive Kopie reproduzierbar bauen/starten und ersten UI-Baustein prüfen.
+
 ## 20.10.2026 – Ausgangsstruktur (ersetzt bezüglich Dokumentationsaufteilung)
 
 **Entscheidung:** Ein gemeinsames OrthoSohle-Repository mit getrennten Zielbereichen für Web, API, Armband und Sohle; ZIP-Quellstand unverändert als Referenz importieren. Vue/Express zunächst als Basis behalten, keine vollständige Neuschreibung.
@@ -106,8 +120,18 @@ Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung,
 
 **Konsequenz:** code/webapp inklusive neuer Auth-Implementierung entfernt. Frühere Stackentscheidungen gelten als archivierter Versuch, nicht als verbindliche Architektur des Neustarts. Zielrichtung: installierbare Patienten-App und Webportal über gemeinsame Backend-API; mobile Framework-, Auth- und Hostingwahl noch offen. Bestehende Test-/Buildnachweise sind historisch. Neue Umsetzung ausschließlich auf lenni/code; Entfernung per Pull Request nach main.
 
+## 10.11.2026 – Begriff Therapeut
+
+Der Nutzer verwendet „Therapeut“ als andere Bezeichnung für den behandelnden Arzt. Daraus entsteht keine zusätzliche Berufsrolle; Arztprüfung und ausdrückliche Patientenbeziehung bleiben gesonderte Voraussetzungen.
+
+## 10.11.2026 – Manuelle Freigabe von Arztkonten
+
+Der Nutzer entscheidet, Arztkonten manuell freizugeben. Wer die Prüfung durchführt, welche Nachweise gelten und wie Freigaben erneuert oder widerrufen werden, ist noch festzulegen. Eine Arztfreigabe ersetzt keine bestätigte Betreuungsbeziehung.
+
+Der Nutzer präzisiert am 10.11.2026, dass die spätere Bestätigung per Bestätigungslink in einer E-Mail erfolgen soll, ohne gesonderte Adminansicht. Das legt weder eine selbst erteilte Freigabe noch den Empfänger oder eine Prüferrolle fest. Bis sichere Prüferidentität, Autorisierung, MFA und Bootstrap geklärt sind, wird kein Freigabelink implementiert. Falls umgesetzt, löst ein GET keinerlei Statuswechsel aus; eine ausdrückliche geschützte POST-Bestätigung ist erforderlich.
+
 ## 10.11.2026 – Webapp als Grundlage und eigenständiges Waveshare-Projekt
 
 **Nutzerpräzisierung:** Die alte Webapp zu einer produktreifen Webapp weiterentwickeln und daraus APK und IPA erzeugen. Das Waveshare-Gerät erhält eigene Software, eine eigene Verbindung zur Sohle und eine Anbindung an App, Daten und Backend.
 
-**Konsequenz:** Die Altcode-Nutzung als reine Referenz im Neustartbeschluss vom 29.10. ist ersetzt. Die Implementierung und Übernahme stehen aus; Verpackung, Schnittstellen und Verbindungswege bleiben zu evaluieren.
+**Konsequenz:** Die Altcode-Nutzung als reine Referenz im Neustartbeschluss vom 29.10. ist ersetzt. Die erste Übernahme und lokale Weiterentwicklung sind erfolgt; Verpackung, Schnittstellen und Verbindungswege bleiben zu evaluieren.

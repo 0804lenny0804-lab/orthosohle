@@ -11,7 +11,7 @@ orthopaul/ enthält die 51 Dateien aus der hochgeladenen GitLab-ZIP unverändert
 | Sohlensketch | [arduinocode.ino](orthopaul/local-comm/frontend/src/components/arduinocode.ino) | HX711, kg-Umrechnung und ArduinoBLE |
 | Gemeinsamer Dev-Start | [Root-package.json](orthopaul/package.json) | concurrently und nodemon |
 
-Es gibt noch keine neue Armband-Firmware, Geräteverwaltung oder Benutzerkonten. Der Code ist eine untersuchte Ausgangsbasis mit [bekannten Fehlern](../analysis.md), keine abgenommene Produktversion.
+Neue Armband-Firmware und vollständige Geräteverwaltung fehlen; lokale Benutzerkonten sind im aktiven API-Durchstich vorhanden. Der Code ist eine untersuchte Ausgangsbasis mit [bekannten Fehlern](../analysis.md), keine abgenommene Produktversion.
 
 ## Voraussetzungen und Installation
 
