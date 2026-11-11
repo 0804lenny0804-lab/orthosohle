@@ -99,7 +99,12 @@
           </form>
         </section>
         <PatientProfile :key="state.identityId" :identity-id="state.identityId" />
-        <PhysicianReview :key="`physician-${state.identityId}`" :identity-id="state.identityId" :email-verified="state.emailVerified" />
+        <PhysicianReview :key="`physician-${state.identityId}`" :identity-id="state.identityId" :email-verified="state.emailVerified" @status="physicianStatus = $event" />
+        <CareArea v-if="state.emailVerified" :key="`patient-care-${state.identityId}`" :identity-id="state.identityId" role="patient" />
+        <template v-if="physicianStatus === 'approved'">
+          <TotpStepUp :identity-id="state.identityId" :two-factor-enabled="state.twoFactorEnabled" @verified="physicianStepUp = true" @expired="physicianStepUp = false" />
+          <CareArea v-if="physicianStepUp" :key="`physician-care-${state.identityId}`" :identity-id="state.identityId" role="physician" />
+        </template>
         <form class="profile-form mb-4" @submit.prevent="saveProfile">
           <div class="mb-3">
             <label for="profile-name" class="form-label">Anzeigename</label>
@@ -132,8 +137,12 @@ import { accountSession } from './session.js';
 import { consumeAccountCallback } from './auth-api.js';
 import PatientProfile from './PatientProfile.vue';
 import PhysicianReview from './PhysicianReview.vue';
+import CareArea from '../care/CareArea.vue';
+import TotpStepUp from '../step-up/TotpStepUp.vue';
 
 const { state } = accountSession;
+const physicianStatus = ref('loading');
+const physicianStepUp = ref(false);
 const mode = ref('login');
 const name = ref('');
 const profileName = ref('');
@@ -241,6 +250,8 @@ watch(() => state.name, (value) => {
 }, { immediate: true });
 
 watch(() => state.identityId, () => {
+  physicianStatus.value = 'loading';
+  physicianStepUp.value = false;
   // Clear authenticator material when the active account changes.
   totpURI.value = '';
   recoveryCodes.value = [];

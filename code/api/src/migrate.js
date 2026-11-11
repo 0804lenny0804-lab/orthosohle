@@ -4,6 +4,10 @@ import { readConfig } from './config.js';
 import { migratePatientProfiles } from './patient-profile-migration.js';
 import { migratePhysicianReview } from './physician-review-migration.js';
 import { migrateTwoFactorSessions } from './two-factor-session-migration.js';
+import { migrateReviewerBootstrap } from './reviewer-bootstrap-migration.js';
+import { migrateTotpStepUp } from './totp-step-up-migration.js';
+import { migratePhysicianApproval } from './physician-approval-migration.js';
+import { migratePatientRelations } from './patient-relations.js';
 
 const runtime = createAuth(readConfig(), { forMigration: true });
 try {
@@ -12,6 +16,10 @@ try {
   migratePatientProfiles(runtime.database);
   migratePhysicianReview(runtime.database);
   migrateTwoFactorSessions(runtime.database);
+  migrateReviewerBootstrap(runtime.database);
+  migrateTotpStepUp(runtime.database);
+  migratePhysicianApproval(runtime.database);
+  migratePatientRelations(runtime.database);
   console.log('Local authentication, TOTP, patient profile, and physician review schemas migrated.');
 } finally {
   runtime.close();

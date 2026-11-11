@@ -1,5 +1,6 @@
 <template>
   <AppShell :active-nav="activeNav" @navigate="setNav">
+      <PhysicianApproval :identity-id="identityId" />
       <AccountView v-if="activeNav === 'account'" />
 
       <div v-show="activeNav === 'live'">
@@ -92,6 +93,7 @@
 import { watch } from "vue";
 import AppShell from "./components/shell/AppShell.vue";
 import AccountView from "./features/account/AccountView.vue";
+import PhysicianApproval from "./features/physician-approval/PhysicianApproval.vue";
 import SessionCapture from "./features/measurement/SessionCapture.vue";
 import Bluetooth from './components/Bluetooth.vue';
 import LiveChart from './components/LiveChart.vue';
@@ -110,7 +112,7 @@ import { MAX_SESSION_VALUE } from "./features/measurement/measurement-sessions.j
 export default {
   name: 'App',
   components: {
-    AppShell, AccountView, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
+    AppShell, AccountView, PhysicianApproval, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
     MeasurementTable, Toastwarning, StepCounter, HistoryView, RunFeedbackWindow
   },
   data() {

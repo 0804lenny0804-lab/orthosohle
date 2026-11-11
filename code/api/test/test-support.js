@@ -12,6 +12,10 @@ import { readConfig } from '../src/config.js';
 import { migratePatientProfiles } from '../src/patient-profile-migration.js';
 import { migratePhysicianReview } from '../src/physician-review-migration.js';
 import { migrateTwoFactorSessions } from '../src/two-factor-session-migration.js';
+import { migrateReviewerBootstrap } from '../src/reviewer-bootstrap-migration.js';
+import { migrateTotpStepUp } from '../src/totp-step-up-migration.js';
+import { migratePhysicianApproval } from '../src/physician-approval-migration.js';
+import { migratePatientRelations } from '../src/patient-relations.js';
 
 export const account = {
   name: 'Synthetic Test',
@@ -60,6 +64,10 @@ export async function fixture(t, {
       migratePatientProfiles(runtime.database);
       migratePhysicianReview(runtime.database);
       migrateTwoFactorSessions(runtime.database);
+      migrateReviewerBootstrap(runtime.database);
+      migrateTotpStepUp(runtime.database);
+      migratePhysicianApproval(runtime.database);
+      migratePatientRelations(runtime.database);
       runtime.close();
       runtime = createAuth(config);
     }
