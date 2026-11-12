@@ -1,26 +1,26 @@
 ID,Prioritaet,Arbeitspaket,Aufgabe,Personenstunden,Abhaengigkeiten,Abnahmekriterium,Status,Verantwortlich,Nachweis
 S01,P0,Grundlagen,Alt-Webapp inventarisieren und Übernahmegrenzen festlegen,3,—,Frontend Backend Firmware und bekannte Fehler anhand des Bestands erfasst,Offen,,
-S02,P0,Grundlagen,Webapp in aktiven Bereich übernehmen und lokal starten,4,S01,Installation und Start beider Dienste reproduzierbar dokumentiert,Offen,,
+S02,P0,Grundlagen,Webapp in aktiven Bereich übernehmen und lokal starten,4,S01,Installation und Start beider Dienste reproduzierbar dokumentiert,Offen,,Vue-Frontend und lokales API starten; code/README.md. Vollständige Übernahme und Abnahme offen
 S03,P0,Grundlagen,Mobile Verpackung und native BLE-Anbindung vergleichen,4,S01,iOS Android BLE Hintergrundbetrieb Signierung und Wartung verglichen; Entscheidung offen dokumentiert,Offen,,
 S04,P0,Grundlagen,Geräte- und Datenfluss mit offenen Verbindungswegen spezifizieren,4,S01,Sohle App Armband Backend Rollen und ungeprüfte Annahmen beschrieben,Offen,,
 S05,P0,Grundlagen,Versionierten Mess- und Planvertrag entwerfen,4,S04,Einheit Sequenz Zeit Qualität Planversion ACK und Fehlerfälle beschrieben,Offen,,
 S06,P0,Grundlagen,Prioritäten und Restaufwand nach Spikes abstimmen,3,S02;S03;S05,Abhängigkeiten Aufwand und Softwareumfang anhand Ergebnissen aktualisiert,Offen,,
 W01,P1,Webapp,Bestehende Messpipeline und Grenzwert-API untersuchen,4,S02;S05,Aufrufer Datenfluss und Abweichungen zu Vertrag dokumentiert,Offen,,
 W02,P1,Webapp,Messwerte zentral validieren und Demoquelle trennen,4,W01,Ungültige Werte abgewiesen; synthetische Quelle erkennbar,Offen,,
-W03,P1,Webapp,Sitzungen und Datenbesitz modellieren,4,W01,Sitzung Gerät Nutzer Plan und Qualität nachvollziehbar zugeordnet,Offen,,
-W04,P1,Webapp,Migrationen und lokale Datenbankeinrichtung ergänzen,4,W03,Schema reproduzierbar aufgebaut und Migration mit Testdaten geprüft,Offen,,
-W05,P1,Webapp,Auth-Lösung und Sitzungsmodell auswählen,4,S02,Web und Mobile Login Widerruf und Betriebsaufwand begründet,Offen,,
-W06,P1,Webapp,Anmeldung und Sitzungswiderruf integrieren,4,W05;W04,Testkonten anmelden und widerrufene Sitzung zurückweisen,Offen,,
-W07,P1,Webapp,Konto-Wiederherstellung und Verifikation umsetzen,4,W06,Abgelaufene und wiederverwendete Links zurückgewiesen,Offen,,
-W08,P1,Webapp,Arztprüfung und Betreuungszuordnung modellieren,4,W04;W06,Einladung Bestätigung und höchstens ein verantwortlicher Arzt serverseitig definiert,Offen,,
+W03,P1,Webapp,Sitzungen und Datenbesitz modellieren,4,W01,Sitzung Gerät Nutzer Plan und Qualität nachvollziehbar zugeordnet,Offen,,Lokales Patientenprofil und Messsitzungen zugeordnet; Geräte Plan und Qualität offen
+W04,P1,Webapp,Migrationen und lokale Datenbankeinrichtung ergänzen,4,W03,Schema reproduzierbar aufgebaut und Migration mit Testdaten geprüft,Offen,,Explizite lokale Migrationen für Auth Profil und Messsitzungen; Produktmigration offen
+W05,P1,Webapp,Auth-Lösung und Sitzungsmodell auswählen,4,S02,Web und Mobile Login Widerruf und Betriebsaufwand begründet,Offen,,Better Auth für lokalen Durchstich gewählt; Mobile und Betrieb offen
+W06,P1,Webapp,Anmeldung und Sitzungswiderruf integrieren,4,W05;W04,Testkonten anmelden und widerrufene Sitzung zurückweisen,Offen,,Lokale Anmeldung Logout und Sessionwiderruf implementiert; Produktabnahme offen
+W07,P1,Webapp,Konto-Wiederherstellung und Verifikation umsetzen,4,W06,Abgelaufene und wiederverwendete Links zurückgewiesen,Offen,,Lokale Einmal-Links und Reset implementiert; echter Mailversand offen
+W08,P1,Webapp,Arztprüfung und Betreuungszuordnung modellieren,4,W04;W06,Einladung Bestätigung und höchstens ein verantwortlicher Arzt serverseitig definiert,Offen,,Lokaler Arztprüfungsantrag vorhanden; Freigabe und Betreuung offen
 W09,P1,Webapp,Autorisierung für Datenzugriffe ergänzen,4,W08,Fremde Patienten und Geräte serverseitig abgewiesen,Offen,,
 W10,P1,Webapp,Versionierte Therapiepläne speichern,4,W09;S05,Autor Gültigkeit Historie und Planversion abrufbar,Offen,,
 W11,P1,Webapp,Gerätebindung und Übernahmezustand darstellen,4,W10,Ausstehend und vom Gerät bestätigte Planversion unterscheidbar,Offen,,
 W12,P1,Webapp,Patientenansicht für Messung und Status überarbeiten,4,W02;W11,Wert Einheit Alter Verbindung und Fehlerzustände verständlich dargestellt,Offen,,
 W13,P1,Webapp,Arztansicht für Patienten und Pläne umsetzen,4,W09;W10,Nur zugeordnete Patienten und deren Planhistorie erreichbar,Offen,,
-W14,P1,Webapp,Sitzungsverlauf und Messlücken darstellen,4,W03;W09,Gespeicherte Sitzung mit Qualität und gültiger Planversion erneut abrufbar,Offen,,
+W14,P1,Webapp,Sitzungsverlauf und Messlücken darstellen,4,W03;W09,Gespeicherte Sitzung mit Qualität und gültiger Planversion erneut abrufbar,Offen,,Eigene Sitzungszusammenfassungen lokal abrufbar; Qualität und Planversion offen
 W15,P2,Webapp,Offline-Upload und Wiederholung entwerfen,4,W03;S05,Puffergrenzen Datenlücken Konflikte und idempotenter Upload spezifiziert,Offen,,
-W16,P2,Webapp,Offline-Upload implementieren,4,W15;W09,Wiederholter Upload erzeugt keine Duplikate; Fehler bleibt sichtbar,Offen,,
+W16,P2,Webapp,Offline-Upload implementieren,4,W15;W09,Wiederholter Upload erzeugt keine Duplikate; Fehler bleibt sichtbar,Offen,,Idempotenter lokaler Upload vorhanden; dauerhafte Offline-Queue offen
 W17,P2,Webapp,Export und Datenlebenszyklus umsetzen,4,W09;W14,Autorisierter Export und dokumentierte Löschregeln mit Testdaten geprüft,Offen,,
 M01,P0,Mobile,Mobile Buildkette als Durchstich einrichten,4,S03;S02,Testbuild für Android und iOS oder konkreter Buildblocker dokumentiert,Offen,,
 M02,P1,Mobile,Native BLE-Schnittstelle für App anbinden,4,M01;S05,Vertrag mit synthetischer Quelle und Fehlerzuständen nutzbar,Offen,,

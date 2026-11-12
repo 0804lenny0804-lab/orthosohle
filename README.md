@@ -25,7 +25,7 @@ code/                 Aktiver Entwicklungsbereich
 scripts/              Repositoryprüfung und deren Tests
 ```
 
-„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Aktuell ist der Implementierungsbereich zurückgesetzt; die alte Webapp soll als Entwicklungsgrundlage übernommen werden. Eine ausführbare neue App gibt es dort noch nicht.
+„Aktiver Entwicklungsbereich“ bezeichnet den neuen Produktcode; eine Produktionsfreigabe ist damit nicht verbunden. Das übernommene Vue-Frontend und eine lokale API werden im Entwicklungsbereich weiterentwickelt; Start und Grenzen stehen in code/README.md.
 
 ## Prüfungen
 
