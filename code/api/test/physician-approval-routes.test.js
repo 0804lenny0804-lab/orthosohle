@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import express from 'express';
 import { createServer } from 'node:http';
-import { stat } from 'node:fs/promises';
+import { readFile, stat, writeFile } from 'node:fs/promises';
 import { once } from 'node:events';
 import test from 'node:test';
 import { account, cookies, fixture, signIn, signUp } from './test-support.js';
@@ -111,6 +111,8 @@ async function tokenFromApprovalMail(f) {
   assert.ok(entry, 'private local approval notification should be materialized');
   assert.equal(entry.mail.to, REVIEWER.email);
   assert.match(entry.mail.mode, /NOT SENT/);
+  assert.equal(typeof entry.mail.approvalURL, 'string');
+  assert.equal(entry.mail.approvalURL, linkFromText(entry.mail.text));
   assert.equal((await stat(entry.path)).mode & 0o077, 0);
   const link = entry.mail.text.match(/https?:\/\/[^\s]+/)[0];
   const parsed = new URL(link);
@@ -118,6 +120,10 @@ async function tokenFromApprovalMail(f) {
   const token = new URLSearchParams(parsed.hash.slice(1)).get('token');
   assert.match(token, /^[A-Za-z0-9_-]{43}$/);
   return token;
+}
+
+function linkFromText(text) {
+  return text.match(/https?:\/\/[^\s]+/)[0];
 }
 
 async function establishFreshMfa(f, call, cookie, secret) {
@@ -198,4 +204,32 @@ test('existing materialized requests recover links, expired links reissue, and l
   assert.equal(f.database.prepare('SELECT status FROM physician_review_application').get().status, 'pending');
   assert.equal(f.database.prepare('SELECT count(*) AS count FROM physician_review_approval_audit').get().count, 0);
   assert.equal(created.review.status, 'pending');
+});
+
+test('legacy approval JSON survives retry after a crash without being rewritten', async t => {
+  const { f, approval, reviewerId } = await createFixture(t);
+  const { review } = await requestApplication(f, 'legacy-applicant@example.invalid');
+  const applicationId = f.database.prepare('SELECT id FROM physician_review_application').get().id;
+  const issue = approval.service.issueForApplication(applicationId, reviewerId, REVIEWER.email);
+  const oldLink = new URL('/', WEB_ORIGIN);
+  oldLink.searchParams.set('physicianApproval', '1');
+  oldLink.hash = `token=${issue.token}`;
+  const legacy = {
+    mode: 'LOCAL SYNTHETIC TEST MAIL — NOT SENT',
+    to: REVIEWER.email,
+    subject: 'Lokaler Test: Arztantrag wartet auf Freigabe',
+    text: [
+      'Dies ist eine lokale Kontrollbenachrichtigung. Es wurde keine E-Mail versendet.',
+      `Antragsreferenz: ${applicationId}`,
+      `Freigabelink (bis ${issue.expiresAt} gültig, einmalig): ${oldLink.href}`,
+      'Der Link zeigt beim Öffnen noch keine Freigabe an. Die Freigabe erfordert eine bestätigte Aktion im angemeldeten Prüferkonto.',
+    ].join('\n'),
+  };
+  const path = `${f.databasePath}.mail-outbox/physician-approval-${issue.issueId}.json`;
+  await writeFile(path, JSON.stringify(legacy, null, 2));
+
+  assert.equal(approval.recoverPendingNotifications(), 1);
+  assert.equal(await readFile(path, 'utf8'), JSON.stringify(legacy, null, 2));
+  assert.equal((await f.mails()).find(entry => entry.path === path).mail.approvalURL, undefined);
+  assert.equal(review.status, 'pending');
 });

@@ -20,6 +20,8 @@
       </p>
       <div v-else-if="status === 'pending'" role="status" aria-live="polite">
         <p>Deine Arztprüfung ist beantragt. Bis zur Bestätigung sind keine Arztfunktionen freigeschaltet.</p>
+        <p class="small text-muted">Die lokale Datei <code>physician-review-…</code> dokumentiert nur den Antrag und enthält keinen Freigabelink. Eine getrennte Datei <code>physician-approval-…</code> wird für das eingerichtete Prüfkonto erst nach dessen Bootstrap und einem Neustart der API angelegt. Den Freigabelink kann nur dieses Prüfkonto nach der Anmeldung mit TOTP verwenden.</p>
+        <p class="small text-muted">Beide Dateien gehören zum lokalen Test-Mailausgang. Es wird keine echte E-Mail versendet.</p>
         <p v-if="notificationStatus === 'pending'" class="alert alert-warning" role="alert">
           Der Benachrichtigungseintrag konnte noch nicht lokal abgelegt werden. Es wurde keine E-Mail versendet. Du kannst den Versuch wiederholen.
         </p>

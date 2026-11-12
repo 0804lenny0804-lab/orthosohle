@@ -3,6 +3,7 @@ import test from 'node:test';
 import { cookies, fixture, signIn, signUp, account } from './test-support.js';
 import { migratePatientRelations } from '../src/patient-relations.js';
 import { migrateTherapyPlans } from '../src/therapy-plan.js';
+import { migratePatientProfiles } from '../src/patient-profile-migration.js';
 
 const ORIGIN = 'http://127.0.0.1:5173';
 const doctor = { ...account, name: 'Synthetic Doctor', email: 'plan-doctor@example.invalid' };
@@ -112,4 +113,87 @@ test('Better Auth sessions survive repeatable migration; physician creates, pati
   f.database.prepare('UPDATE session SET expiresAt = ? WHERE userId = ?').run('2000-01-01T00:00:00.000Z', doctorId);
   const expiredSession = await f.request(createPath, { cookie: doctorCookie });
   assert.equal(expiredSession.status, 401);
+});
+
+test('real Better Auth sessions protect patient profile ownership, physician MFA, revisions and revocation', async t => {
+  const f = await fixture(t);
+  const doctorId = await signUp(f, true, doctor);
+  const patientId = await signUp(f, true, patient);
+  const otherPatientId = await signUp(f, true, otherPatient);
+
+  const setupCookie = cookies(await signIn(f, doctor.password, doctor));
+  clearSyntheticRateLimit(f);
+  const setup = await f.request('/api/auth/two-factor/enable', {
+    cookie: setupCookie, body: { password: doctor.password, method: 'totp' },
+  });
+  assert.equal(setup.status, 200, await setup.clone().text());
+  const secret = decodeBase32(new URL((await setup.json()).totpURI).searchParams.get('secret'));
+  const activationCode = (await f.auth.api.generateTOTP({ body: { secret } })).code;
+  const activated = await f.request('/api/auth/two-factor/verify-totp', { cookie: setupCookie, body: { code: activationCode } });
+  assert.equal(activated.status, 200, await activated.clone().text());
+  const doctorCookie = cookies(activated);
+  const stepUp = await f.request('/api/step-up/verify', {
+    cookie: doctorCookie,
+    body: { code: (await f.auth.api.generateTOTP({ body: { secret } })).code },
+    origin: ORIGIN,
+  });
+  assert.equal(stepUp.status, 200, await stepUp.clone().text());
+
+  const patientCookie = cookies(await signIn(f, patient.password, patient));
+  clearSyntheticRateLimit(f);
+  const otherCookie = cookies(await signIn(f, otherPatient.password, otherPatient));
+  clearSyntheticRateLimit(f);
+  const profileAResponse = await f.request('/api/patient-profile', { cookie: patientCookie, body: {}, origin: ORIGIN });
+  const profileBResponse = await f.request('/api/patient-profile', { cookie: otherCookie, body: {}, origin: ORIGIN });
+  assert.equal(profileAResponse.status, 201);
+  assert.equal(profileBResponse.status, 201);
+  const profileA = (await profileAResponse.json()).profile;
+  const profileB = (await profileBResponse.json()).profile;
+  assert.equal((await (await f.request('/api/patient-profile', { cookie: patientCookie })).json()).profile.id, profileA.id);
+
+  const createdAt = new Date().toISOString();
+  f.database.prepare(`INSERT INTO physician_review_application (id, account_user_id, status, requested_at)
+    VALUES (?, ?, 'approved', ?)`).run('profile-doctor-approval', doctorId, createdAt);
+  f.database.prepare(`INSERT INTO patient_invitation
+    (id, physician_user_id, patient_profile_id, target_user_id, status, created_at, expires_at)
+    VALUES (?, ?, ?, ?, 'accepted', ?, ?)`).run('profile-invite', doctorId, profileA.id, patientId,
+      createdAt, new Date(Date.now() + 60_000).toISOString());
+  f.database.prepare(`INSERT INTO patient_relation
+    (id, physician_user_id, patient_profile_id, invitation_id, status, started_at)
+    VALUES (?, ?, ?, ?, 'active', ?)`).run('profile-relation', doctorId, profileA.id, 'profile-invite', createdAt);
+
+  const physicianPath = `/api/patient-profile/physician/${profileA.id}`;
+  assert.equal((await f.request(`/api/patient-profile/physician/${profileB.id}`, { cookie: doctorCookie })).status, 404);
+  const patientPatch = await f.request('/api/patient-profile', {
+    cookie: patientCookie, body: { expectedVersion: 0, injury: 'synthetic ankle note', weightKg: 68.2 }, origin: ORIGIN,
+    method: 'PATCH',
+  });
+  assert.equal(patientPatch.status, 200, await patientPatch.clone().text());
+  const physicianRead = await f.request(physicianPath, { cookie: doctorCookie });
+  assert.equal(physicianRead.status, 200);
+  assert.equal((await physicianRead.json()).profile.weightKg, 68.2);
+  const physicianPatch = await f.request(physicianPath, {
+    cookie: doctorCookie, body: { expectedVersion: 1, injury: 'synthetic clinician note' }, origin: ORIGIN,
+    method: 'PATCH',
+  });
+  assert.equal(physicianPatch.status, 200, await physicianPatch.clone().text());
+  const patientReload = await f.request('/api/patient-profile', { cookie: patientCookie });
+  const reloaded = (await patientReload.json()).profile;
+  assert.equal(reloaded.version, 2);
+  assert.equal(reloaded.injury, 'synthetic clinician note');
+  assert.deepEqual(reloaded.lastChangedBy, { name: doctor.name });
+
+  const sessionCount = f.database.prepare('SELECT count(*) AS count FROM session').get().count;
+  migratePatientProfiles(f.database);
+  migratePatientProfiles(f.database);
+  assert.equal(f.database.prepare('SELECT count(*) AS count FROM session').get().count, sessionCount);
+  assert.equal((await (await f.request('/api/patient-profile', { cookie: patientCookie })).json()).profile.injury,
+    'synthetic clinician note');
+  assert.equal(otherPatientId, f.database.prepare('SELECT account_user_id FROM patient_profile WHERE id = ?').get(profileB.id).account_user_id);
+
+  f.database.prepare("UPDATE patient_relation SET status = 'ended' WHERE id = 'profile-relation'").run();
+  assert.equal((await f.request(physicianPath, { cookie: doctorCookie })).status, 404);
+  f.database.prepare("UPDATE patient_relation SET status = 'active' WHERE id = 'profile-relation'").run();
+  f.database.prepare("UPDATE physician_review_application SET status = 'revoked' WHERE account_user_id = ?").run(doctorId);
+  assert.equal((await f.request(physicianPath, { cookie: doctorCookie })).status, 403);
 });

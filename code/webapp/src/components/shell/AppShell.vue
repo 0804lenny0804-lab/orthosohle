@@ -63,6 +63,16 @@ const authView = computed(() => props.activeNav === 'account' && accountSession.
   --app-background: #f6f6f9;
   --app-line: #e7e7ed;
 }
+html.display-text-large { font-size: 112.5%; }
+html.display-contrast-high {
+  --app-text: #111;
+  --app-muted: #333;
+  --app-background: #fff;
+  --app-line: #777;
+}
+html.display-contrast-high .app-shell .card { border-color: #666; }
+html.display-contrast-high .app-shell .navigation-item { color: #333; }
+html.display-contrast-high .app-shell .navigation-item.is-active { color: #79003f; background: #f8d7e8; }
 body { margin: 0; background: var(--app-background); color: var(--app-text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
 .app-shell { min-height: 100dvh; }
 .app-header { position: fixed; inset: 0 auto 0 0; z-index: 1030; width: 232px; background: rgba(255,255,255,.96); backdrop-filter: blur(18px); border-right: 1px solid var(--app-line); }
@@ -112,7 +122,7 @@ body { margin: 0; background: var(--app-background); color: var(--app-text); fon
   .header-inner { min-height: 64px; padding: env(safe-area-inset-top, 0px) 20px 0; flex-direction: row; align-items: center; }
   .brand { font-size: 1.15rem; }
   .brand-symbol { width: 32px; height: 32px; border-radius: 10px; }
-  .primary-navigation { position: fixed; bottom: 0; left: 0; right: 0; flex-direction: row; justify-content: space-around; gap: 0; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.97); border-top: 1px solid var(--app-line); box-shadow: 0 -3px 18px #20212705; backdrop-filter: blur(18px); }
+  .primary-navigation { position: fixed; z-index: 1030; bottom: 0; left: 0; right: 0; flex-direction: row; justify-content: space-around; gap: 0; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.97); border-top: 1px solid var(--app-line); box-shadow: 0 -3px 18px #20212705; backdrop-filter: blur(18px); }
   .navigation-item { flex: 1; min-width: 0; flex-direction: column; padding: 7px 2px; font-size: .64rem; border-radius: 12px; gap: 4px; }
   .navigation-item i { font-size: 1.25rem; }
   .app-main { margin: 0; padding: 28px 16px calc(108px + env(safe-area-inset-bottom, 0px)); }

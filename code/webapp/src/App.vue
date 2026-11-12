@@ -90,7 +90,7 @@
 </template>
 
 <script>
-import { watch } from "vue";
+import { watch, computed, onMounted, onUnmounted } from "vue";
 import AppShell from "./components/shell/AppShell.vue";
 import AccountView from "./features/account/AccountView.vue";
 import PhysicianApproval from "./features/physician-approval/PhysicianApproval.vue";
@@ -108,6 +108,7 @@ import RunFeedbackWindow from "./components/RunFeedbackWindow.vue";
 import { accountSession } from "./features/account/session.js";
 import { clearLegacyDemoStorage, createDemoSessionState } from "./features/demo/demo-state.js";
 import { MAX_SESSION_VALUE } from "./features/measurement/measurement-sessions.js";
+import { loadDisplayPreferences, applyDisplayPreferenceClasses } from "./features/settings/local-preferences.js";
 
 export default {
   name: 'App',
@@ -127,6 +128,42 @@ export default {
       previewSource: null,
       stopIdentityWatch: null
     };
+  },
+  setup() {
+    const identityId = computed(() => accountSession.state.identityId || '');
+    let memoryPreferencesIdentity = '';
+    let memoryPreferences = null;
+    const getPreferences = () => {
+      if (memoryPreferencesIdentity === identityId.value && memoryPreferences) return memoryPreferences;
+      try {
+        return loadDisplayPreferences(window.localStorage, identityId.value);
+      } catch {
+        return memoryPreferencesIdentity === identityId.value && memoryPreferences
+          ? memoryPreferences
+          : loadDisplayPreferences(null, identityId.value);
+      }
+    };
+    const applyDisplayPreferences = () => {
+      applyDisplayPreferenceClasses(document.documentElement.classList, identityId.value, getPreferences());
+    };
+    const onPreferencesChanged = (event) => {
+      if (event.detail?.identityId !== identityId.value || !identityId.value) return;
+      memoryPreferencesIdentity = identityId.value;
+      memoryPreferences = event.detail.preferences;
+      applyDisplayPreferences();
+    };
+    let stopPreferenceWatch;
+    onMounted(() => {
+      applyDisplayPreferences();
+      stopPreferenceWatch = watch(identityId, applyDisplayPreferences);
+      window.addEventListener('display-preferences-changed', onPreferencesChanged);
+    });
+    onUnmounted(() => {
+      stopPreferenceWatch?.();
+      window.removeEventListener('display-preferences-changed', onPreferencesChanged);
+      document.documentElement.classList.remove('display-contrast-high', 'display-text-large');
+    });
+    return {};
   },
   methods: {
     setNav(nav) {

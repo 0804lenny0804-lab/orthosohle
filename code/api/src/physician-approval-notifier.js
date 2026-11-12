@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { writeLocalMail } from './local-mail.js';
 
 /** Writes one stable, private local message per approval issue for crash-safe retries. */
@@ -9,15 +10,35 @@ export function materializePhysicianApprovalNotification(config, service, notifi
   const link = new URL('/', config.webOrigin);
   link.searchParams.set('physicianApproval', '1');
   link.hash = `token=${notification.token}`;
-  writeLocalMail(config, {
+  const message = {
     to: notification.recipientEmail,
     subject: 'Lokaler Test: Arztantrag wartet auf Freigabe',
+    approvalURL: link.href,
     text: [
       'Dies ist eine lokale Kontrollbenachrichtigung. Es wurde keine E-Mail versendet.',
       `Antragsreferenz: ${notification.applicationId}`,
       `Freigabelink (bis ${notification.expiresAt} gültig, einmalig): ${link.href}`,
       'Der Link zeigt beim Öffnen noch keine Freigabe an. Die Freigabe erfordert eine bestätigte Aktion im angemeldeten Prüferkonto.',
     ].join('\n'),
-  }, { idempotencyKey: `physician-approval-${notification.issueId}` });
+  };
+  const samePendingEvent = contents => {
+    if (typeof contents !== 'string') return false;
+    try {
+      const existing = JSON.parse(contents);
+      const expected = { mode: 'LOCAL SYNTHETIC TEST MAIL — NOT SENT', ...message };
+      if (isDeepStrictEqual(existing, expected)) return true;
+      // Older outbox messages used only text; preserve them after a crash-before-DB-mark retry.
+      const { approvalURL: _ignored, ...legacyMessage } = message;
+      return isDeepStrictEqual(existing, {
+        mode: 'LOCAL SYNTHETIC TEST MAIL — NOT SENT', ...legacyMessage,
+      });
+    } catch {
+      return false;
+    }
+  };
+  writeLocalMail(config, message, {
+    idempotencyKey: `physician-approval-${notification.issueId}`,
+    acceptExisting: samePendingEvent,
+  });
   service.markMaterialized(notification.issueId);
 }
