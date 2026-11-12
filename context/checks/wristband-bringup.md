@@ -26,6 +26,12 @@ Diese Beobachtungen hier nach Eingang ergänzen; unbekannte Werte bleiben unbeka
 
 Abnahme für den ersten Geräte-Schritt: Build erfolgreich; Touchbedienung und BLE-Verbindung mit korrektem Status am echten Board; Messalter/Fehler sind sichtbar. Nachweis enthält Datum, Commit, Boardrevision, Toolchain, Sohle/Sketch, Ergebnis und Grenzen. Hosttests oder Kompilierung allein erfüllen die Geräteabnahme nicht.
 
+## Erster BLE-Anzeige-Durchstich (12.11.2026)
+
+Im Projekt `code/firmware/waveshare` wurde ein Arduino/PlatformIO-Durchstich hinzugefügt. Er verwendet die bekannte Service-UUID `12345678-1234-1234-1234-1234567890ab`, probiert zuerst die v1-Characteristic `...90ce` und fällt auf Legacy-Float32 `...90cd` zurück. Für v1 werden Paketdecoder und Sequenzprüfung des Hostkerns wiederverwendet. Der Bildschirm zeigt Verbindungsstatus, kg-Wert, Alter, Messqualität und ungültige Pakete. Bei veralteten Daten bleibt das Alter sichtbar; diese Etappe blendet keinen Therapieplan ein und erzeugt keinen Warnalarm.
+
+Die konkrete PlatformIO-Konfiguration ist in der Firmware-README dokumentiert. Der PlatformIO-Lauf konnte die ESP32-S3-Toolchain wegen `HTTPClientError` beim Paketabruf nicht installieren; daher ist der Arduino-Firmwarebuild ungeprüft. Die beiden vorhandenen Hosttests wurden direkt mit g++ 14.2.0 und strikten Warnungen erfolgreich gebaut und ausgeführt. Aus dieser Umgebung kann nicht auf das Board geflasht oder eine reale BLE-Sohle bereitgestellt werden. Es gibt daher noch keinen Nachweis für Firmwarekompilieren, BLE-Empfang, Wiederverbindung oder Anzeige auf Hardware. Touchabfrage ist nicht Teil dieses Durchstichs. Die bestehende Sohle sendet laut Quellstand weiterhin nur Legacy-Float32; v1 braucht einen gesondert umgesetzten Sohlensender.
+
 ## Aktueller Stand
 
-Laut Nutzer funktioniert ein früherer Displaytest auf dem Board. In diesem Workspace stehen exakte Revision, Firmwarebuild, USB-Prüfung, BLE-/Touchtest und Geräteabnahme noch aus. Keine Arbeitsstunden oder Messergebnisse als geleistet erfasst.
+Laut Nutzer funktioniert ein früherer Displaytest auf dem Board. Exakte Revision, USB-Prüfung und die Abnahme der neuen BLE-Firmware bleiben offen. Keine Arbeitsstunden oder Messergebnisse als geleistet erfasst.

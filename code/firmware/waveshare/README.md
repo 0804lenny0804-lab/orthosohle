@@ -1,11 +1,48 @@
-# Waveshare-Firmwarekern
+# Waveshare-Firmware
 
-Dieser Ordner enthält den plattformunabhängigen C++-Messvertrag für das
-ESP32-S3-Touch-LCD-1.28. Er lässt sich am Rechner ohne Arduino-Bibliotheken
-bauen und testen. Eine Arduino-Firmware mit Display, Touch, BLE, WLAN und
-Flashpuffer ist noch nicht Teil dieses Arbeitsschritts.
+Dieser Ordner enthält den testbaren C++-Messkern und den ersten Arduino-
+Firmwaredurchstich für das Waveshare ESP32-S3-Touch-LCD-1.28. Das Board sucht
+automatisch nach der Sohle, verbindet sich mit dem vorhandenen BLE-Dienst,
+abonniert bevorzugt den entworfenen v1-Messframe und fällt auf die alte
+Float32-Characteristic zurück. Display und Status werden laufend aktualisiert.
+Die erste Etappe startet die Suche automatisch; Touchbedienung, Warnplan,
+Motor, Flashpuffer und WLAN/Backend-Sync sind noch nicht implementiert.
+
+## Firmware bauen und flashen
+
+Das Firmwareprojekt verwendet PlatformIO Core `6.2.0`, Espressif32-Plattform
+`6.8.1`, Arduino-GFX `1.5.4` und das im Arduino-ESP32-Core enthaltene
+`BLEDevice.h`. Der ESP32-Board-Datensatz `esp32s3usbotg` wird für die
+S3-Arduino-Toolchain verwendet; Flash/PSRAM sind im Projekt auf die
+Waveshare-Bestückung (16 MB Flash, 2 MB OPI-PSRAM) gesetzt. Der USB-Anschluss
+des Boards ist integriert; externe Display-/Touchverdrahtung wird nicht
+benötigt.
+
+Mit PlatformIO:
+
+```bash
+pio run -d code/firmware/waveshare -e waveshare-esp32-s3-touch-lcd-128
+pio run -d code/firmware/waveshare -e waveshare-esp32-s3-touch-lcd-128 -t upload --upload-port COMx
+pio device monitor -d code/firmware/waveshare -b 115200 --port COMx
+```
+
+`COMx` durch den Port des eigenen Boards ersetzen. Für den ersten Flash den
+funktionierenden bisherigen Displaytest sichern, damit er bei Bedarf wieder
+aufgespielt werden kann. Der Build überschreibt die Boardfirmware erst beim
+separaten `upload`-Befehl.
+
+Das Display nutzt den GC9A01A über SPI (GPIO8 DC, GPIO9 CS, GPIO10 SCK,
+GPIO11 MOSI, GPIO14 RST, GPIO2 Backlight); Touch ist in dieser Etappe noch
+nicht abgefragt. Diese Onboard-Signale kommen aus dem offiziellen
+[ESP32-S3-Touch-LCD-1.28-Pinheader im Espressif-Arduino-Core](https://github.com/espressif/arduino-esp32/blob/master/variants/waveshare_esp32s3_touch_lcd_128/pins_arduino.h).
 
 ## Messformat zwischen Sohle und Armband
+
+Die Firmware sucht den bestehenden Dienst `12345678-1234-1234-1234-1234567890ab`.
+Sie bevorzugt dessen geplante v1-Mess-Characteristic
+`12345678-1234-1234-1234-1234567890ce` und fällt auf die bestehende
+Legacy-Characteristic `12345678-1234-1234-1234-1234567890cd` zurück. Der
+aktuelle Sohlensketch stellt bislang nur die Legacy-Characteristic bereit.
 
 Die bisherige Sohle sendet eine little-endian IEEE-754-Float32-Characteristic
 in kg. Der Decoder akzeptiert ausschließlich genau vier Bytes, endliche Werte
@@ -52,7 +89,7 @@ Datenalter müssen vor Einsatz fachlich festgelegt und im Aufrufer konfiguriert
 werden. Der Kern setzt keinen Motor und trifft keine medizinische
 Einsatzentscheidung.
 
-## Hosttests
+## Hosttests des Messkerns
 
 Mit CMake und einem C++17-Compiler:
 
@@ -82,5 +119,6 @@ g++ -std=c++17 -Wall -Wextra -Wpedantic -Werror \
 /tmp/local-monitor-test
 ```
 
-Die Hosttests ersetzen keinen Arduino-Build, keinen BLE-Test und keinen
-Display-/Touchtest am echten Board.
+Hosttests ersetzen keinen Firmware-Build, keinen echten BLE-Empfang und keinen
+Display-/Touchtest am Board. Ein erfolgreicher Arduino-Build beweist ebenfalls
+noch keine Funkverbindung oder funktionierende Anzeige auf dem echten Gerät.
