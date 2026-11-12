@@ -135,3 +135,9 @@ Der Nutzer präzisiert am 10.11.2026, dass die spätere Bestätigung per Bestät
 **Nutzerpräzisierung:** Die alte Webapp zu einer produktreifen Webapp weiterentwickeln und daraus APK und IPA erzeugen. Das Waveshare-Gerät erhält eigene Software, eine eigene Verbindung zur Sohle und eine Anbindung an App, Daten und Backend.
 
 **Konsequenz:** Die Altcode-Nutzung als reine Referenz im Neustartbeschluss vom 29.10. ist ersetzt. Die erste Übernahme und lokale Weiterentwicklung sind erfolgt; Verpackung, Schnittstellen und Verbindungswege bleiben zu evaluieren.
+
+## 11.11.2026 – Historischer Messdatenzugriff des aktuell zugeordneten Arztes
+
+**Entscheidung des Nutzers:** Ein aktuell zugeordneter Patient gibt dem aktuell verantwortlichen, geprüften Arzt ausdrücklich alle bisherigen Messsitzungen dieses Patienten frei, auch Sitzungen vor Beginn der aktuellen Arztzuordnung. Erforderlich bleiben für jeden Zugriff eine aktive Betreuungsbeziehung, eine gültige Arztfreigabe und die vorgeschriebene frische MFA. Mit Ende der Beziehung oder Widerruf der Arztfreigabe endet der Messdatenzugriff sofort; eine frühere Zuordnung begründet keinen späteren Zugriff.
+
+**Grenze und Konsequenz:** Clientseitig gelieferte Sitzungs- und Empfangszeiten belegen weder Messherkunft noch, dass die Sitzung tatsächlich innerhalb einer bestimmten Arztzuordnung stattgefunden hat. Die Freigabe ist eine Zugriffsentscheidung des Patienten, keine nachträgliche Herkunfts- oder Gerätebestätigung. Die Regel gilt derzeit ausschließlich für den lokalen synthetischen Entwicklungsstand; keine echten Gesundheitsdaten und keine Produkt- oder Einsatzfreigabe. Zweck, Aufbewahrung, Löschung, Rechtsgrundlage und Betriebsverfahren bleiben gesondert zu klären.

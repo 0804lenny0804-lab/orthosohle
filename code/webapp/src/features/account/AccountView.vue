@@ -7,6 +7,7 @@
       </p>
       <p role="status" aria-live="polite">{{ statusText }}</p>
       <p v-if="callbackError" class="alert alert-danger" role="alert">{{ callbackError }}</p>
+      <p v-if="physicianAccessMessage" class="alert alert-warning" role="alert">{{ physicianAccessMessage }}</p>
       <p v-if="state.error" class="alert alert-danger" role="alert">{{ state.error }}</p>
       <p v-if="state.notice" class="alert alert-info" role="status">{{ state.notice }}</p>
 
@@ -102,8 +103,12 @@
         <PhysicianReview :key="`physician-${state.identityId}`" :identity-id="state.identityId" :email-verified="state.emailVerified" @status="physicianStatus = $event" />
         <CareArea v-if="state.emailVerified" :key="`patient-care-${state.identityId}`" :identity-id="state.identityId" role="patient" />
         <template v-if="physicianStatus === 'approved'">
-          <TotpStepUp :identity-id="state.identityId" :two-factor-enabled="state.twoFactorEnabled" @verified="physicianStepUp = true" @expired="physicianStepUp = false" />
-          <CareArea v-if="physicianStepUp" :key="`physician-care-${state.identityId}`" :identity-id="state.identityId" role="physician" />
+          <TotpStepUp :key="`physician-totp-${state.identityId}-${physicianStepUpGeneration}`" :identity-id="state.identityId"
+            :two-factor-enabled="state.twoFactorEnabled" @verified="markPhysicianStepUpVerified" @expired="physicianStepUp = false" />
+          <CareArea v-if="physicianStepUp" :key="`physician-care-${state.identityId}`" :identity-id="state.identityId" role="physician"
+            @access-error="handlePhysicianSessionAccessError" />
+          <PhysicianSessions v-if="physicianStepUp" :key="`physician-sessions-${state.identityId}`" :identity-id="state.identityId"
+            @access-error="handlePhysicianSessionAccessError" />
         </template>
         <form class="profile-form mb-4" @submit.prevent="saveProfile">
           <div class="mb-3">
@@ -138,11 +143,16 @@ import { consumeAccountCallback } from './auth-api.js';
 import PatientProfile from './PatientProfile.vue';
 import PhysicianReview from './PhysicianReview.vue';
 import CareArea from '../care/CareArea.vue';
+import PhysicianSessions from '../care/PhysicianSessions.vue';
+import { physicianAccessErrorMessage, shouldClosePhysicianAccessOnResume } from '../care/physician-session-requests.js';
 import TotpStepUp from '../step-up/TotpStepUp.vue';
 
 const { state } = accountSession;
 const physicianStatus = ref('loading');
 const physicianStepUp = ref(false);
+const physicianStepUpGeneration = ref(0);
+const physicianAccessMessage = ref('');
+let physicianAccessCheckGeneration = 0;
 const mode = ref('login');
 const name = ref('');
 const profileName = ref('');
@@ -245,13 +255,63 @@ async function saveProfile() {
   await accountSession.saveProfile(profileName.value.trim());
 }
 
+function markPhysicianStepUpVerified() {
+  physicianAccessCheckGeneration += 1;
+  physicianAccessMessage.value = '';
+  physicianStepUp.value = true;
+}
+
+async function handlePhysicianSessionAccessError({ status } = {}) {
+  const request = ++physicianAccessCheckGeneration;
+  const identity = state.identityId;
+  physicianStepUp.value = false;
+  physicianStepUpGeneration.value += 1;
+
+  if (status !== 401) {
+    physicianAccessMessage.value = physicianAccessErrorMessage(status);
+    return;
+  }
+
+  const refreshCanRun = !state.busy;
+  physicianAccessMessage.value = 'Der Arztzugriff wurde geschlossen. Anmeldestatus wird geprüft …';
+  try {
+    await accountSession.refresh();
+  } catch {
+    // accountSession.refresh records a safe error in its shared status state.
+  }
+  if (request !== physicianAccessCheckGeneration || identity !== state.identityId) return;
+  physicianAccessMessage.value = physicianAccessErrorMessage(401, {
+    accountStatus: state.status,
+    sessionChecked: refreshCanRun,
+  });
+}
+
+function closePhysicianAccessOnResume(eventType) {
+  const type = typeof eventType === 'string' ? eventType : eventType?.type;
+  if (!shouldClosePhysicianAccessOnResume({
+    active: physicianStepUp.value,
+    eventType: type,
+    visibilityState: document.visibilityState,
+  })) return;
+  physicianAccessCheckGeneration += 1;
+  physicianStepUp.value = false;
+  physicianStepUpGeneration.value += 1;
+  physicianAccessMessage.value = 'Die Arztansichten wurden beim Zurückkehren geschlossen. Bitte TOTP erneut bestätigen, um den aktuellen Zugriff zu prüfen.';
+}
+
+function handleVisibilityChange() {
+  closePhysicianAccessOnResume('visibilitychange');
+}
+
 watch(() => state.name, (value) => {
   profileName.value = value;
 }, { immediate: true });
 
 watch(() => state.identityId, () => {
+  physicianAccessCheckGeneration += 1;
   physicianStatus.value = 'loading';
   physicianStepUp.value = false;
+  physicianAccessMessage.value = '';
   // Clear authenticator material when the active account changes.
   totpURI.value = '';
   recoveryCodes.value = [];
@@ -279,10 +339,14 @@ function handleAccountCallback() {
 onMounted(() => {
   handleAccountCallback();
   window.addEventListener('hashchange', handleAccountCallback);
+  window.addEventListener('focus', closePhysicianAccessOnResume);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
   accountSession.refresh();
 });
 onUnmounted(() => {
   window.removeEventListener('hashchange', handleAccountCallback);
+  window.removeEventListener('focus', closePhysicianAccessOnResume);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
   clearPasswords();
   twoFactorPassword.value = '';
   setupCode.value = '';

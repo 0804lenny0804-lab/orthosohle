@@ -2,11 +2,13 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { careApi } from './care-api.js';
 import { acceptInvitationRequest, declineInvitationRequest, isCreatedInvitation } from './care-state.js';
+import { shouldReportCareAccessError } from './physician-session-requests.js';
 
 const props = defineProps({
   identityId: { type: String, required: true },
   role: { type: String, required: true, validator: value => ['physician', 'patient'].includes(value) },
 });
+const emit = defineEmits(['access-error']);
 
 const status = ref('loading');
 const busy = ref(false);
@@ -34,6 +36,21 @@ function clearState() {
   relationship.value = null;
   invitations.value = [];
   patientEmail.value = '';
+}
+
+function clearAfterPhysicianAccessError(cause) {
+  if (!shouldReportCareAccessError(props.role, cause?.status)) return false;
+  emit('access-error', { status: cause.status });
+  generation += 1;
+  status.value = 'ready';
+  busy.value = false;
+  error.value = 'Der Server hat den Arztzugriff abgelehnt. Die Arztansichten werden geschlossen.';
+  notice.value = '';
+  patients.value = [];
+  relationship.value = null;
+  invitations.value = [];
+  patientEmail.value = '';
+  return true;
 }
 
 function isValidPatient(patient) {
@@ -84,8 +101,10 @@ async function load() {
     status.value = 'ready';
   } catch (cause) {
     if (!current(request, identity)) return;
-    error.value = cause.message || 'Der Betreuungsstatus konnte nicht geladen werden.';
-    status.value = 'error';
+    if (!clearAfterPhysicianAccessError(cause)) {
+      error.value = cause.message || 'Der Betreuungsstatus konnte nicht geladen werden.';
+      status.value = 'error';
+    }
   } finally {
     if (current(request, identity)) busy.value = false;
   }
@@ -107,7 +126,9 @@ async function invitePatient() {
     patientEmail.value = '';
     notice.value = 'Einladung wurde erstellt. Eine Betreuung entsteht erst nach ausdrücklicher Annahme durch den Patienten.';
   } catch (cause) {
-    if (current(request, identity)) error.value = cause.message || 'Die Einladung konnte nicht erstellt werden.';
+    if (current(request, identity)) {
+      if (!clearAfterPhysicianAccessError(cause)) error.value = cause.message || 'Die Einladung konnte nicht erstellt werden.';
+    }
   } finally {
     if (current(request, identity)) busy.value = false;
   }
