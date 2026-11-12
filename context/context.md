@@ -1,10 +1,10 @@
 # OrthoSohle – aktueller Projektkontext
 
-Stand: 10.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start und Dateien der aktiven Anwendung in [code/README.md](../code/README.md).
+Stand: 12.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start und Dateien der aktiven Anwendung in [code/README.md](../code/README.md).
 
 ## Ziel und aktueller Schwerpunkt
 
-Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Aktueller Auftrag: die alte Webapp als Grundlage zu einer produktreifen Webapp weiterentwickeln und daraus installierbare Android- und iOS-Apps erzeugen. Ein zweites Projekt entwickelt eigene Software für das Waveshare-Armband mit eigener Verbindung zur Sohle und Anbindung an App, Daten und Backend. Das ausgewählte Waveshare-Armband ist laut Nutzer noch nicht vorhanden. Historischer Sohlenaufbau und verfügbare Smartphone-/Watchgeräte sind in [project-background.md](project-background.md) eingeordnet.
+Ärzte-/Patientensystem für nachvollziehbare Teilbelastung mit unabhängiger Armbandwarnung. Maßgeblicher Armbandauftrag vom 12.11.2026: Das Waveshare-Armband verbindet sich direkt per BLE mit der Sohle, überwacht lokal ohne Handy/Internet, puffert nichtflüchtig und synchronisiert selbst über WLAN/TLS mit einem gemeinsamen Backend. Die App richtet Gerät/Netzwerk ein, verwaltet Geräte und ärztliche Pläne und zeigt Verlauf sowie den tatsächlichen Übernahmestatus. Dies ersetzt die frühere erforderliche Sohle→Handy-Kette. Nutzer berichtet, dass sein Displaytest bereits funktioniert hat; in diesem Workspace ist keine Hardwareabnahme erfolgt. Verbindlich im [Anforderungsdokument](requirements.md) und in der [Entscheidungshistorie](decisions.md).
 
 ## Belegter Softwarestand
 
@@ -59,7 +59,14 @@ Lokaler TOTP-Durchstich 10.11.2026: Better Auth 1.7.18 eingebautes `twoFactor`-P
 | Zusätzlicher Watch-Arbeitsbereich | [watch-compatibility.md](watch-compatibility.md) |
 | Aktiver Anwendungscode, Installation und Datenfluss | [code/README.md](../code/README.md) |
 
-Dieser Chat arbeitet ab der Strukturintegration ausschließlich auf `lenni/code`; `paul/code` ist Pauls Arbeitsbranch. Integration nach `main` erfolgt per Pull Request gemäß AGENTS.md.
+Dieser Auftrag wird auf `paul/code` bearbeitet; Integration nach `main` erfolgt per Pull Request gemäß AGENTS.md.
+
+## Armbandpfad – Stand 12.11.2026
+
+- Iststand geprüft: `code/webapp` und `code/api` sind aktiv; die API ist lokal und loopbackgebunden. Messsitzungsrouten benötigen Better-Auth-Browsercookie/Origin und sind kein Geräteupload-Endpunkt. Der aktive alte Arduino-Sketch nutzt eine 4-Byte-Float-Characteristic und begrenzt Werte über 25 kg auf 25 kg. `context/legacy/` bleibt unverändert.
+- Neuer hosttestbarer C++-Kern unter `code/firmware/waveshare` dekodiert Legacy-Float32 und einen versionierten BLE-Messframe, markiert 25 kg und darüber als mehrdeutige Kalibriergrenze und verwirft ungültige Längen/Werte/Flags/Versionen sowie doppelte/alte Sequenzen innerhalb desselben BLE-Links. Ein reiner Zustandsauswerter unterscheidet ungültigen/fehlenden/abgelaufenen Plan, stale/missing/sensorfault/range-limit und konfigurierbare Grenzvergleichsart; keine Zeitwerte/Hysterese erfunden. Beide Hosttests mit g++ und ASan/UBSan bestanden. Kein Gerätefirmware-, Display-, BLE- oder Motorwarnnachweis.
+- Nutzer berichtet erfolgreichen Displaytest auf echter Hardware; dieses Repository wurde hier nicht auf ein Board geflasht. Herstellerunterlagen nennen GC9A01A 240×240, CST816S, 16 MB Flash/2 MB PSRAM und GPIO2/6/7 für Backlight/I²C. Revision und weitere Peripherie sind noch zu erheben.
+- Nächster Schritt: Display-/BLE-Firmware samt Sohlensender sowie sichere Plan-/Uploadverträge als getrennte, testbare Pakete bearbeiten. Keine öffentlichen Geräteendpunkte vor Authentifizierungs- und Idempotenztests. Details stehen in `context/backlog.csv` und [Firmwarekern](../code/firmware/waveshare/README.md).
 
 Der historische 600-Personenstunden-Plan ist keine belastbare Schätzung des erweiterten Produktumfangs. Offene Aufgaben und neue Schätzungen werden im Backlog gepflegt. Lokale Gitstände und Branches ergeben sich aus Git, nicht aus vorweggenommenen Commitangaben hier.
 

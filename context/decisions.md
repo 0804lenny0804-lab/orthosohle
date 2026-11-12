@@ -2,6 +2,14 @@
 
 Nur relevante, dauerhaft wirksame Entscheidungen aufnehmen: Datum, Entscheidung, Grund und Konsequenz. Kleine lokale Implementierungsdetails gehören in Code/Commit. Offene Optionen stehen im Kontext, nicht als beschlossene Entscheidung hier. Frühere Einträge bei Ablösung erhalten und Nachfolger nennen; einzelne ADR-Dateien erst bei tatsächlichem Umfangsbedarf.
 
+## 12.11.2026 – Eigenständiger Mess- und Synchronisationspfad des Waveshare-Armbands
+
+**Nutzerentscheidung:** Das Waveshare ESP32-S3-Touch-LCD-1.28 verbindet sich während der Messung direkt per BLE mit der Sohle und übernimmt Anzeige, lokale Messwertprüfung und Warnung ohne Handy/App/Internet. Es puffert Daten nichtflüchtig. Bei erreichbarem WLAN synchronisiert es selbst über eine gesicherte Verbindung mit einem gemeinsamen Backend: Messdaten und Status hoch, gültige versionierte Pläne/Konfiguration herunter. Die App dient Einrichtung, Gerätezuordnung, Planverwaltung und Verlauf; sie zeigt Soll- und nach dauerhafter Gerätebestätigung angewendete Version getrennt. Kein Vibrationsversprechen ohne Motor-/Ansteuerungs- und Gerätetest.
+
+**Grund:** Nutzerauftrag vom 12.11.2026; die frühere Anforderung Sohle → Handy genügt der gewünschten autonomen Messung nicht.
+
+**Konsequenz:** Diese Architektur ersetzt die widersprüchlichen offenen bzw. vermittelten Datenwegannahmen vom 20.10. und 10.11.; Historie bleibt erhalten. Der aktuelle API-Durchstich ist an Loopback und Browser-Cookies gebunden und kein Geräte-Backend. TLS, Geräteidentität/-bindung, API, Planversionen, dauerhafte Batch-ACKs, Flashpuffer, UI und reale Funk-/Warnabnahme bleiben offen. Der alte Sohlensketch klemmt oberhalb 25 kg; ohne zusätzliches Überbereichsmerkmal sind Werte ab 25 kg mehrdeutig. Die unter `context/legacy/` gesicherte Kopie bleibt unverändert.
+
 ## 07.11.2026 – Better Auth als Auth-Basis gewählt
 
 **Nutzerentscheidung:** Nach dem Auth-Vergleich Better Auth verwenden und weiterarbeiten. Die vorherige Auth0-Empfehlung im Vergleich ist damit nicht die gewählte Umsetzung.

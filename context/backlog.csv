@@ -2,8 +2,8 @@ ID,Prioritaet,Arbeitspaket,Aufgabe,Personenstunden,Abhaengigkeiten,Abnahmekriter
 S01,P0,Grundlagen,Alt-Webapp inventarisieren und Übernahmegrenzen festlegen,3,—,Frontend Backend Firmware und bekannte Fehler anhand des Bestands erfasst,Offen,,
 S02,P0,Grundlagen,Webapp in aktiven Bereich übernehmen und lokal starten,4,S01,Installation und Start beider Dienste reproduzierbar dokumentiert,Offen,,Vue-Frontend und lokales API starten; code/README.md. Vollständige Übernahme und Abnahme offen
 S03,P0,Grundlagen,Mobile Verpackung und native BLE-Anbindung vergleichen,4,S01,iOS Android BLE Hintergrundbetrieb Signierung und Wartung verglichen; Entscheidung offen dokumentiert,Offen,,
-S04,P0,Grundlagen,Geräte- und Datenfluss mit offenen Verbindungswegen spezifizieren,4,S01,Sohle App Armband Backend Rollen und ungeprüfte Annahmen beschrieben,Offen,,
-S05,P0,Grundlagen,Versionierten Mess- und Planvertrag entwerfen,4,S04,Einheit Sequenz Zeit Qualität Planversion ACK und Fehlerfälle beschrieben,Offen,,
+S04,P0,Grundlagen,Geräte- und Datenfluss mit offenen Verbindungswegen spezifizieren,4,S01,Sohle App Armband Backend Rollen und ungeprüfte Annahmen beschrieben,In Arbeit,Paul,Direktpfad Sohle→Armband und autonomer WLAN/TLS-Backendpfad gemäß Nutzerauftrag 12.11 in requirements/decisions festgehalten; Geräteauthentifizierung und Betrieb offen
+S05,P0,Grundlagen,Versionierten Mess- und Planvertrag entwerfen,4,S04,Einheit Sequenz Zeit Qualität Planversion ACK und Fehlerfälle beschrieben,In Arbeit,Paul,"BLE-Messvertrag v0/v1 und hostgetesteter Decoder begonnen; Zeit/Boot-ID sowie API-Batches, Plan-ACK und Fehlersemantik offen"
 S06,P0,Grundlagen,Prioritäten und Restaufwand nach Spikes abstimmen,3,S02;S03;S05,Abhängigkeiten Aufwand und Softwareumfang anhand Ergebnissen aktualisiert,Offen,,
 W01,P1,Webapp,Bestehende Messpipeline und Grenzwert-API untersuchen,4,S02;S05,Aufrufer Datenfluss und Abweichungen zu Vertrag dokumentiert,Offen,,
 W02,P1,Webapp,Messwerte zentral validieren und Demoquelle trennen,4,W01,Ungültige Werte abgewiesen; synthetische Quelle erkennbar,Offen,,
@@ -27,11 +27,11 @@ M02,P1,Mobile,Native BLE-Schnittstelle für App anbinden,4,M01;S05,Vertrag mit s
 M03,P1,Mobile,Anmeldung und sicheren Speicher mobil integrieren,4,M01;W06,Login Rückkehr und Logout auf Zielplattformen nachvollziehbar,Offen,,
 M04,P1,Mobile,APK und IPA Build und Signierung dokumentieren,4,M01,Reproduzierbare Builds und erforderliche Zugangsvoraussetzungen beschrieben,Offen,,
 M05,P1,Mobile,BLE und Hintergrundverhalten auf Zielgeräten prüfen,4,M02;M04,Beide Plattformen mit verfügbarem Gerät geprüft; fehlende Hardware als Blocker festgehalten,Offen,,
-F01,P0,Firmware,Firmwareprojekt und reproduzierbaren Build einrichten,4,S04,Versionierte Toolchain und minimale Firmware bauen,Offen,,
-F02,P1,Firmware,Sohlenprotokoll dekodieren und validieren,4,F01;S05,Gültige und fehlerhafte synthetische Pakete definiert behandelt,Offen,,
+F01,P0,Firmware,Firmwareprojekt und reproduzierbaren Build einrichten,4,S04,Versionierte Toolchain und minimale Firmware bauen,In Arbeit,Paul,Host-C++17/CMake-Testprojekt eingerichtet; reproduzierbarer ESP32/Arduino-Build und Hardware-Firmware offen
+F02,P1,Firmware,Sohlenprotokoll dekodieren und validieren,4,F01;S05,Gültige und fehlerhafte synthetische Pakete definiert behandelt,In Arbeit,Paul,"Legacy-Float32 und v1-Frame mit ungültigen Werten, Qualitätsflags und Sequenztests umgesetzt; BLE-Integration/Sohlensender offen"
 F03,P1,Firmware,BLE-Empfang und Wiederverbindung implementieren,4,F02,Verbindung Timeout und Wiederverbindung als Zustände implementiert,Offen,,
 F04,P1,Firmware,Anzeige für Wert und Fehlerzustand implementieren,4,F02,Wert Einheit Datenalter und fehlende Werte unterscheidbar,Offen,,
-F05,P1,Firmware,Lokalen Warnzustandsautomaten implementieren,4,F02;S05,Grenze Hysterese und Datenalter mit Testsequenzen nachvollziehbar,Offen,,
+F05,P1,Firmware,Lokalen Warnzustandsautomaten implementieren,4,F02;S05,Grenze Hysterese und Datenalter mit Testsequenzen nachvollziehbar,In Arbeit,Paul,"Reiner Zustandsevaluator für Plan-/Messfehler und Grenzvergleich mit Tests; Hysterese, Datenalterparameter und Hardwareausgabe offen"
 F06,P1,Firmware,Versionierten Plan persistent speichern und bestätigen,4,F01;S05,Neustart und unvollständige Übertragung ergeben definierten Planstatus,Offen,,
 F07,P1,Firmware,Geräteanbindung an App und Backend entwerfen,4,S04;F01,Direkter oder vermittelter Pfad Auth und Offlineverhalten dokumentiert,Offen,,
 F08,P1,Firmware,Gewählten Datenaustausch implementieren,4,F07;F06,Messdaten und Planbestätigung über gewählten Testpfad austauschbar,Offen,,

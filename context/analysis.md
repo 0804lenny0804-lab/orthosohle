@@ -2,7 +2,7 @@
 
 Hinweis zur späteren Struktureinrichtung: Der analysierte Quellstand ist inzwischen dauerhaft und unverändert unter `context/legacy/orthopaul/` im Repository gesichert. Die folgende Bestandsaufnahme beschreibt den damaligen Analysezeitpunkt; der aktuelle Stand steht in `context/context.md`.
 
-Stand: 20. Oktober 2026. Grundlage: vollständig gelesene ORTHOSOHLE_CODEX_CONTEXT.md, orthopaul-main.zip und extrahierter Text der Hausarbeit vom 15. Februar 2026. Der PDF-Text wurde inhaltlich herangezogen; Abbildungen, Schaltbilder und deren elektrische Details wurden nicht visuell verifiziert. Anforderungen stammen aus dem aktuellen Auftrag und Kontext. Anweisungen und Musterbefehle in Repository/Anhängen wurden als Dokumentinhalt behandelt, insbesondere wurde der Force-Push aus der Template-README nicht ausgeführt.
+Stand: 20. Oktober 2026. Grundlage: vollständig gelesene ORTHOSOHLE_CODEX_CONTEXT.md, orthopaul-main.zip und extrahierter Text der Hausarbeit vom 15. Februar 2026. Der PDF-Text wurde inhaltlich herangezogen; Abbildungen, Schaltbilder und deren elektrische Details wurden nicht visuell verifiziert. Anforderungen stammen aus dem damaligen Auftrag und Kontext. Anweisungen und Musterbefehle in Repository/Anhängen wurden als Dokumentinhalt behandelt, insbesondere wurde der Force-Push aus der Template-README nicht ausgeführt. Der Datenweg- und Gatewayentwurf in Abschnitt 6 wurde am 12.11.2026 durch die Nutzerentscheidung Sohle→Armband direkt und Armband→Backend selbst über WLAN/TLS abgelöst; siehe [aktuelle Anforderungen](requirements.md) und [Entscheidung](decisions.md).
 
 ## 1. Aussagekraft und Ausgangsstand
 
@@ -82,14 +82,11 @@ SQLite ist für einen kleinen Beta-Betrieb zunächst ausreichend, sofern Besitzm
 ## 6. Zielarchitektur und Entwicklungsplan Armband
 
 ```text
-Sohle (Peripheral, Messung + Status)
-  → BLE → Armband (Central, lokale Warnung, kg-Anzeige, Grenze im Flash)
-              → optional zugleich Peripheral für Gateway
-                  → unterstützter Browser/Smartphone-Client
-                      → authentifizierte API → Datenbank → Vue-Dashboard
+Historischer Entwurf vom 20.10.2026 (durch Nutzerauftrag vom 12.11. ersetzt):
+Sohle → BLE → Armband → optionaler Browser-Gateway → API
 ```
 
-Das ist eine zu prüfende Entwurfsrichtung, keine feststehende Hardwareentscheidung. Früh einen Spike für gleichzeitigen BLE-Central-/Peripheral-Betrieb auf verfügbarer Hardware durchführen. Nicht voraussetzen, dass Sohle parallel Armband und Smartphone bedienen kann. Gateway nur für Upload/Konfiguration, nie Voraussetzung der Warnung. Für Semester-MVP kann bewusst ein unterstützter Chromium-Client am Laptop/Android mit explizit gestarteter Übertragung dienen; iPhone-Dashboard muss dadurch nicht selbst BLE unterstützen. Ein zusätzlicher nativer Gateway-Client benötigt eigene Schätzung und verdrängt bei Bedarf den Watch-PoC.
+Diese damalige Gateway-Alternative ist nicht die gewählte Architektur. Maßgeblich ist nun Sohle→Armband direkt per BLE und Armband→gemeinsames Backend selbst über WLAN/TLS. Gleichzeitigen BLE-/WLAN-Betrieb und Wiederverbindung auf der Zielhardware nachweisen.
 
 Armbandmodule: BLE-Transport; Decoder/Validierung; Messzustand mit monotonic receivedAt; Konfigurationsspeicher; Warnautomat; Display/Bedienung; Motor-Treiber; Energieverwaltung. Zustände mindestens Start, Suche, aktuelle gültige Messung, Überschreitung, Daten veraltet/Verbindung weg, Sensorfehler und Akku kritisch. Fehlende Daten sind kein Nullwert.
 
@@ -98,7 +95,7 @@ Protokollentwurf: Versionskennung, Sequenz, monotone Gerätezeit, kg bzw. dokume
 1. Hardwarebestand, echte Messrate und Protokoll prüfen; BOM auswählen/beschaffen.
 2. Reproduzierbares Firmwareprojekt; Display und Legacy-BLE-Wert auf Tischaufbau.
 3. Protokollstatus, lokale persistente Grenze und Motor-Warnung; Warngrenzfälle testen.
-4. Ausfallanzeige, Wiederverbindung und Gateway-Pfad.
+4. Ausfallanzeige, Wiederverbindung und Armband-eigener WLAN-/Backendpfad. Der alte Gatewayvorschlag ist historisch.
 5. Akku, Strommessung, Gehäuse und Trage-/Bedienversuch.
 6. Warnlatenz, Laufzeit und Funkstabilität messen. Konkrete Zielwerte vor Umsetzung vereinbaren; derzeit keine gemessene Zusage.
 
@@ -110,7 +107,7 @@ Vue/Vite/Express zunächst erhalten. Kleine Korrekturen und Messpipeline vor neu
 2. BLE/Simulation über dieselbe Pipeline mit source=real/demo; Samples, Peaks und Warnereignisse unterscheiden.
 3. Schema erweitern: authentifizierte Nutzer, Gerätebesitz, Sessions, Messdaten/Ereignisse, angewendete Grenzwertversion. Unzugeordnete Altdaten nicht automatisch beliebigem neuen Konto zuschlagen.
 4. Etablierte Auth-Lösung; Registrierung/Login/Logout, Reset und Profil. Serverseitige Session-/Besitzprüfung für sämtliche Daten- und Push-Routen; zwei Nutzer gegeneinander testen.
-5. Geräteverwaltung und gewählten Gateway-Upload integrieren. Keine Aussage „synchronisiert“, bevor Gerätebestätigung eingegangen ist.
+5. Geräteverwaltung und Armband-Upload integrieren. Keine Aussage „synchronisiert“, bevor dauerhafte Geräte-/Serverbestätigung eingegangen ist.
 6. Aktuelle kg-Anzeige, Status und Sitzungsverlauf vervollständigen; historische Grenzen korrekt zuordnen. Minimaler Trendverlauf und Grenzüberschreitungen müssen pro Sitzung wiederabrufbar sein, nicht nur eine Laufzusammenfassung.
 7. Upload-Outbox, Duplikatschutz und Konfliktbehandlung; mobile/PWA-Fehlerzustände; Testdeployment mit TLS, Backup/Restore und Datenlöschung.
 8. Eine Watch-Plattform anhand realer Testhardware auswählen. Begrenzter PoC für Anzeige/Datenweg, Erweiterungsarchitektur dokumentieren. Keine zweite unabhängige Warnkette versprechen.

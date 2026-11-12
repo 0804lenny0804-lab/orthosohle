@@ -1,11 +1,27 @@
 # Softwareanforderungen und Produktmeilensteine
 
-Stand: 10.11.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe und kein Nachweis einer produktiven/medizinischen Einsatzfähigkeit. Zielauftrag: alte Webapp als Grundlage zu einem produktreifen Arzt-/Patientensystem ausbauen und daraus APK und IPA erzeugen; daneben eigene Waveshare-Software entwickeln. Bestätigte Kernentscheidungen stehen in Abschnitt 2; weitere Detailfunktionen unten sind begründete Vorschläge, bis sie abgestimmt sind. Hardwarebasis des eigenständigen Armbands ist auf Nutzerentscheidung Waveshare ESP32-S3-Touch-LCD-1.28; weitere Komponenten, Provider und Frameworkänderungen sind nicht ausgewählt.
+Stand: 12.11.2026. **Arbeitsentwurf zur Anforderungsklärung**, keine Freigabe und kein Nachweis einer produktiven/medizinischen Einsatzfähigkeit. Zielauftrag: alte Webapp als Grundlage zu einem Arzt-/Patientensystem ausbauen und daraus APK und IPA erzeugen; daneben eigenständige Waveshare-Firmware entwickeln. Hardwarebasis ist Waveshare ESP32-S3-Touch-LCD-1.28. Neue verbindliche Armband- und Synchronisationsvorgaben stehen direkt unten; Detailfunktionen bleiben Vorschläge, soweit nicht ausdrücklich als Nutzerentscheidung bezeichnet.
+
+## Verbindliche Armbandarchitektur (Nutzerauftrag 12.11.2026)
+
+Das Armband verbindet sich **direkt per BLE mit der Sohle** und überwacht lokal ohne Handy, Laptop, App oder Internet. Die App dient der sicheren Einrichtung, Gerätezuordnung und ärztlichen Planverwaltung. Das Armband synchronisiert selbst über WLAN/TLS mit einem gemeinsamen, außerhalb des Handys/Laptops erreichbaren Backend. Ein Laptopserver ist ausschließlich eine ausdrücklich konfigurierte Entwicklungsvariante. Sohle → Handy ist damit nicht länger die erforderliche Messkette; die frühere Entscheidung in Abschnitt 2 ist historisch und durch diese Präzisierung ersetzt.
+
+```text
+Arzt/App ── gültiger versionierter Plan ──► Backend ── WLAN/TLS ──► Armband
+Sohle ── direkte BLE-Messung ──► Armband ── lokale Prüfung/Warnung/Flashpuffer
+Armband ── idempotenter Upload mit dauerhaftem ACK ── WLAN/TLS ──► Backend ──► App/Web
+```
+
+Lokale Messanzeige, Warnung und Status dürfen nicht auf Backend- oder Telefonverfügbarkeit warten. Das Gerät hält den letzten gültigen, bestätigten Plan persistent. Eine neue Planversion wird erst als angewendet gemeldet, wenn sie validiert und dauerhaft gespeichert ist. Uploaddaten werden erst nach konkreter serverseitiger Dauerbestätigung freigegeben. Offline- und Fehlerzustände bleiben sichtbar und werden nach Wiederverbindung automatisch weiterbearbeitet. Das Gerät darf keine erfolgreiche Vibrationswarnung behaupten, solange Motor/Ansteuerung und reale Warnkette nicht getestet sind.
+
+Der aktive API-Stand ist ein Loopback-gebundener Browser-/Cookie-Durchstich, kein erreichbarer, geräteauthentifizierter Backenddienst. WLAN-Upload, Gerätebindung, Planabruf, persistenter Flashpuffer und Webapp-Geräteverwaltung sind deshalb offen. Keine bestehende Cookie-Route öffentlich freigeben und keine echten Patientendaten verwenden.
+
+Der [Firmware-Messvertrag](../code/firmware/waveshare/README.md) beschreibt das bekannte 25-kg-Clamp-Problem und den aktuellen BLE-Decoderstand. Der noch nicht implementierte [API-/Plan-Synchronisationsentwurf](../code/firmware/waveshare/sync-contract.md) beschreibt die nötige ACK-Semantik und offenen Sicherheitsentscheidungen.
 
 ## Technische Endziele und Systemgrenzen
 
 1. **Webapp und mobile Auslieferung:** Das vorhandene Vue-/Express-System fachlich und technisch weiterentwickeln: Patienten- und Arztabläufe, Konten, Berechtigungen, Therapiepläne, Geräte und Messverläufe über ein gemeinsames Backend. Dieselbe Webapp bildet die Grundlage für Web, APK und IPA. Packaging-Technologie, native BLE-Brücke, Hintergrundbetrieb, Builds, Signierung und Store-Verteilung müssen auf iOS und Android nachgewiesen werden; eine Webansicht allein belegt diese Funktionen nicht.
-2. **Eigenes Waveshare-Projekt:** Eigene Firmware für ESP32-S3-Touch-LCD-1.28 mit Anzeige, lokaler Grenzwertprüfung, Warnung und definierten Fehlerzuständen. Eigene Verbindung zur Sohle sowie Verbindung zu App, Daten und Backend sind Ziele. Funkrollen, direkte oder vermittelte Backendverbindung, gleichzeitige Verbindungen, Synchronisation und Hardwareausstattung sind noch zu klären und zu erproben.
+2. **Eigenes Waveshare-Projekt:** Eigene Firmware für ESP32-S3-Touch-LCD-1.28. Verbindlich ist Sohle→Armband direkt per BLE und Armband→gemeinsames Backend selbst über WLAN/TLS. Lokale Anzeige, validierte Messung und Warnung funktionieren unabhängig von Handy/Internet. Gleichzeitiger Funkbetrieb, Wiederverbindung, Speicherkapazität und reale Hardwareausstattung sind zu erproben.
 3. **Gemeinsamer Datenvertrag:** Versionierte Messwerte mit Einheit, Zeit/Alter und Qualität, Geräteidentität sowie versionierte Therapiepläne und Gerätebestätigung. Offlinezustände, Datenlücken, Wiederholung und Konflikte müssen sichtbar und nachvollziehbar sein. Die lokale Warnung darf nicht vom Internet oder Telefon abhängen.
 4. **Produktqualität:** Serverseitige Autorisierung, Datenschutz, sichere Konten, reproduzierbare Builds, Betrieb, Backup und Wiederherstellung sowie belegte Geräte- und Fehlerfälle sind Teil der Abnahme. Messgenauigkeit und medizinische Einsatzfreigabe benötigen eigene Nachweise. Einzelne Anforderungen und Abnahmen stehen unten.
 
@@ -33,18 +49,18 @@ Vom Nutzer am 20.10.2026 bestätigt:
 | Zusätzlicher Watch-Client | Apple Watch von Beginn an mitplanen; iPhone, Android, Waveshare und Apple Watch laut Nutzer verfügbar | Apple Watch zuerst real testen; Modelle/OS und zugesagte Funktionen klären. iPhone-Buildweg über GitHub Actions/macOS-Runner und AltServer auf Windows ist vereinbart, aber noch nicht praktisch erprobt; Watch-Build/Installation separat prüfen. Wear OS später |
 | Erste Einsatzform | Beaufsichtigter Pilot, regulärer Einsatz erst nach Freigabe | Pilotumfang, Betreuung und eigene Abnahme definieren |
 | Behandlerzahl | Genau ein verantwortlicher Arzt pro Patient; Arztwechsel unterstützt | Keine gleichzeitig gleichberechtigten Behandler in Version 1; Zuständigkeitswechsel historisieren |
-| Lokaler Messdatenweg | Sohle schickt Messwerte an das Handy | Diesen BLE-Pfad für beide Smartphoneplattformen prüfen; Backend-Übertragung ist ein zweiter Schritt |
+| Historischer lokaler Messdatenweg (20.10.) | Sohle schickt Messwerte an das Handy | Durch Nutzerpräzisierung am 12.11. ersetzt: Sohle → Armband direkt per BLE; Armband → Backend selbst über WLAN/TLS |
 | Eigenständiges Armband | Waveshare ESP32-S3-Touch-LCD-1.28 als Hardwarebasis | Eigene Firmware für Anzeige/lokale Warnung; exakte Revision, Akku/Ladung, Haptik und BLE-Pfad noch nachweisen |
 
 Patientenbestätigung und technische Gerätebestätigung unterscheiden: Die App darf einen Plan erst als am Armband angewendet anzeigen, wenn das tatsächliche Gerät die richtige Version bestätigt. Eine Benutzeraktion allein reicht nicht. Verhalten bei ausstehender Bestätigung oder abgelaufenem Plan muss festgelegt werden.
 
 **Arztwechsel:** Neue Betreuung erst nach definiertem Einladungs-/Bestätigungsablauf aktivieren, alten Zugriff nach Regel beenden und zu jedem Zeitpunkt höchstens einen verantwortlichen Arzt führen. Historischen Plan samt Autor erhalten; Entscheidung über weitere Gültigkeit des Plans während des Wechsels ausdrücklich treffen. Keine ungefragte Übernahme alter ärztlicher Zugriffsrechte.
 
-**Datenweg auseinanderhalten:** Sohle → Handy (lokaler Empfang per BLE) ist der bestätigte Ausgangspunkt. Handy → Backend (Internetübertragung) ermöglicht gespeicherte Sitzungen und Arztzugriff. Offen ist, wann dieser zweite Schritt passiert: während aktiver App, zusätzlich im Hintergrund oder nach Offlinephasen. Eine Offline-Queue auf dem Handy kann nur bereits empfangene Daten sichern; Messungen ohne BLE-Empfänger benötigen Speicher am Messgerät/Armband oder müssen als Lücke kenntlich bleiben. Keinen Gerätepuffer aus der früheren Frage als beschlossen ableiten.
+**Historischer Datenweg (durch Auftrag vom 12.11. ersetzt):** Die frühere Bestätigung Sohle → Handy bleibt zur Erklärung alter Appanforderungen erhalten, ist aber keine Voraussetzung der neuen Armbandkette. Neue Messungen gelangen per direkter BLE-Verbindung von der Sohle ans Armband. Das Armband puffert lokal nichtflüchtig und synchronisiert selbst mit dem Backend. Pufferumfang, dauerhafte ACK-Semantik, Gerätebindung und sichere Endpunkte sind noch zu implementieren und zu testen.
 
-**Unabhängiges Armband:** Der bestätigte Handyempfang hebt die bisherige lokale Warnanforderung nicht auf. Direkter Armbandempfang, Parallelverbindung oder anderer lokaler Pfad sind weiterhin nachzuweisen. Das Waveshare-Gerät ist jetzt als Hardwarebasis des unabhängigen Warnarmbands bestätigt. Zusätzliche gängige Smartwatches stehen im [Arbeitsbereich WATCH](watch-compatibility.md); nicht ungeprüft Sohle → Handy → Uhr als autonome Warnkette ausgeben. Ein ESP32-Board mit Touchdisplay ist kein Nachweis von Motor, Akku, fertigem Gehäuse oder zuverlässiger Warnfunktion.
+**Eigenständiges Armband:** Direkte BLE-Verbindung Sohle → Armband und autonome lokale Warnung sind verbindliches Ziel (12.11.2026). Gleichzeitige BLE-/WLAN-Verfügbarkeit, Wiederverbindung und Ressourcenbedarf sind real zu prüfen. Das Waveshare-Gerät ist die ausgewählte Hardwarebasis; Nutzer berichtet, dass ein Displaytest bereits funktionierte. Das ist kein Nachweis des hier implementierten Firmwarestands, BLE, Motor, Akku, Gehäuse oder zuverlässiger Warnkette. Zusätzliche gängige Smartwatches stehen im [Arbeitsbereich WATCH](watch-compatibility.md).
 
-Weitere offene Fragen: konkrete Arztprüfung, Zugriffs-/Aufbewahrungsregeln nach Arztwechsel, gültiger Plan während des Wechsels, Uploadzeitpunkt, Offlinedauer/Puffergrenzen, Geräteteilung, Praxismodell, Hostingbudget und Support.
+Weitere offene Fragen: konkrete Arztprüfung, Zugriffs-/Aufbewahrungsregeln nach Arztwechsel, gültiger Plan während des Wechsels, sicherer Geräte-/Netzwerk-Erstbindungsprozess, Offlinedauer/Puffergrenzen, Geräteteilung, Praxismodell, Hostingbudget und Support.
 
 ## 3. Vorgeschlagene Kernabläufe
 
@@ -93,7 +109,7 @@ Alle IDs sind Produktanforderungen, **keine bereits implementierten Funktionen**
 | DEV-03 | Wechsel | Sichere Übergabe/Zurücksetzung mit Löschung alter Bindungen und verbleibender lokaler Daten | Neu zugeordneter Patient erhält keine Daten oder Konfiguration des vorherigen Nutzers |
 | DAT-01 | Messformat | Version, Einheit, Wertebereich, Sequenz, Geräte-/Empfangszeit, Qualitäts-/Überbereichsstatus | Kurze Pakete, NaN, Replay und unsupported Versionen werden definiert behandelt |
 | DAT-02 | Messsitzung | Nutzer, Gerät, Zeitbasis, wirksame Planversion, Quelle real/demo und Qualitätsstatus speichern | Ein Datenpunkt ist eindeutig zuordenbar; Testdaten verändern keine echten Therapieverläufe |
-| DAT-03 | Upload | Gewählter Gateway unterstützt gepufferten, authentifizierten und idempotenten Upload | Abbruch/Wiederholung erzeugt keinen Datenverlust innerhalb der zugesagten Puffergrenze und keine Duplikate |
+| DAT-03 | Upload | Das Armband unterstützt gepufferten, geräteauthentifizierten und idempotenten Upload ans gemeinsame Backend | Abbruch/Wiederholung erzeugt keinen Datenverlust innerhalb der zugesagten Puffergrenze und keine Duplikate |
 | DAT-04 | Zeit/Verlauf | Datenlücken, Zeitzonen/Sommerzeit und Uhrabweichungen behandeln | Ein Tag/Sitzungsintervall wird reproduzierbar ausgewertet; Gerätezeit nicht als echte UTC ausgeben |
 | ALT-01 | Warnkette | Belastungswarnung lokal am Armband, einschließlich Datenalter, Hysterese und Fehlerzustand | Ohne Internet/Telefon reproduzierbare Warnung und Störungsanzeige gemäß festgelegten Grenzen |
 | ALT-02 | Appmeldungen | Lokalen Alarm, Apphinweis und entfernte Benachrichtigung unterscheiden | Verzögerter Upload wird nicht als Echtzeitalarm dargestellt; kein unbegründetes Versprechen ärztlicher Dauerüberwachung |
@@ -406,7 +422,7 @@ Die Reihenfolge ist eine Arbeitsstruktur, **keine terminierte/geschätzte Zusage
 | Meilenstein | Ergebnis | Abnahme und Abhängigkeit |
 |---|---|---|
 | M0 – Ziel und Rechte verbindlich | Einsatzgrenze, Rollen, Betreuung, Planhoheit, Plattformen, Datenverantwortung und Kernumfang entschieden | Antworten/Entscheidungen dokumentiert, kritische Risiken und messbare Zielwerte benannt; Grundlage aller weiteren Pakete |
-| M1 – Technische Machbarkeit und früher Durchstich | Bestätigten Pfad Sohle → Handy auf iPhone/Android sowie unabhängigen Armbandpfad prüfen und alte App abgleichen; Apple-Watch-Companion früh erproben | Gültig/stale/Überbereich sowie Plan-ACK demonstriert; Apple Watch erhält Testdaten mit Alter/Planversion; derzeit fehlenden Apple-Buildzugang als Blocker führen, ohne ihn als bestandene Teilabnahme auszugeben; M0 vorausgesetzt |
+| M1 – Technische Machbarkeit und früher Durchstich | Direkten Sohle→Armband-BLE-Pfad und eigenständigen WLAN/TLS-Upload prüfen; Smartphone-/Watch-Companion bleibt ein separater App-Datenweg | Gültig/stale/Überbereich sowie Plan-ACK demonstriert; Apple Watch erhält Testdaten mit Alter/Planversion; derzeit fehlenden Apple-Buildzugang als Blocker führen, ohne ihn als bestandene Teilabnahme auszugeben; M0 vorausgesetzt |
 | M2 – Sichere Konten und Betreuungsrechte | Registrierung/Login/Reset/MFA, Arztprüfung, Einladung, Zuordnung und Entzug | Zwei Ärzte/zwei Patienten gegeneinander getestet, keine Rechteeskalation; M0 und gewählte Auth-Integration |
 | M3 – Versionierter Plan und Gerätebindung | Pläne, Historie, Gerätebesitz und bestätigte Grenzwertübernahme | Offline-/Neustart-/Entzugs-/Wechselfälle geprüft; keine falsche Erfolgsmeldung; M1/M2 |
 | M4 – Geschützter Sitzungsdatenweg | Schema/Migration, Upload, Puffer/Retry, Sitzung/Planbezug und Audit | Echte Testsession erneut abrufbar, Duplikate/Lücken/Zeitzonen geprüft, Restore erster Datenbasis; M1/M2 und Planvertrag aus M3 |

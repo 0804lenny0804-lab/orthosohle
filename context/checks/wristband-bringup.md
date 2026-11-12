@@ -4,29 +4,28 @@ Begonnen: 27.10.2026. Aufgabe C03 im [Backlog](../backlog.csv), anschließend er
 
 ## Bisher belegt
 
-- Historische Angabe korrigiert am 29.10.2026: Waveshare ESP32-S3-Touch-LCD-1.28 ist ausgewählt, aber laut Nutzer noch nicht vorhanden. Reale Inbetriebnahme bleibt blockiert.
-- Exakte Revision, aktuelle Firmware, Zusatzhardware und USB-Erkennung sind noch nicht erhoben.
-- Kein physischer Gerätezugriff aus diesem Workspace nachgewiesen. Es wurde nichts geflasht.
-- Hersteller-Wiki am 27.10.2026 erneut mit HTTP 403 nicht abrufbar. Deshalb wurden keine Display-Pins oder Treiberkonfigurationen daraus übernommen.
+- Nutzer berichtet am 12.11.2026, dass ein Testdisplaycode auf seinem Waveshare ESP32-S3-Touch-LCD-1.28 funktioniert. Foto, Revision, konkreter Sketch und Toolchain liegen hier nicht als unabhängiger Nachweis vor.
+- Der hier angelegte Firmwarecode ist ein hosttestbarer Messvertragskern; keine Gerätefirmware wurde hier gebaut oder geflasht.
+- Kein physischer Gerätezugriff aus diesem Workspace nachgewiesen. Es wurde hier nichts geflasht.
+- Herstellerdokumentation wurde am 12.11.2026 geprüft: GC9A01A (240×240), CST816S über I2C, Display über SPI, GPIO2 für Beleuchtung und GPIO6/7 für SDA/SCL.
 
-## Nächste Erhebung am Gerät
+## Nächster Hardwareabgleich
 
-1. Vollständigen Modell-/Revisionsaufdruck auf Vorder- und Rückseite ablesen; ähnliche Modelle mit abweichendem Displaycontroller nicht gleichsetzen.
-2. Vorhandene Zusatzteile nennen: Akku, Vibrationsmotor, Motortreiber und Verkabelung. Für den ersten Displaytest genügt die USB-Versorgung; unbekannte Zusatzverdrahtung vorher erfassen.
-3. Board mit einem USB-Datenkabel an Windows anschließen. Den Gerätenamen und gegebenenfalls COM-Port im Geräte-Manager sowie den Zustand des Displays notieren. Noch keine Firmware überschreiben.
-4. Aktuelle Firmwarequelle bzw. vorhandene Hersteller-Demo sichern, sofern verfügbar. Hersteller-Schaltplan und passendes Displaybeispiel für genau diese Variante beschaffen und Herkunft dokumentieren.
+1. Vollständigen Modell-/Revisionsaufdruck auf Vorder- und Rückseite sowie das getestete Display-Skript und die Toolchain sichern.
+2. Vorhandene Zusatzteile erfassen: Akku, Vibrationsmotor, Treiber und Verkabelung. Unbekannte Zusatzverdrahtung nicht voraussetzen.
+3. USB-Gerätenamen/COM-Port unter Windows notieren und Wiederherstellungsweg für die bekannte Display-Firmware sichern, bevor neue Firmware geflasht wird.
+4. Board-Schaltplanrevision dem Herstellerdokument und tatsächlicher Platine zuordnen. Display-/Touch-Konfiguration anhand des funktionierenden Nutzer-Tests übernehmen, nicht pins oder Treiber vermuten.
 
 Diese Beobachtungen hier nach Eingang ergänzen; unbekannte Werte bleiben unbekannt.
 
-## Eng begrenzter Firmware-Schritt danach
+## Nächster Geräte-Schritt
 
-- Verifizierte Board-/Displaykonfiguration und nachvollziehbare, festgelegte Toolchain verwenden.
-- Neuen tatsächlichen Firmwarecode unter code/ anlegen, Originalcode unverändert lassen.
-- Auf dem Display „TEST“ und einen festen kg-Testwert anzeigen. Noch keine BLE-Verbindung oder medizinische Warnlogik.
-- Build- und Uploadbefehle mit konkreten Versionen dokumentieren. Vor dem ersten Upload vorhandene Firmware und Wiederherstellungsweg berücksichtigen.
+- Funktionierendes Displaybeispiel als Grundlage in ein reproduzierbares Firmwareprojekt überführen und mit synthetischen, sichtbar markierten Werten bauen.
+- Danach Touch-Start und direkte BLE-Verbindung mit einer Sohle im Scan-/Statusmodus erproben, bevor lokale Warnung oder Synchronisierung freigegeben wird.
+- Build- und Uploadbefehle samt Toolchain/Revision dokumentieren. Vor jedem ersten Upload die bekannte Firmware und ihren Wiederherstellungsweg sichern.
 
-Abnahme: Build erfolgreich; Upload auf genau das erfasste Board; Testkennzeichnung und Wert nach Neustart auf dem echten Display lesbar. Nachweis enthält Datum, Commit, Boardrevision, Toolchain, Ergebnis und gegebenenfalls Foto. Kompilierung allein erfüllt die Geräteabnahme nicht.
+Abnahme für den ersten Geräte-Schritt: Build erfolgreich; Touchbedienung und BLE-Verbindung mit korrektem Status am echten Board; Messalter/Fehler sind sichtbar. Nachweis enthält Datum, Commit, Boardrevision, Toolchain, Sohle/Sketch, Ergebnis und Grenzen. Hosttests oder Kompilierung allein erfüllen die Geräteabnahme nicht.
 
 ## Aktueller Stand
 
-Vorbereitung der Erhebung erfolgt. Boardidentifikation, USB-Prüfung, Firmwarebuild und Displayabnahme stehen aus. Keine Arbeitsstunden oder Messergebnisse als geleistet erfasst.
+Laut Nutzer funktioniert ein früherer Displaytest auf dem Board. In diesem Workspace stehen exakte Revision, Firmwarebuild, USB-Prüfung, BLE-/Touchtest und Geräteabnahme noch aus. Keine Arbeitsstunden oder Messergebnisse als geleistet erfasst.
