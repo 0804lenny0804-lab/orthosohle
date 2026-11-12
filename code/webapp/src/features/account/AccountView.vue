@@ -102,10 +102,13 @@
         <PatientProfile :key="state.identityId" :identity-id="state.identityId" />
         <PhysicianReview :key="`physician-${state.identityId}`" :identity-id="state.identityId" :email-verified="state.emailVerified" @status="physicianStatus = $event" />
         <CareArea v-if="state.emailVerified" :key="`patient-care-${state.identityId}`" :identity-id="state.identityId" role="patient" />
+        <TherapyPlan v-if="state.emailVerified" :key="`patient-plan-${state.identityId}`" :identity-id="state.identityId" role="patient" />
         <template v-if="physicianStatus === 'approved'">
           <TotpStepUp :key="`physician-totp-${state.identityId}-${physicianStepUpGeneration}`" :identity-id="state.identityId"
             :two-factor-enabled="state.twoFactorEnabled" @verified="markPhysicianStepUpVerified" @expired="physicianStepUp = false" />
           <CareArea v-if="physicianStepUp" :key="`physician-care-${state.identityId}`" :identity-id="state.identityId" role="physician"
+            @access-error="handlePhysicianSessionAccessError" />
+          <TherapyPlan v-if="physicianStepUp" :key="`physician-plan-${state.identityId}`" :identity-id="state.identityId" role="physician"
             @access-error="handlePhysicianSessionAccessError" />
           <PhysicianSessions v-if="physicianStepUp" :key="`physician-sessions-${state.identityId}`" :identity-id="state.identityId"
             @access-error="handlePhysicianSessionAccessError" />
@@ -144,6 +147,7 @@ import PatientProfile from './PatientProfile.vue';
 import PhysicianReview from './PhysicianReview.vue';
 import CareArea from '../care/CareArea.vue';
 import PhysicianSessions from '../care/PhysicianSessions.vue';
+import TherapyPlan from '../care/TherapyPlan.vue';
 import { physicianAccessErrorMessage, shouldClosePhysicianAccessOnResume } from '../care/physician-session-requests.js';
 import TotpStepUp from '../step-up/TotpStepUp.vue';
 

@@ -16,6 +16,7 @@ import { migrateReviewerBootstrap } from '../src/reviewer-bootstrap-migration.js
 import { migrateTotpStepUp } from '../src/totp-step-up-migration.js';
 import { migratePhysicianApproval } from '../src/physician-approval-migration.js';
 import { migratePatientRelations } from '../src/patient-relations.js';
+import { migrateTherapyPlans } from '../src/therapy-plan.js';
 
 export const account = {
   name: 'Synthetic Test',
@@ -68,6 +69,7 @@ export async function fixture(t, {
       migrateTotpStepUp(runtime.database);
       migratePhysicianApproval(runtime.database);
       migratePatientRelations(runtime.database);
+      migrateTherapyPlans(runtime.database);
       runtime.close();
       runtime = createAuth(config);
     }

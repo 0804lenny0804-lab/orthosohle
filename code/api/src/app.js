@@ -7,6 +7,7 @@ import { createPhysicianApprovalRouter } from './physician-approval-routes.js';
 import { createTotpStepUpRouter, hasFreshTotpProof } from './totp-step-up.js';
 import { createPatientRelationsRouter } from './patient-relations.js';
 import { createPhysicianMeasurementSessionRouter } from './physician-measurement-session-routes.js';
+import { createTherapyPlanRouter } from './therapy-plan.js';
 
 export function createApp(auth, config = {}) {
   const { database, webOrigin } = config;
@@ -35,6 +36,9 @@ export function createApp(auth, config = {}) {
   app.use('/api/step-up', createTotpStepUpRouter(auth, database, config));
   app.use('/api/physician-review/approval', approval.router);
   app.use('/api/physician-review', createPhysicianReviewRouter(auth, database, config, () => approval.recoverPendingNotifications()));
+  app.use('/api/care', createTherapyPlanRouter(auth, database, {
+    webOrigin, guards: { isPhysicianApprovedInTransaction: ({ user }) => approved(user.id) },
+  }));
   app.use('/api/care/physician', createPhysicianMeasurementSessionRouter(auth, database, {
     guards: { isPhysicianApprovedInTransaction: ({ user }) => approved(user.id) },
   }));

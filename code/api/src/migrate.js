@@ -8,6 +8,7 @@ import { migrateReviewerBootstrap } from './reviewer-bootstrap-migration.js';
 import { migrateTotpStepUp } from './totp-step-up-migration.js';
 import { migratePhysicianApproval } from './physician-approval-migration.js';
 import { migratePatientRelations } from './patient-relations.js';
+import { migrateTherapyPlans } from './therapy-plan.js';
 
 const runtime = createAuth(readConfig(), { forMigration: true });
 try {
@@ -20,6 +21,7 @@ try {
   migrateTotpStepUp(runtime.database);
   migratePhysicianApproval(runtime.database);
   migratePatientRelations(runtime.database);
+  migrateTherapyPlans(runtime.database);
   console.log('Local authentication, TOTP, patient profile, and physician review schemas migrated.');
 } finally {
   runtime.close();
