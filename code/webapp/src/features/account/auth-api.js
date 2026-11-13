@@ -6,12 +6,12 @@ export class AuthRequestError extends Error {
   }
 }
 
-export async function authRequest(path, body) {
+export async function authRequest(path, body, { method } = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
   try {
     const response = await fetch(path, {
-      method: body === undefined ? 'GET' : 'POST',
+      method: method || (body === undefined ? 'GET' : 'POST'),
       credentials: 'same-origin',
       cache: 'no-store',
       signal: controller.signal,
@@ -21,7 +21,7 @@ export async function authRequest(path, body) {
     if (!response.ok) {
       const details = await response.json().catch(() => ({}));
       const messages = {
-        notification_recipient_not_configured: 'Die Arztprüfung kann derzeit nicht beantragt werden, weil die zuständige Prüfstelle serverseitig noch nicht eingerichtet ist. Es wurde kein Antrag gespeichert.',
+        notification_recipient_not_configured: 'Die Arztprüfung ist noch nicht eingerichtet: In code/api/.env fehlt PHYSICIAN_REVIEW_NOTIFY_EMAIL. Öffne die vorhandene Datei mit Editor/Notepad, ergänze dort die gewünschte Prüfer-E-Mail-Adresse und starte die API neu. Vorhandene Einstellungen oder Secrets nicht ersetzen. Es wurde kein Antrag gespeichert; die Adresse erteilt noch keine Prüferfreigabe.',
         notification_not_materialized: 'Der Antrag kann gespeichert sein, aber der Benachrichtigungseintrag konnte noch nicht lokal abgelegt werden. Bitte Status prüfen und erneut versuchen.',
         EMAIL_NOT_VERIFIED: 'Bitte zuerst die E-Mail bestätigen. Einen neuen Link kannst du unten anfordern.',
         PASSWORD_TOO_SHORT: 'Das Passwort muss mindestens 8 Zeichen enthalten.',
@@ -31,6 +31,7 @@ export async function authRequest(path, body) {
         INVALID_TOKEN: 'Der Kontolink ist ungültig, abgelaufen oder bereits verwendet. Bitte einen neuen Link anfordern.',
         EMAIL_ALREADY_VERIFIED: 'Die E-Mail ist bereits bestätigt. Bitte anmelden oder den Status erneut prüfen.',
         INVALID_CODE: 'Der Authenticator-Code ist falsch oder abgelaufen. Bitte einen aktuellen Code eingeben.',
+        INVALID_PASSWORD: 'Das aktuelle Passwort ist nicht korrekt. Bitte erneut versuchen.',
         INVALID_BACKUP_CODE: 'Der Wiederherstellungscode ist ungültig oder wurde bereits verwendet.',
         TWO_FACTOR_REQUIRED: 'Die Zwei-Faktor-Anmeldung wurde während des Anmeldeversuchs aktiviert. Bitte melde dich erneut an und gib danach deinen zweiten Faktor ein.',
       };

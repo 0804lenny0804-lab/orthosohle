@@ -2,7 +2,7 @@
   <section class="card mb-4" aria-labelledby="physician-review-title">
     <div class="card-body">
       <h3 id="physician-review-title" class="h5">Arztbereich</h3>
-      <p class="small text-muted">Beantrage eine Prüfung deines Kontos als behandelnder Arzt. Eine Beantragung erteilt noch keine Arztberechtigung; Bestätigungslinks und Arztfunktionen sind noch nicht verfügbar.</p>
+      <p class="small text-muted">Beantrage eine Prüfung deines Kontos als behandelnder Arzt. Eine Beantragung allein erteilt noch keine Arztberechtigung.</p>
       <p v-if="status === 'loading'" role="status" aria-live="polite">Prüfstatus wird geladen …</p>
       <div v-else-if="status === 'error'" class="alert alert-danger" role="alert">
         <p class="mb-2">{{ errorMessage }}</p>
@@ -20,6 +20,8 @@
       </p>
       <div v-else-if="status === 'pending'" role="status" aria-live="polite">
         <p>Deine Arztprüfung ist beantragt. Bis zur Bestätigung sind keine Arztfunktionen freigeschaltet.</p>
+        <p class="small text-muted">Die lokale Datei <code>physician-review-…</code> dokumentiert nur den Antrag und enthält keinen Freigabelink. Eine getrennte Datei <code>physician-approval-…</code> wird für das eingerichtete Prüfkonto erst nach dessen Bootstrap und einem Neustart der API angelegt. Den Freigabelink kann nur dieses Prüfkonto nach der Anmeldung mit TOTP verwenden.</p>
+        <p class="small text-muted">Beide Dateien gehören zum lokalen Test-Mailausgang. Es wird keine echte E-Mail versendet.</p>
         <p v-if="notificationStatus === 'pending'" class="alert alert-warning" role="alert">
           Der Benachrichtigungseintrag konnte noch nicht lokal abgelegt werden. Es wurde keine E-Mail versendet. Du kannst den Versuch wiederholen.
         </p>
@@ -30,6 +32,8 @@
         </button>
         <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="loadReview">Status erneut prüfen</button>
       </div>
+      <p v-else-if="status === 'approved'" role="status">Dein Arztkonto ist freigegeben. Patientenzugriff setzt eine bestätigte Zuordnung voraus.</p>
+      <p v-else-if="status === 'revoked'" role="status">Die Arztfreigabe wurde entzogen. Arztfunktionen stehen nicht zur Verfügung.</p>
       <p v-if="notice" class="small text-success" role="status" aria-live="polite">{{ notice }}</p>
     </div>
   </section>
@@ -43,6 +47,7 @@ const props = defineProps({
   identityId: { type: String, required: true },
   emailVerified: { type: Boolean, default: false },
 });
+const emit = defineEmits(['status']);
 const status = ref('loading');
 const busy = ref(false);
 const errorMessage = ref('');
@@ -66,10 +71,10 @@ function clearState() {
 
 function parseReview(result) {
   if (result?.review === null) return 'unrequested';
-  if (result?.review?.status === 'pending' && typeof result.review.requestedAt === 'string'
+  if (['pending', 'approved', 'revoked'].includes(result?.review?.status) && typeof result.review.requestedAt === 'string'
     && Number.isFinite(Date.parse(result.review.requestedAt))
     && ['pending', 'materialized'].includes(result.review.notificationStatus)) {
-    return { status: 'pending', notificationStatus: result.review.notificationStatus };
+    return { status: result.review.status, notificationStatus: result.review.notificationStatus };
   }
   throw new Error('Der Kontoserver hat einen ungültigen Prüfstatus zurückgegeben.');
 }
@@ -161,6 +166,7 @@ async function retryNotification() {
 }
 
 watch(() => props.identityId, () => { clearState(); if (mounted) loadReview(); });
+watch(status, value => emit('status', value), { immediate: true });
 onMounted(() => { mounted = true; clearState(); loadReview(); });
 onUnmounted(() => { mounted = false; generation += 1; status.value = 'loading'; busy.value = false; });
 </script>

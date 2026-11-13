@@ -13,7 +13,9 @@ test('physician review configuration failure is shown as a configuration issue, 
   await assert.rejects(authRequest('/api/physician-review', {}), error => {
     assert.equal(error.status, 503);
     assert.equal(error.code, 'notification_recipient_not_configured');
-    assert.match(error.message, /Prüfstelle serverseitig noch nicht eingerichtet/);
+    assert.match(error.message, /PHYSICIAN_REVIEW_NOTIFY_EMAIL/);
+    assert.match(error.message, /API neu/);
+    assert.match(error.message, /Prüferfreigabe/);
     assert.match(error.message, /kein Antrag gespeichert/);
     return true;
   });

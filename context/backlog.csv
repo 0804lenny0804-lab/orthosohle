@@ -12,9 +12,9 @@ W04,P1,Webapp,Migrationen und lokale Datenbankeinrichtung ergänzen,4,W03,Schema
 W05,P1,Webapp,Auth-Lösung und Sitzungsmodell auswählen,4,S02,Web und Mobile Login Widerruf und Betriebsaufwand begründet,Offen,,Better Auth für lokalen Durchstich gewählt; Mobile und Betrieb offen
 W06,P1,Webapp,Anmeldung und Sitzungswiderruf integrieren,4,W05;W04,Testkonten anmelden und widerrufene Sitzung zurückweisen,Offen,,Lokale Anmeldung Logout und Sessionwiderruf implementiert; Produktabnahme offen
 W07,P1,Webapp,Konto-Wiederherstellung und Verifikation umsetzen,4,W06,Abgelaufene und wiederverwendete Links zurückgewiesen,Offen,,Lokale Einmal-Links und Reset implementiert; echter Mailversand offen
-W08,P1,Webapp,Arztprüfung und Betreuungszuordnung modellieren,4,W04;W06,Einladung Bestätigung und höchstens ein verantwortlicher Arzt serverseitig definiert,Offen,,Lokaler Arztprüfungsantrag vorhanden; Freigabe und Betreuung offen
-W09,P1,Webapp,Autorisierung für Datenzugriffe ergänzen,4,W08,Fremde Patienten und Geräte serverseitig abgewiesen,Offen,,
-W10,P1,Webapp,Versionierte Therapiepläne speichern,4,W09;S05,Autor Gültigkeit Historie und Planversion abrufbar,Offen,,
+W08,P1,Webapp,Arztprüfung und Betreuungszuordnung modellieren,4,W04;W06,Einladung Bestätigung und höchstens ein verantwortlicher Arzt serverseitig definiert,Offen,,"Lokaler Arztantrag, TOTP-geschützte Freigabe und widerrufbare Freigabe; Einladung, Annahme, Ablehnung und atomarer Arztwechsel. Produktzuständigkeit und Auditnachweis offen; context/context.md"
+W09,P1,Webapp,Autorisierung für Datenzugriffe ergänzen,4,W08,Fremde Patienten und Geräte serverseitig abgewiesen,Offen,,"Lokale Care-Liste prüft Arztstatus, TOTP und aktive Zuordnung; Messdatenzugriff, Produktrollen und Rechteabnahme offen"
+W10,P1,Webapp,Versionierte Therapiepläne speichern,4,W09;S05,Autor Gültigkeit Historie und Planversion abrufbar,In Arbeit,Codex,Lokale API- und Webtests bestanden; Browserplanablauf sowie Gültigkeit nach Arztwechsel und Geräteübernahme offen
 W11,P1,Webapp,Gerätebindung und Übernahmezustand darstellen,4,W10,Ausstehend und vom Gerät bestätigte Planversion unterscheidbar,Offen,,
 W12,P1,Webapp,Patientenansicht für Messung und Status überarbeiten,4,W02;W11,Wert Einheit Alter Verbindung und Fehlerzustände verständlich dargestellt,Offen,,
 W13,P1,Webapp,Arztansicht für Patienten und Pläne umsetzen,4,W09;W10,Nur zugeordnete Patienten und deren Planhistorie erreichbar,Offen,,

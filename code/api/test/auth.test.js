@@ -155,7 +155,7 @@ test('patient profile belongs only to the verified account and survives restart'
   const profileA = (await first.json()).profile;
   assert.match(profileA.id, /^[0-9a-f-]{36}$/i);
   assert.ok(profileA.createdAt);
-  assert.deepEqual(Object.keys(profileA).sort(), ['createdAt', 'id']);
+  assert.deepEqual(Object.keys(profileA).sort(), ['createdAt', 'id', 'injury', 'lastChangedBy', 'updatedAt', 'version', 'weightKg']);
   const repeated = await f.request(path, { cookie: cookieA, body: {}, origin: webOrigin });
   assert.equal(repeated.status, 200);
   assert.deepEqual((await repeated.json()).profile, profileA);
@@ -191,15 +191,16 @@ test('patient profile migration is idempotent and keeps existing Better Auth use
   const cookie = cookies(await signIn(f));
   // Reproduce upgrading an auth-only database containing an existing user/session.
   f.database.exec('DROP TABLE patient_profile');
-  assert.throws(() => createApp(f.auth, { database: f.database, webOrigin: 'http://127.0.0.1:5173' }), /no such table: patient_profile/);
+  assert.throws(() => createApp(f.auth, { database: f.database, webOrigin: 'http://127.0.0.1:5173' }), /no such table: (main\.)?patient_profile/);
   migratePatientProfiles(f.database);
   migratePatientProfiles(f.database);
   assert.deepEqual(f.database.prepare('SELECT id, email FROM user WHERE id = ?').get(userId), before);
   assert.equal((await (await f.request('/api/me', { cookie })).json()).id, userId);
-  assert.throws(() => f.database.prepare('INSERT INTO patient_profile VALUES (?, ?, ?)').run('orphan', 'absent-user', new Date().toISOString()), /FOREIGN KEY/);
+  assert.throws(() => f.database.prepare('INSERT INTO patient_profile (id, account_user_id, created_at) VALUES (?, ?, ?)')
+    .run('orphan', 'absent-user', new Date().toISOString()), /FOREIGN KEY/);
 
   const columns = f.database.prepare('PRAGMA table_info(patient_profile)').all();
-  assert.deepEqual(columns.map(column => column.name), ['id', 'account_user_id', 'created_at']);
+  assert.deepEqual(columns.map(column => column.name), ['id', 'account_user_id', 'created_at', 'injury', 'weight_kg', 'version', 'updated_at']);
   const owner = columns.find(column => column.name === 'account_user_id');
   assert.equal(owner.notnull, 1);
   assert.ok(f.database.prepare("PRAGMA index_list('patient_profile')").all()

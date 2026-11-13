@@ -12,7 +12,7 @@ function publicReview(review) {
   };
 }
 
-export function createPhysicianReviewRouter(auth, database, config) {
+export function createPhysicianReviewRouter(auth, database, config, onRequested = () => {}) {
   const router = express.Router();
   const reviews = createPhysicianReviewRepository(database);
 
@@ -57,6 +57,7 @@ export function createPhysicianReviewRouter(auth, database, config) {
     }
     try {
       materializePhysicianReviewNotification(config, reviews, result.notification);
+      onRequested();
     } catch {
       // The DB transaction stores both the pending request and one retryable outbox intent.
       // A later identical POST retries only materializing the same deterministic local file.

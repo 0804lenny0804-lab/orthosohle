@@ -4,7 +4,7 @@ import {
   openSync, readFileSync, unlinkSync, writeFileSync,
 } from 'node:fs';
 
-export function writeLocalMail(config, message, { idempotencyKey } = {}) {
+export function writeLocalMail(config, message, { idempotencyKey, acceptExisting } = {}) {
   const outbox = `${config.databasePath}.mail-outbox`;
   mkdirSync(outbox, { recursive: true, mode: 0o700 });
   const entry = lstatSync(outbox);
@@ -38,7 +38,9 @@ export function writeLocalMail(config, message, { idempotencyKey } = {}) {
     } catch (error) {
       if (error?.code !== 'EEXIST' || idempotencyKey === undefined) throw error;
       const existing = lstatSync(path);
-      if (!existing.isFile() || existing.isSymbolicLink() || readFileSync(path, 'utf8') !== contents) {
+      const existingContents = existing.isFile() && !existing.isSymbolicLink()
+        ? readFileSync(path, 'utf8') : null;
+      if (existingContents !== contents && !(acceptExisting?.(existingContents) === true)) {
         throw new Error('Existing local notification does not match its persisted outbox event.');
       }
       chmodSync(path, 0o600);
