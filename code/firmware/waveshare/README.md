@@ -10,6 +10,12 @@ Motor, Flashpuffer und WLAN/Backend-Sync sind noch nicht implementiert.
 
 ## Firmware bauen und flashen
 
+Für die Arduino IDE gibt es zusätzlich einen vollständigen Sketchordner unter
+[`arduino-ide/OrthoSohle_BLE_Display`](arduino-ide/OrthoSohle_BLE_Display) mit
+Anleitung unter [`arduino-ide/README.md`](arduino-ide/README.md). Dort liegen
+auch die benötigten lokalen Header- und C++-Dateien; `src/main.cpp` allein in
+ein leeres Sketchfenster zu kopieren reicht nicht.
+
 Das Firmwareprojekt verwendet PlatformIO Core `6.2.0`, Espressif32-Plattform
 `6.8.1`, Arduino-GFX `1.5.4` und das im Arduino-ESP32-Core enthaltene
 `BLEDevice.h`. Der ESP32-Board-Datensatz `esp32s3usbotg` wird für die

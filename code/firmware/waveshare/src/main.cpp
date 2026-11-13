@@ -10,8 +10,7 @@
 #include <cstring>
 #include <new>
 
-#include "local_monitor.hpp"
-#include "measurement_contract.hpp"
+#include "../include/measurement_contract.hpp"
 
 namespace {
 

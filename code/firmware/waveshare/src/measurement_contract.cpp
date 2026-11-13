@@ -1,4 +1,4 @@
-#include "measurement_contract.hpp"
+#include "../include/measurement_contract.hpp"
 
 #include <cmath>
 #include <cstring>
