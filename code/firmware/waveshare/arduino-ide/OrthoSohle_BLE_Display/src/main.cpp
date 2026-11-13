@@ -316,7 +316,7 @@ void bleWorker(void*) {
   scanner->setWindow(80);
 
   g_client = BLEDevice::createClient();
-  g_client->setClientCallbacks(&g_clientEventHandler, false);
+  g_client->setClientCallbacks(&g_clientEventHandler);
 
   for (;;) {
     if (!g_client->isConnected()) {

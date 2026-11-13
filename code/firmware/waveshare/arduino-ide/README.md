@@ -14,6 +14,8 @@ Installiere in der Arduino IDE außerdem:
 
 `BLEDevice.h` kommt mit dem Espressif-ESP32-Boardpaket; NimBLE wird nicht
 verwendet. Der Sketch nutzt die integrierten Displayanschlüsse des Boards.
+Der BLE-Client-Callback wird mit der aktuellen Ein-Parameter-API registriert;
+dieser Aufruf ist auch mit dem älteren PlatformIO-Core kompatibel.
 
 Die Implementierung liegt maßgeblich in `../src/main.cpp` und der
 Paketdecoder in `../src/measurement_contract.cpp`. Die Dateien in diesem
