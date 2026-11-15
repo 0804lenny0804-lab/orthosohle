@@ -22,9 +22,7 @@
     <main id="main" class="app-main" :class="{ 'account-page': activeNav === 'account' }" tabindex="-1">
       <div v-if="!authView" class="page-introduction">
         <div>
-          <p class="page-eyebrow">{{ currentPage.eyebrow }}</p>
           <h1>{{ currentPage.title }}</h1>
-          <p class="page-description">{{ currentPage.description }}</p>
         </div>
       </div>
       <div class="page-content"><slot /></div>
@@ -41,11 +39,11 @@ const props = defineProps({ activeNav: { type: String, required: true } });
 defineEmits(['navigate']);
 
 const navigation = [
-  { id: 'live', label: 'Übersicht', icon: 'bi-house-door', eyebrow: 'Deine Übersicht', title: 'Im Moment.', description: 'Belastung und Messwerte während einer aktiven Sitzung.' },
-  { id: 'history', label: 'Verlauf', icon: 'bi-bar-chart', eyebrow: 'Rückblick', title: 'Dein Verlauf.', description: 'Messungen und Auswertungen.' },
-  { id: 'connect', label: 'Geräte', icon: 'bi-bluetooth', eyebrow: 'Verbindung', title: 'Deine Geräte.', description: 'Verbinde eine unterstützte Sohle mit diesem Gerät.' },
-  { id: 'config', label: 'Einstellungen', icon: 'bi-sliders', eyebrow: 'Einstellungen', title: 'Einstellungen.', description: 'Lege deine persönlichen Werte fest.' },
-  { id: 'account', label: 'Konto', icon: 'bi-person-circle', eyebrow: 'Dein persönlicher Zugang', title: 'Dein Konto.', description: 'Verwalte deine Kontodaten.' },
+  { id: 'live', label: 'Übersicht', icon: 'bi-house-door', eyebrow: 'Deine Übersicht', title: 'Übersicht', description: 'Belastung und Messwerte während einer aktiven Sitzung.' },
+  { id: 'history', label: 'Verlauf', icon: 'bi-bar-chart', eyebrow: 'Rückblick', title: 'Verlauf', description: 'Messungen und Auswertungen.' },
+  { id: 'connect', label: 'Geräte', icon: 'bi-bluetooth', eyebrow: 'Verbindung', title: 'Geräte', description: 'Verbinde eine unterstützte Sohle mit diesem Gerät.' },
+  { id: 'config', label: 'Einstellungen', icon: 'bi-sliders', eyebrow: 'Einstellungen', title: 'Einstellungen', description: 'Lege deine persönlichen Werte fest.' },
+  { id: 'account', label: 'Konto', icon: 'bi-person-circle', eyebrow: 'Dein persönlicher Zugang', title: 'Konto', description: 'Verwalte deine Kontodaten.' },
 ];
 function focusMain() {
   document.getElementById('main')?.focus();

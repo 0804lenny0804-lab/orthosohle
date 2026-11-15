@@ -1,14 +1,14 @@
 <template>
-  <div class="card shadow-sm mx-auto mt-5" style="max-width: 700px;">
-    <div class="card-body text-center">
-      <h3 class="fw-bold text-ortho mb-3">Bluetooth – Arduino Verbindung</h3>
+  <div class="device-connection" style="max-width: 700px;">
+    <div class="text-start">
+      <h3 class="fw-bold text-ortho mb-3">Sohle</h3>
 
       <button
         class="btn btn-lg btn-sohle shadow-sm mb-3"
         @click="discoverBluetoothDevices"
         :disabled="btBusy || !bluetoothAvailable || simulationRunning"
       >
-        {{ btBusy ? "Suche..." : "Bluetooth-Geraet auswaehlen" }}
+        {{ btBusy ? "Suche..." : "Sohle verbinden" }}
       </button>
 
       <p v-if="!bluetoothAvailable" class="error" role="status">Web Bluetooth wird von diesem Gerät oder Browser nicht unterstützt.</p>
@@ -16,24 +16,6 @@
       <p v-if="btInfo" class="info">{{ btInfo }}</p>
       <p v-if="btError" class="error">⚠️ {{ btError }}</p>
 
-      <div v-if="connectedKg !== null" class="mt-3">
-        <h4 class="fw-bold">Aktuell:</h4>
-        <div style="font-size: 2rem;">{{ connectedKg.toFixed(2) }} kg</div>
-      </div>
-
-      <div v-if="measurements.length > 0" class="mt-4 text-start">
-        <h5 class="fw-bold">Letzte Werte:</h5>
-        <ul class="list-group mt-2">
-          <li
-            v-for="(m, idx) in measurements"
-            :key="idx"
-            class="list-group-item d-flex justify-content-between align-items-center"
-          >
-            <span>{{ m.timestamp }}</span>
-            <span class="fw-bold">{{ m.kg.toFixed(2) }} kg</span>
-          </li>
-        </ul>
-      </div>
 
     </div>
   </div>

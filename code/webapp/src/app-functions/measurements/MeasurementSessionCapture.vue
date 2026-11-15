@@ -2,10 +2,6 @@
   <section class="card mt-4" aria-labelledby="session-capture-title">
     <div class="card-body">
       <h2 id="session-capture-title" class="h5 text-sohle">Messsitzung</h2>
-      <p class="small text-muted">
-        Eine Sitzung wird nur auf ausdrücklichen Start und Stopp erfasst. Gespeichert werden je Empfangssekunde
-        Mittelwert, Maximum und Anzahl der empfangenen Werte. Empfangslücken belegen keine Geräteausfälle.
-      </p>
 
       <p v-if="!identityId" class="alert alert-warning" role="status">
         Melde dich mit einem bestätigten Konto und eigenem Patientenprofil an, um Messsitzungen zu speichern.
@@ -51,19 +47,18 @@
         </div>
 
         <p v-if="draft.active" class="alert alert-info mt-3 mb-0" role="status" aria-live="polite">
-          Sitzung läuft: {{ draft.aggregator?.intervalCount || 0 }} von {{ MAX_SESSION_INTERVALS }} Sekundenintervallen erfasst.
-          Der Empfang wird nach höchstens einer Stunde oder 3600 Intervallen beendet. Nicht hochgeladene Daten bleiben nur in diesem offenen Browserfenster.
+          Messung läuft · {{ draft.aggregator?.intervalCount || 0 }} Sekunden erfasst. Maximal eine Stunde.
         </p>
         <p v-if="draft.active && !sourceAvailable" class="alert alert-warning mt-3" role="status" aria-live="polite">
-          Die ausgewählte Quelle ist gerade nicht verfügbar. Es werden momentan keine Werte empfangen; falls die Quelle später wiederkommt, wird nur der tatsächliche Empfang erfasst.
+          Zurzeit werden keine Werte empfangen.
           <template v-if="draft.lastReceiveAt"> Letzter empfangener Wert: {{ formatReceiveTime(draft.lastReceiveAt) }}.</template>
-          Empfangslücken sind kein Beleg für einen Geräteausfall.
+          Empfangslücken belegen keinen Geräteausfall.
         </p>
         <p v-else-if="draft.active && !draft.lastReceiveAt" class="alert alert-warning mt-3" role="status" aria-live="polite">
-          Die Quelle ist verfügbar, aber bisher wurde kein Wert empfangen. Eine Verbindung allein belegt keinen laufenden Datenempfang.
+          Verbunden, aber noch keine Werte empfangen.
         </p>
         <p v-else-if="draft.active && draft.lastReceiveAt" class="small text-muted mt-3" role="status" aria-live="polite">
-          Letzter tatsächlich empfangener Wert: {{ formatReceiveTime(draft.lastReceiveAt) }}. Die aktuelle Empfangsrate ist nicht geprüft.
+          Letzter Empfang: {{ formatReceiveTime(draft.lastReceiveAt) }}.
         </p>
         <p v-if="draft.error" class="alert alert-danger mt-3" role="alert">{{ draft.error }}</p>
         <p v-if="draft.skippedSamples" class="alert alert-warning mt-3" role="alert">

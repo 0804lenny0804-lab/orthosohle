@@ -1,21 +1,18 @@
 <template>
-  <div class="text-center mt-5">
-    <h2 class="fw-bold text-ortho mb-3">Simulation starten</h2>
-    <p class="text-muted">
-      Simuliert einen realistischen Kraftverlauf.
-    </p>
+  <div class="simulation-control">
 
-    <div class="d-flex justify-content-center gap-3">
-      <button class="btn btn-success btn-lg"
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-sohle"
         @click="startSimulation"
         :disabled="isRunning || bleBlocked">
-        Start
+        Einschalten
       </button>
 
-      <button class="btn btn-danger btn-lg"
+      <button class="btn btn-outline-secondary"
         @click="stopSimulation"
         :disabled="!isRunning">
-        Stopp
+        Ausschalten
       </button>
     </div>
     <p v-if="bleBlocked" class="small text-muted mt-3" role="status">

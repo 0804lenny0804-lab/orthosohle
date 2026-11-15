@@ -14,9 +14,9 @@
           <div class="col-lg-7">
             <section id="live" class="card">
               <div class="card-body">
-                <h2 class="h5 mb-1 text-sohle">Gewichtsanzeige & Status</h2>
+                <h2 class="h5 mb-1 text-sohle">Aktuelle Belastung</h2>
                 <p class="text-muted small mb-3">
-                  {{ previewSource === 'simulation' ? 'Synthetischer Simulationsverlauf' : previewSource === 'ble' ? 'Bluetooth-Empfangsverlauf' : 'Noch keine Werte empfangen' }}
+                  {{ previewSource === 'simulation' ? 'Simulation' : previewSource === 'ble' ? 'Sohle verbunden' : 'Noch keine Werte empfangen' }}
                 </p>
                 <LiveChart :rawValues="rawValues" :currentLimit="currentLimit" />
               </div>
@@ -27,7 +27,7 @@
             <section id="steps" class="card">
               <div class="card-body">
                 <h2 class="h5 mb-1 text-sohle">Schrittzähler</h2>
-                <p class="text-muted small mb-3">Jeder erkannte Peak entspricht einem Schritt.</p>
+
                 <StepCounter :steps="stepCount" :goal="stepGoal" />
               </div>
             </section>
@@ -48,12 +48,7 @@
           </div>
         </section>
 
-        <section id="simulation" class="card mt-4">
-          <div class="card-body">
-            <h2 class="h5 mb-3 text-sohle">Simulation</h2>
-            <SimulationControl :key="demoEpoch" :ble-blocked="bleConnected || bleBusy" @raw-value="onRawValue" @running-state="simulationRunning = $event" />
-          </div>
-        </section>
+
       </div>
 
       <div v-if="activeNav === 'config'">
@@ -66,7 +61,7 @@
               @updated="updateDemoLimit"
               @step-goal-updated="stepGoal = $event"
             />
-            <p class="small text-muted mt-3 mb-0">Push-Benachrichtigungen sind noch nicht eingerichtet.</p>
+
           </div>
         </section>
       </div>
@@ -74,10 +69,16 @@
       <div v-show="activeNav === 'connect'">
         <section id="connect-page" class="card">
           <div class="card-body">
-            <h2 class="h5 mb-1 text-sohle">Bluetooth</h2>
+
         <Bluetooth :key="demoEpoch" :simulation-running="simulationRunning" @raw-value="onRawValue" @connection-state="bleConnected = $event" @connection-busy="bleBusy = $event" />
           </div>
         </section>
+        <details id="simulation" class="card mt-3">
+          <summary class="card-body simulation-summary">Simulation <span>{{ simulationRunning ? 'Ein' : 'Aus' }}</span></summary>
+          <div class="card-body pt-0">
+            <SimulationControl :key="demoEpoch" :ble-blocked="bleConnected || bleBusy" @raw-value="onRawValue" @running-state="simulationRunning = $event" />
+          </div>
+        </details>
       </div>
 
       <div v-if="activeNav === 'history'">
@@ -203,3 +204,8 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.simulation-summary { cursor: pointer; color: #a00058; font-weight: 600; }
+.simulation-summary span { float: right; color: #62656f; font-weight: 400; }
+</style>

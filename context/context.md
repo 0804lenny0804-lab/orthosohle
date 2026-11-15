@@ -25,6 +25,8 @@ API, Webapp und Tests wurden fachlich gruppiert; Datenbankänderungen liegen in 
 
 Die Kontoansicht nutzt eine Menüübersicht mit getrennten Seiten für Konto, Sicherheit, persönliche Patientendaten, Arztzuordnung und Darstellung. Die Wahl von Patienten- oder Arztansicht ist eine Navigationsauswahl und erteilt keine Rechte. Patienten können verifizierte und freigegebene Arztkonten zur Betreuung einladen; die ausdrückliche Annahme setzt eine aktive Arztfreigabe und frischen sitzungsgebundenen TOTP-Nachweis voraus. Ein Wechsel und das Zurückziehen älterer offener Einladungen erfolgen atomar. Vorhandene Einladungen von Ärzten an Patienten bleiben unterstützt. Änderungen am Datenbankschema erfordern die ausdrückliche Migration vor dem API-Start. Die Browserprüfung der Menüführung nutzte synthetische API-Antworten; eine reale Geräte- oder Produktfreigabe folgt daraus nicht.
 
+Die Weboberfläche wurde visuell vereinfacht: Simulation befindet sich unter Geräte und bleibt als solche gekennzeichnet. Mess- und Speicherlogik bleiben unverändert; die Ansicht der flüchtigen Werte und die produktive Einordnung von Grenzwerten sind weiterhin getrennt zu prüfen.
+
 ## Nachweise und Grenzen
 
 Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Der aktuelle lokale App- und API-Durchstich ist gesondert prüfbar; Einzelheiten stehen in code/README.md. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
