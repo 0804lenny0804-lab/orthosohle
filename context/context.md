@@ -19,7 +19,7 @@ Stand: 12.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 
 ## Strukturüberarbeitung
 
-API, Webapp und Tests wurden fachlich gruppiert; Start- und Verwaltungsbefehle sind in [code/README.md](../code/README.md) dokumentiert. PWA-Manifest und Icons liegen unter `code/webapp/public/pwa`. Der Arduino-Sketch wurde als bytegleiche Kopie aus dem aktiven Webapp-Ordner entfernt; die unveränderte Referenz bleibt unter `context/legacy/`. Die Webapp nutzt relative API-Pfade; die ungenutzte URL-Datei und nicht importierte Abhängigkeiten axios und socket.io-client wurden entfernt. Messvorschau und Messentwürfe sowie Therapieplan-API und Datenbankzugriff sind getrennt; die gemeinsame Seiten- und Zeitvalidierung der Mess-API liegt an einer Stelle. Geräte-, Push- und mobile Plattformprüfungen stehen weiterhin aus.
+API, Webapp und Tests wurden fachlich gruppiert; Start- und Verwaltungsbefehle sind in [code/README.md](../code/README.md) dokumentiert. PWA-Manifest und Icons liegen unter `code/webapp/public/pwa`. Der ursprüngliche Arduino-Sketch wurde auf Nutzerwunsch unter `code/webapp/src/components/arduinocode.ino` wiederhergestellt; die unveränderte Referenz bleibt auch unter `context/legacy/`. Die Webapp nutzt relative API-Pfade; die ungenutzte URL-Datei und nicht importierte Abhängigkeiten axios und socket.io-client wurden entfernt. Messvorschau und Messentwürfe sowie Therapieplan-API und Datenbankzugriff sind getrennt; die gemeinsame Seiten- und Zeitvalidierung der Mess-API liegt an einer Stelle. Geräte-, Push- und mobile Plattformprüfungen stehen weiterhin aus.
 
 ## Nachweise und Grenzen
 
