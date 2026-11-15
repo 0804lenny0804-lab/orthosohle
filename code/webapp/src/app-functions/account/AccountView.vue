@@ -11,14 +11,9 @@
       <p v-if="state.error" class="alert alert-danger" role="alert">{{ state.error }}</p>
       <p v-if="state.notice" class="alert alert-info" role="status">{{ state.notice }}</p>
 
-      <nav v-if="state.identityId" class="account-tabs mb-4" aria-label="Kontobereiche" role="tablist">
-        <button v-for="tab in accountTabs" :id="`${tab.id}-tab`" :key="tab.id" type="button"
-          class="btn" :class="activeTab === tab.id ? 'btn-primary' : 'btn-outline-primary'"
-          role="tab" :aria-selected="activeTab === tab.id" :aria-controls="`${tab.id}-panel`"
-          :tabindex="activeTab === tab.id ? 0 : -1" @click="selectTab(tab.id)" @keydown="onTabKeydown($event, tab.id)">
-          {{ tab.label }}
-        </button>
-      </nav>
+      <div v-if="state.identityId && activeTab !== 'overview'" class="mb-3">
+        <button type="button" class="btn btn-link px-0" @click="selectTab('overview')">‹ Zurück zur Übersicht</button>
+      </div>
 
       <form v-if="mode === 'totp-login' && !state.identityId" @submit.prevent="submitTotpLogin">
         <fieldset :disabled="state.busy">
@@ -80,8 +75,16 @@
         </fieldset>
       </form>
       <div v-else-if="state.identityId">
-        <section v-show="activeTab === 'security'" id="security-panel" class="border rounded p-3 mb-4"
-          role="tabpanel" aria-labelledby="security-tab" tabindex="0">
+        <section v-if="activeTab === 'overview'" aria-label="Kontoübersicht">
+          <div class="account-identity"><strong>{{ state.name || 'Dein Konto' }}</strong><span>{{ state.email }}</span></div>
+          <nav class="account-menu" aria-label="Kontobereiche">
+            <button v-for="tab in visibleTabs" :key="tab.id" type="button" @click="selectTab(tab.id)">
+              <span><strong>{{ tab.label }}</strong><small>{{ tab.description }}</small></span><span aria-hidden="true">›</span>
+            </button>
+          </nav>
+          <button class="btn btn-link px-0 mt-3" type="button" @click="accountIntent = accountIntent === 'patient' ? 'physician' : 'patient'">{{ accountIntent === 'patient' ? 'Zur Arztansicht wechseln' : 'Zur Patientenansicht wechseln' }}</button>
+        </section>
+        <section v-show="activeTab === 'security'" id="security-panel" class="border rounded p-3 mb-4" tabindex="0">
           <h3 id="two-factor-title" class="h5">Sicherheit</h3>
           <section aria-labelledby="two-factor-heading">
           <h4 id="two-factor-heading" class="h6">Zwei-Faktor-Anmeldung</h4>
@@ -121,14 +124,19 @@
           </section>
           <PasswordChange :active="activeTab === 'security'" />
         </section>
-        <section v-show="activeTab === 'patient'" id="patient-panel" role="tabpanel" aria-labelledby="patient-tab" tabindex="0">
+        <section v-show="activeTab === 'patient'" id="patient-panel" tabindex="0">
           <h3 class="h5">Patient</h3>
           <PatientProfile :key="state.identityId" :identity-id="state.identityId" />
           <PatientProfileForm :key="`patient-profile-form-${state.identityId}`" :identity-id="state.identityId" role="patient" />
+
+        </section>
+        <section v-show="activeTab === 'doctors'" aria-label="Meine Ärzte">
+          <h3 class="h5">Meine Ärzte</h3>
           <CareArea v-if="state.emailVerified" :key="`patient-care-${state.identityId}`" :identity-id="state.identityId" role="patient" />
           <TherapyPlan v-if="state.emailVerified" :key="`patient-plan-${state.identityId}`" :identity-id="state.identityId" role="patient" />
         </section>
-        <section v-show="activeTab === 'physician'" id="physician-panel" role="tabpanel" aria-labelledby="physician-tab" tabindex="0">
+        <section v-show="activeTab === 'display'" aria-label="Darstellung"><SettingsView :key="`settings-${state.identityId}`" :identity-id="state.identityId" /></section>
+        <section v-show="activeTab === 'physician'" id="physician-panel" tabindex="0">
           <h3 class="h5">Arzt</h3>
           <p class="small text-muted">Arztzugriff wird erst nach Prüfung und ausdrücklicher Freigabe eingerichtet.</p>
           <p v-if="physicianStatus === 'pending'" class="alert alert-info" role="status">Dein Antrag wird geprüft. Ein Konto oder eine Anmeldung allein erteilt keinen Arztzugriff.</p>
@@ -147,10 +155,11 @@
             @access-error="handlePhysicianSessionAccessError" />
           </template>
         </section>
-        <section v-show="activeTab === 'account'" id="account-panel" role="tabpanel" aria-labelledby="account-tab" tabindex="0">
+        <section v-show="activeTab === 'account'" id="account-panel" tabindex="0">
           <h3 class="h5">Konto</h3>
-        <SettingsView :key="`settings-${state.identityId}`" :identity-id="state.identityId" />
-        <form class="profile-form mb-4" @submit.prevent="saveProfile">
+
+        <button v-if="!editingName" class="btn btn-link px-0" type="button" @click="editingName = true">Anzeigename bearbeiten</button>
+        <form v-if="editingName" class="profile-form mb-4" @submit.prevent="saveProfile">
           <div class="mb-3">
             <label for="profile-name" class="form-label">Anzeigename</label>
             <input id="profile-name" v-model="profileName" class="form-control" required maxlength="100" autocomplete="nickname" />
@@ -158,6 +167,7 @@
           <button type="submit" class="btn btn-primary" :disabled="state.busy || profileName.trim() === state.name">
             {{ state.busy ? 'Bitte warten …' : 'Anzeigename speichern' }}
           </button>
+          <button type="button" class="btn btn-link" @click="editingName = false; profileName = state.name">Abbrechen</button>
         </form>
         <p class="mb-3"><strong>{{ state.name || state.email }}</strong><br>{{ state.email }}<br>
           <span class="small text-muted">{{ state.emailVerified ? 'E-Mail bestätigt' : 'E-Mail noch nicht bestätigt' }}</span>
@@ -200,13 +210,17 @@ const physicianStepUpGeneration = ref(0);
 const physicianAccessMessage = ref('');
 let physicianAccessCheckGeneration = 0;
 const accountTabs = [
-  { id: 'account', label: 'Konto' },
-  { id: 'security', label: 'Sicherheit' },
-  { id: 'patient', label: 'Patient' },
-  { id: 'physician', label: 'Arzt' },
+  { id: 'account', label: 'Konto', description: 'Name und E-Mail' },
+  { id: 'security', label: 'Anmeldung & Sicherheit', description: 'Passwort und Zwei-Faktor-Anmeldung' },
+  { id: 'patient', label: 'Mein Patientenbereich', description: 'Persönliches Profil' },
+  { id: 'doctors', label: 'Meine Ärzte', description: 'Betreuung und Behandlungsplan' },
+  { id: 'physician', label: 'Meine Patienten', description: 'Arztzugang und Patienten' },
+  { id: 'display', label: 'Darstellung', description: 'Kontrast und Schriftgröße' },
 ];
-const activeTab = ref('account');
+const activeTab = ref('overview');
+const editingName = ref(false);
 const accountIntent = ref('patient');
+const visibleTabs = computed(() => accountTabs.filter(tab => accountIntent.value === 'physician' ? !['patient', 'doctors'].includes(tab.id) : tab.id !== 'physician'));
 const mode = ref('login');
 const name = ref('');
 const profileName = ref('');
@@ -230,22 +244,15 @@ const statusText = computed(() => ({ loading: 'Anmeldestatus wird geprüft …',
   unavailable: 'Der aktuelle Anmeldestatus kann nicht bestätigt werden.' })[state.status]);
 
 function selectTab(tabId) {
-  if (accountTabs.some((tab) => tab.id === tabId)) activeTab.value = tabId;
+  if (tabId !== 'overview' && !accountTabs.some((tab) => tab.id === tabId)) return;
+  activeTab.value = tabId;
+  window.history.pushState({ ...window.history.state, accountPage: tabId }, '');
+}
+function handleAccountNavigation(event) {
+  const page = event.state?.accountPage;
+  activeTab.value = accountTabs.some(tab => tab.id === page) ? page : 'overview';
 }
 
-function onTabKeydown(event, tabId) {
-  const currentIndex = accountTabs.findIndex((tab) => tab.id === tabId);
-  let nextIndex;
-  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % accountTabs.length;
-  else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + accountTabs.length) % accountTabs.length;
-  else if (event.key === 'Home') nextIndex = 0;
-  else if (event.key === 'End') nextIndex = accountTabs.length - 1;
-  else return;
-  event.preventDefault();
-  const nextTab = accountTabs[nextIndex];
-  selectTab(nextTab.id);
-  document.getElementById(`${nextTab.id}-tab`)?.focus();
-}
 
 function clearPasswords() { password.value = ''; passwordRepeat.value = ''; }
 function setMode(value) {
@@ -330,7 +337,7 @@ async function disableTwoFactor() {
 }
 
 async function saveProfile() {
-  await accountSession.saveProfile(profileName.value.trim());
+  if (await accountSession.saveProfile(profileName.value.trim())) editingName.value = false;
 }
 
 function markPhysicianStepUpVerified() {
@@ -381,12 +388,23 @@ function handleVisibilityChange() {
   closePhysicianAccessOnResume('visibilitychange');
 }
 
+watch(activeTab, (page, previous) => {
+  if (previous === 'security' && page !== 'security') {
+    twoFactorPassword.value = '';
+    setupCode.value = '';
+    totpURI.value = '';
+    recoveryCodes.value = [];
+    disableTwoFactorForm.value = false;
+  }
+});
+
 watch(() => state.name, (value) => {
   profileName.value = value;
 }, { immediate: true });
 
 watch(() => state.identityId, () => {
-  activeTab.value = 'account';
+  activeTab.value = 'overview';
+  editingName.value = false;
   physicianAccessCheckGeneration += 1;
   physicianStatus.value = 'loading';
   physicianStepUp.value = false;
@@ -403,7 +421,7 @@ function handleAccountCallback() {
   const url = new URL(window.location.href);
   const callback = consumeAccountCallback(url);
   // Strip tokens before any asynchronous requests or subsequent navigation.
-  window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
   if (callback.linkError) {
     resetToken.value = '';
     mode.value = 'login';
@@ -417,13 +435,17 @@ function handleAccountCallback() {
 
 onMounted(() => {
   handleAccountCallback();
+  const page = window.history.state?.accountPage;
+  if (accountTabs.some(tab => tab.id === page)) activeTab.value = page;
   window.addEventListener('hashchange', handleAccountCallback);
+  window.addEventListener('popstate', handleAccountNavigation);
   window.addEventListener('focus', closePhysicianAccessOnResume);
   document.addEventListener('visibilitychange', handleVisibilityChange);
   accountSession.refresh();
 });
 onUnmounted(() => {
   window.removeEventListener('hashchange', handleAccountCallback);
+  window.removeEventListener('popstate', handleAccountNavigation);
   window.removeEventListener('focus', closePhysicianAccessOnResume);
   document.removeEventListener('visibilitychange', handleVisibilityChange);
   clearPasswords();
@@ -438,6 +460,16 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.account-identity { display: grid; gap: .25rem; padding: 1.25rem; background: #f3f4f6; border-radius: 1rem; overflow-wrap: anywhere; }
+.account-identity span, .account-menu small { color: #59616b; }
+.account-menu { margin-top: 1rem; border: 1px solid #e1e3e7; border-radius: 1rem; overflow: hidden; }
+.account-menu button { width: 100%; min-height: 4.5rem; padding: .8rem 1rem; border: 0; border-bottom: 1px solid #e1e3e7; background: white; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+.account-menu button:last-child { border-bottom: 0; }
+.account-menu button:hover { background: #f6f6f8; }
+.account-menu button:focus-visible { outline: 3px solid #a00059; outline-offset: -3px; }
+.account-menu button span:first-child { display: grid; gap: .2rem; }
+.account-menu small { font-size: .85rem; }
+
 .account-tabs {
   display: flex;
   flex-wrap: wrap;

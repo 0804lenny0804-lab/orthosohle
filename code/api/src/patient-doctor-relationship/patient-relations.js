@@ -17,6 +17,17 @@ export function migratePatientRelations(database) {
     );
     CREATE INDEX IF NOT EXISTS patient_invitation_target_status
       ON patient_invitation(target_user_id, status);
+    CREATE TABLE IF NOT EXISTS patient_physician_invitation (
+      id TEXT PRIMARY KEY NOT NULL,
+      patient_profile_id TEXT NOT NULL REFERENCES patient_profile(id) ON DELETE RESTRICT,
+      patient_user_id TEXT NOT NULL REFERENCES user(id) ON DELETE RESTRICT,
+      physician_user_id TEXT NOT NULL REFERENCES user(id) ON DELETE RESTRICT,
+      status TEXT NOT NULL CHECK (status IN ('open', 'accepted', 'declined', 'withdrawn', 'expired')),
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS patient_physician_invitation_target_status
+      ON patient_physician_invitation(physician_user_id, status);
     CREATE TABLE IF NOT EXISTS patient_relation (
       id TEXT PRIMARY KEY NOT NULL,
       physician_user_id TEXT NOT NULL REFERENCES user(id) ON DELETE RESTRICT,
@@ -53,6 +64,11 @@ export function createPatientRelationsRepository(database) {
       (id, physician_user_id, patient_profile_id, target_user_id, status, created_at, expires_at)
     VALUES (?, ?, ?, ?, 'open', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?)
   `);
+  const createPatientPhysicianInvitation = database.prepare(`
+    INSERT INTO patient_physician_invitation
+      (id, patient_profile_id, patient_user_id, physician_user_id, status, created_at, expires_at)
+    VALUES (?, ?, ?, ?, 'open', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), ?)
+  `);
   const acceptInvitation = database.transaction((invitationId, targetUserId, physicianStillApproved) => {
     const invitation = findInvitation.get(invitationId);
     if (!invitation || invitation.targetUserId !== targetUserId) return { kind: 'not_found' };
@@ -73,6 +89,10 @@ export function createPatientRelationsRepository(database) {
     // Explicit acceptance authorizes a switch. The old relationship is ended
     // atomically; no plan or historical data right is copied to the new one.
     if (occupied) endActive.run(invitation.patientProfileId);
+    database.prepare(`UPDATE patient_physician_invitation SET status = 'withdrawn'
+      WHERE patient_profile_id = ? AND status = 'open'`).run(invitation.patientProfileId);
+    database.prepare(`UPDATE patient_invitation SET status = 'withdrawn'
+      WHERE patient_profile_id = ? AND status = 'open'`).run(invitation.patientProfileId);
     database.prepare(`INSERT INTO patient_relation
         (id, physician_user_id, patient_profile_id, invitation_id, status, started_at)
         VALUES (?, ?, ?, ?, 'active', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`)
@@ -92,12 +112,74 @@ export function createPatientRelationsRepository(database) {
     return changed.changes === 1 ? { kind: 'declined' } : { kind: 'not_open' };
   });
 
-  return {
+    const createPatientInvitation = database.transaction(({ patientProfileId, patientUserId, physicianUserId, expiresAt }) => {
+      const profile = database.prepare('SELECT id FROM patient_profile WHERE id = ? AND account_user_id = ?')
+        .get(patientProfileId, patientUserId);
+      const physician = database.prepare(`SELECT 1 FROM physician_review_application
+        WHERE account_user_id = ? AND status = 'approved'`).get(physicianUserId);
+      if (!profile || !physician) return { kind: 'target_mismatch' };
+      if (findActive.get(patientProfileId)?.physicianUserId === physicianUserId) return { kind: 'already_assigned' };
+      const pending = database.prepare(`SELECT id FROM patient_physician_invitation
+        WHERE patient_profile_id = ? AND physician_user_id = ? AND status = 'open' AND expires_at > ?
+        ORDER BY created_at, id LIMIT 1`).get(patientProfileId, physicianUserId, new Date().toISOString());
+      if (pending) return { kind: 'existing', id: pending.id };
+      database.prepare(`UPDATE patient_physician_invitation SET status = 'expired'
+        WHERE patient_profile_id = ? AND physician_user_id = ? AND status = 'open'`).run(patientProfileId, physicianUserId);
+      const id = randomUUID();
+      createPatientPhysicianInvitation.run(id, patientProfileId, patientUserId, physicianUserId, expiresAt);
+      return { kind: 'created', id };
+    });
+    const acceptPatientInvitation = database.transaction((invitationId, physicianUserId, physicianStillApproved) => {
+      const invitation = database.prepare(`SELECT * FROM patient_physician_invitation WHERE id = ?`).get(invitationId);
+      if (!invitation || invitation.physician_user_id !== physicianUserId) return { kind: 'not_found' };
+      if (invitation.status !== 'open') return { kind: 'not_open' };
+      if (invitation.expires_at <= new Date().toISOString()) {
+        database.prepare("UPDATE patient_physician_invitation SET status = 'expired' WHERE id = ? AND status = 'open'").run(invitationId);
+        return { kind: 'expired' };
+      }
+      if (physicianStillApproved(physicianUserId) !== true) return { kind: 'physician_not_approved' };
+      const active = findActive.get(invitation.patient_profile_id);
+      const changed = database.prepare("UPDATE patient_physician_invitation SET status = 'accepted' WHERE id = ? AND status = 'open'").run(invitationId);
+      if (changed.changes !== 1) return { kind: 'not_open' };
+      const canonicalId = randomUUID();
+      createInvitation.run(canonicalId, physicianUserId, invitation.patient_profile_id, invitation.patient_user_id, invitation.expires_at);
+      database.prepare("UPDATE patient_invitation SET status = 'accepted' WHERE id = ?").run(canonicalId);
+      if (active) endActive.run(invitation.patient_profile_id);
+      database.prepare(`UPDATE patient_physician_invitation SET status = 'withdrawn'
+        WHERE patient_profile_id = ? AND status = 'open'`).run(invitation.patient_profile_id);
+      database.prepare(`UPDATE patient_invitation SET status = 'withdrawn'
+        WHERE patient_profile_id = ? AND status = 'open'`).run(invitation.patient_profile_id);
+      database.prepare(`INSERT INTO patient_relation (id, physician_user_id, patient_profile_id, invitation_id, status, started_at)
+        VALUES (?, ?, ?, ?, 'active', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`)
+        .run(randomUUID(), physicianUserId, invitation.patient_profile_id, canonicalId);
+      return { kind: 'accepted' };
+    });
+    return {
+      createPatientInvitation(input) {
+        try { return createPatientInvitation.immediate(input); }
+        catch (error) { if (String(error.code).startsWith('SQLITE_CONSTRAINT')) return { kind: 'already_assigned' }; throw error; }
+      },
+      listPatientInvitations(physicianUserId) {
+        return database.prepare(`SELECT i.id, i.status, i.created_at AS createdAt, i.expires_at AS expiresAt,
+          u.name AS patientName FROM patient_physician_invitation i
+          JOIN user u ON u.id = i.patient_user_id WHERE i.physician_user_id = ? AND i.status = 'open'
+          ORDER BY i.created_at, i.id`).all(physicianUserId);
+      },
+      acceptPatientInvitation(invitationId, physicianUserId, physicianStillApproved) {
+        try { return acceptPatientInvitation.immediate(invitationId, physicianUserId, physicianStillApproved); }
+        catch (error) { if (String(error.code).startsWith('SQLITE_CONSTRAINT')) return { kind: 'already_assigned' }; throw error; }
+      },
     createInvitation({ physicianUserId, patientProfileId, targetUserId, expiresAt }) {
       const existing = database.prepare(`SELECT id FROM patient_profile WHERE id = ? AND account_user_id = ?`)
         .get(patientProfileId, targetUserId);
       if (!existing) return { kind: 'target_mismatch' };
       if (findActive.get(patientProfileId)?.physicianUserId === physicianUserId) return { kind: 'already_assigned' };
+      const pending = database.prepare(`SELECT id FROM patient_invitation
+        WHERE physician_user_id = ? AND patient_profile_id = ? AND status = 'open' AND expires_at > ?
+        ORDER BY created_at, id LIMIT 1`).get(physicianUserId, patientProfileId, new Date().toISOString());
+      if (pending) return { kind: 'existing', invitation: findInvitation.get(pending.id) };
+      database.prepare(`UPDATE patient_invitation SET status = 'expired'
+        WHERE physician_user_id = ? AND patient_profile_id = ? AND status = 'open'`).run(physicianUserId, patientProfileId);
       const id = randomUUID();
       createInvitation.run(id, physicianUserId, patientProfileId, targetUserId, expiresAt);
       return { kind: 'created', invitation: findInvitation.get(id) };
@@ -124,7 +206,10 @@ export function createPatientRelationsRepository(database) {
         i.expires_at AS expiresAt, i.status FROM patient_invitation i
         JOIN user u ON u.id = i.physician_user_id
         WHERE i.target_user_id = ? AND i.status = 'open' ORDER BY i.created_at, i.id`).all(targetUserId);
-      return { relationship, invitations };
+      const outgoingInvitations = database.prepare(`SELECT i.id, u.name AS physicianName, i.expires_at AS expiresAt, i.status
+        FROM patient_physician_invitation i JOIN user u ON u.id = i.physician_user_id
+        WHERE i.patient_user_id = ? AND i.status = 'open' ORDER BY i.created_at, i.id`).all(targetUserId);
+      return { relationship, invitations, outgoingInvitations };
     },
     acceptInvitation(invitationId, targetUserId, physicianStillApproved) {
       try {
@@ -198,6 +283,66 @@ export function createPatientRelationsRouter(auth, database, { webOrigin, invita
     return res.json(repository.currentForPatient(session.user.id));
   });
 
+  router.post('/patient/invitations', async (req, res) => {
+    const session = await sessionFor(req, res);
+    if (!session) return;
+    if (!req.body || Array.isArray(req.body) || Object.keys(req.body).length !== 1 ||
+      typeof req.body.physicianEmail !== 'string' || req.body.physicianEmail.length < 3 || req.body.physicianEmail.length > 254) {
+      return res.status(400).json({ error: 'invalid_invitation' });
+    }
+    if (!Number.isSafeInteger(invitationLifetimeMs) || invitationLifetimeMs < 1) {
+      return res.status(503).json({ error: 'invitation_expiry_not_configured' });
+    }
+    const result = database.transaction(() => {
+      const profile = database.prepare('SELECT id FROM patient_profile WHERE account_user_id = ?').get(session.user.id);
+      const physician = database.prepare(`SELECT u.id FROM user u JOIN physician_review_application a
+        ON a.account_user_id = u.id AND a.status = 'approved'
+        WHERE u.email = ? AND u.emailVerified = 1`).get(req.body.physicianEmail);
+      if (!profile || !physician) return { kind: 'not_found' };
+      return repository.createPatientInvitation({ patientProfileId: profile.id, patientUserId: session.user.id,
+        physicianUserId: physician.id, expiresAt: new Date(Date.now() + invitationLifetimeMs).toISOString() });
+    }).immediate();
+    if (result.kind === 'already_assigned') return res.status(409).json({ error: 'patient_already_assigned' });
+    if (result.kind !== 'created' && result.kind !== 'existing') return res.status(404).json({ error: 'physician_not_found' });
+    return res.status(201).json({ invitation: { id: result.id, status: 'open' } });
+  });
+
+  router.get('/physician/invitations', async (req, res) => {
+    const session = await sessionFor(req, res);
+    if (!session) return;
+    const result = physicianOperation(req, session, () => repository.listPatientInvitations(session.user.id));
+    if (result.kind !== 'ok') return res.status(403).json({ error: 'physician_authorization_required' });
+    return res.json({ invitations: result.value });
+  });
+
+  router.post('/physician/invitations/:id/accept', async (req, res) => {
+    const session = await sessionFor(req, res);
+    if (!session) return;
+    if (!req.body || Array.isArray(req.body) || Object.keys(req.body).length !== 0) return res.status(400).json({ error: 'empty_object_required' });
+    const guarded = physicianOperation(req, session, () => repository.acceptPatientInvitation(
+      req.params.id, session.user.id,
+      physicianUserId => isPhysicianCurrentlyApproved({ physicianUserId, database })));
+    if (guarded.kind !== 'ok') return res.status(403).json({ error: 'physician_authorization_required' });
+    const result = guarded.value;
+    if (result.kind === 'not_found') return res.status(404).json({ error: 'invitation_not_found' });
+    if (result.kind === 'already_assigned') return res.status(409).json({ error: 'patient_already_assigned' });
+    if (result.kind === 'expired') return res.status(409).json({ error: 'invitation_expired' });
+    if (result.kind !== 'accepted') return res.status(409).json({ error: 'invitation_not_open' });
+    return res.status(201).json({ accepted: true });
+  });
+
+  router.post('/physician/invitations/:id/decline', async (req, res) => {
+    const session = await sessionFor(req, res);
+    if (!session) return;
+    if (!req.body || Array.isArray(req.body) || Object.keys(req.body).length !== 0) return res.status(400).json({ error: 'empty_object_required' });
+    const result = physicianOperation(req, session, () => database.prepare(`UPDATE patient_physician_invitation
+      SET status = 'declined' WHERE id = ? AND physician_user_id = ? AND status = 'open'
+        AND expires_at > ?`).run(req.params.id, session.user.id, new Date().toISOString()).changes);
+    if (result.kind !== 'ok') return res.status(403).json({ error: 'physician_authorization_required' });
+    if (result.value !== 1) return res.status(404).json({ error: 'invitation_not_found' });
+    return res.json({ invitation: { id: req.params.id, status: 'declined' } });
+  });
+
   router.post('/invitations', async (req, res) => {
     const session = await sessionFor(req, res);
     if (!session) return;
@@ -218,7 +363,7 @@ export function createPatientRelationsRouter(auth, database, { webOrigin, invita
     if (guarded.kind !== 'ok') return res.status(403).json({ error: 'physician_authorization_required' });
     const result = guarded.value;
     if (result.kind === 'already_assigned') return res.status(409).json({ error: 'patient_already_assigned' });
-    if (result.kind !== 'created') return res.status(404).json({ error: 'patient_not_found' });
+      if (result.kind !== 'created' && result.kind !== 'existing') return res.status(404).json({ error: 'patient_not_found' });
     return res.status(201).json({ invitation: { id: result.invitation.id, expiresAt: result.invitation.expiresAt, status: 'open' } });
   });
 

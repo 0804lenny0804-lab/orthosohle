@@ -43,6 +43,8 @@ Für tatsächliche Freigaben ist anschließend separat ein Prüfkonto mit genau 
 
 Der lokale Kontrollhinweis zum Antrag enthält nur Antragsreferenz, Konto-E-Mail und Eingangszeit; er enthält keinen Freigabelink. Eine spätere, getrennte Freigabenachricht wird erst für ein Konto mit aktivem Prüferstatus, verifizierter E-Mail und verifiziertem TOTP-Enrollment erstellt. Beide Nachrichten werden ausschließlich in der lokalen privaten Outbox materialisiert. Das ist keine SMTP-Konfiguration und kein Nachweis tatsächlicher Zustellung.
 
+Patienten können außerdem ein freigegebenes Arztkonto anhand seiner exakten E-Mail-Adresse einladen. Erst die ausdrückliche Annahme durch den angemeldeten Arzt mit frischem TOTP-Nachweis erstellt oder wechselt die Zuordnung. Wiederholte offene Einladungen werden wiederverwendet; bei Annahme werden andere offene Einladungen für denselben Patienten zurückgezogen. Nach dem Update die API stoppen und `npm run migrate --prefix code/api` ausführen, bevor sie neu gestartet wird.
+
 ## Lokale Prüferfreigabe und Betreuungsablauf
 
 Nach Aktualisieren des Codes die API stoppen und die Migration ausdrücklich ausführen. Sie ergänzt Better-Auth-TOTP, Reviewer-Bootstrap, kurzlebigen TOTP-Schritt, Antragsfreigabe und Betreuungseinladungen idempotent; der normale Serverstart migriert nicht:

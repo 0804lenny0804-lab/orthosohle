@@ -18,6 +18,9 @@ const patients = ref([]);
 const relationship = ref(null);
 const invitations = ref([]);
 const patientEmail = ref('');
+const doctorEmail = ref('');
+const doctorInvitations = ref([]);
+const outgoingInvitations = ref([]);
 const modeLabel = computed(() => props.role === 'physician' ? 'Arztbereich' : 'Betreuungszuordnung');
 let generation = 0;
 let mounted = false;
@@ -36,6 +39,9 @@ function clearState() {
   relationship.value = null;
   invitations.value = [];
   patientEmail.value = '';
+  doctorEmail.value = '';
+  doctorInvitations.value = [];
+  outgoingInvitations.value = [];
 }
 
 function clearAfterPhysicianAccessError(cause) {
@@ -83,6 +89,10 @@ async function load() {
         throw new Error('Der Server hat eine ungültige Patientenliste zurückgegeben.');
       }
       patients.value = result.patients;
+      const pending = await careApi.listDoctorInvitations();
+      if (!current(request, identity)) return;
+      if (!Array.isArray(pending?.invitations)) throw new Error('Einladungen konnten nicht gelesen werden.');
+      doctorInvitations.value = pending.invitations;
     } else {
       const result = await careApi.getPatientCare();
       if (!current(request, identity)) return;
@@ -97,6 +107,7 @@ async function load() {
       }
       relationship.value = result.relationship;
       invitations.value = result.invitations;
+      outgoingInvitations.value = Array.isArray(result.outgoingInvitations) ? result.outgoingInvitations : [];
     }
     status.value = 'ready';
   } catch (cause) {
@@ -108,6 +119,27 @@ async function load() {
   } finally {
     if (current(request, identity)) busy.value = false;
   }
+}
+
+async function inviteDoctor() {
+  if (busy.value) return;
+  const request = generation, identity = props.identityId;
+  busy.value = true; error.value = ''; notice.value = '';
+  try {
+    await careApi.inviteDoctor(doctorEmail.value.trim());
+    if (!current(request, identity)) return;
+    doctorEmail.value = ''; await load();
+    if (current(request, identity)) notice.value = 'Einladung angelegt. Die Arztpraxis muss ausdrücklich zustimmen.';
+  } catch (cause) { if (current(request, identity)) error.value = cause.message || 'Einladung konnte nicht angelegt werden.'; }
+  finally { if (current(request, identity)) busy.value = false; }
+}
+async function respondToDoctorInvitation(invitation, action) {
+  if (busy.value) return;
+  const request = generation, identity = props.identityId;
+  busy.value = true; error.value = ''; notice.value = '';
+  try { await careApi.respondToDoctorInvitation(invitation.id, action); if (current(request, identity)) await load(); }
+  catch (cause) { if (current(request, identity) && !clearAfterPhysicianAccessError(cause)) error.value = cause.message || 'Einladung konnte nicht bearbeitet werden.'; }
+  finally { if (current(request, identity)) busy.value = false; }
 }
 
 async function invitePatient() {
@@ -201,6 +233,12 @@ onUnmounted(() => { mounted = false; clearState(); });
       </div>
       <template v-else-if="role === 'physician'">
         <h4 class="h6">Aktive Patienten</h4>
+        <h4 class="h6">Einladungen von Patienten</h4>
+        <ul v-if="doctorInvitations.length" class="list-group mb-3"><li v-for="invitation in doctorInvitations" :key="invitation.id" class="list-group-item">
+          <span>{{ invitation.patientName }}</span>
+          <button class="btn btn-link" type="button" :disabled="busy" @click="respondToDoctorInvitation(invitation, 'accept')">Annehmen</button>
+          <button class="btn btn-link" type="button" :disabled="busy" @click="respondToDoctorInvitation(invitation, 'decline')">Ablehnen</button>
+        </li></ul>
         <p v-if="patients.length === 0" class="text-muted">Es sind keine aktiven Patienten zugeordnet.</p>
         <ul v-else class="list-group mb-3">
           <li v-for="patient in patients" :key="patient.relationshipId" class="list-group-item d-flex flex-column flex-sm-row justify-content-between gap-1">
@@ -218,6 +256,11 @@ onUnmounted(() => { mounted = false; clearState(); });
       <template v-else>
         <p v-if="relationship" role="status">Aktiv betreut durch {{ relationship.displayName }}.</p>
         <p v-else class="text-muted">Es ist keine aktive Arztzuordnung vorhanden.</p>
+        <form class="mt-3" @submit.prevent="inviteDoctor">
+          <label for="doctor-email" class="form-label">Arzt per E-Mail einladen</label>
+          <div class="d-flex gap-2"><input id="doctor-email" v-model="doctorEmail" class="form-control" type="email" maxlength="254" required /><button class="btn btn-primary" :disabled="busy" type="submit">Einladen</button></div>
+        </form>
+        <div v-if="outgoingInvitations.length" class="mt-3"><h4 class="h6">Gesendete Einladungen</h4><ul class="list-group"><li v-for="invitation in outgoingInvitations" :key="invitation.id" class="list-group-item">{{ invitation.physicianName }} · ausstehend bis {{ new Date(invitation.expiresAt).toLocaleDateString() }}</li></ul></div>
         <h4 class="h6 mt-3">Offene Einladungen</h4>
         <p v-if="invitations.length === 0" class="text-muted">Es liegen keine offenen Einladungen vor.</p>
         <ul v-else class="list-group">

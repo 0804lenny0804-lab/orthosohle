@@ -53,9 +53,10 @@ test('competing explicit acceptances switch atomically and retain a single activ
     Promise.resolve().then(() => relations.acceptInvitation(first.id, 'patient-a', approvedPhysician)),
     Promise.resolve().then(() => relations.acceptInvitation(second.id, 'patient-a', approvedPhysician)),
   ]);
-  assert.equal(results.filter(result => result.kind === 'accepted').length, 2);
+  assert.equal(results.filter(result => result.kind === 'accepted').length, 1);
+  assert.equal(results.filter(result => result.kind === 'not_open').length, 1);
   assert.equal(database.prepare("SELECT count(*) AS n FROM patient_relation WHERE status = 'active'").get().n, 1);
-  assert.equal(database.prepare("SELECT count(*) AS n FROM patient_relation WHERE status = 'ended'").get().n, 1);
+  assert.equal(database.prepare("SELECT count(*) AS n FROM patient_relation WHERE status = 'ended'").get().n, 0);
   assert.equal(relations.hasActiveRelationship('doctor-a', 'profile-a') || relations.hasActiveRelationship('doctor-b', 'profile-a'), true);
   assert.equal(relations.hasActiveRelationship('doctor-a', 'profile-a') && relations.hasActiveRelationship('doctor-b', 'profile-a'), false);
   database.close();

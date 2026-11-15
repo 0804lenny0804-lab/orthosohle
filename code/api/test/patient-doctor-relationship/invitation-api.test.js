@@ -170,3 +170,114 @@ test('HTTP concurrent acceptance and decline produce a single terminal state', a
   assert.equal([accept, decline].filter(result => result.status === 409).length, 1);
   assert.equal(f.database.prepare("SELECT count(*) AS n FROM patient_relation WHERE status = 'active'").get().n, accept.status === 201 ? 1 : 0);
 });
+
+test('patient can invite an approved physician, but only that physician can accept with current assurance', async t => {
+  const f = await fixture(t);
+  f.approve('doctor-a');
+  const created = await f.request('/patient/invitations', {
+    actor: 'patient-a', method: 'POST', body: { physicianEmail: 'doctor-a@example.invalid' },
+  });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const id = created.body.invitation.id;
+  assert.equal((await f.request('/physician/invitations', { actor: 'doctor-a' })).status, 403);
+  f.proveStepUp('doctor-a');
+  assert.equal((await f.request('/physician/invitations', { actor: 'doctor-a' })).body.invitations.length, 1);
+  assert.equal((await f.request(`/physician/invitations/${id}/accept`, { actor: 'doctor-b', method: 'POST', body: {} })).status, 403);
+  assert.equal((await f.request(`/physician/invitations/${id}/accept`, { actor: 'doctor-a', method: 'POST', body: {} })).status, 201);
+  assert.equal((await f.request('/patient', { actor: 'patient-a' })).body.relationship.status, 'active');
+  assert.equal((await f.request('/physician/patients', { actor: 'doctor-a' })).body.patients.length, 1);
+});
+
+test('patient invitation acceptance rejects missing step-up and a different physician without changing care', async t => {
+  const f = await fixture(t);
+  f.approve('doctor-a');
+  f.proveStepUp('doctor-a');
+  const initial = await f.request('/invitations', {
+    actor: 'doctor-a', method: 'POST', body: { patientEmail: 'patient-a@example.invalid' },
+  });
+  assert.equal((await f.request(`/invitations/${initial.body.invitation.id}/accept`, {
+    actor: 'patient-a', method: 'POST', body: {},
+  })).status, 201);
+
+  f.approve('doctor-b');
+  const invite = await f.request('/patient/invitations', {
+    actor: 'patient-a', method: 'POST', body: { physicianEmail: 'doctor-b@example.invalid' },
+  });
+  assert.equal(invite.status, 201);
+
+  assert.equal((await f.request(`/physician/invitations/${invite.body.invitation.id}/accept`, {
+    actor: 'doctor-b', method: 'POST', body: {},
+  })).status, 403, 'approved physician without fresh step-up must be denied');
+  f.proveStepUp('doctor-b');
+  assert.equal((await f.request(`/physician/invitations/${invite.body.invitation.id}/accept`, {
+    actor: 'doctor-a', method: 'POST', body: {},
+  })).status, 404, 'different physician account must not accept this invitation');
+
+  assert.equal((await f.request('/patient', { actor: 'patient-a' })).body.relationship.displayName, 'Doctor A');
+  assert.equal(f.database.prepare('SELECT status FROM patient_physician_invitation WHERE id = ?')
+    .get(invite.body.invitation.id).status, 'open');
+  assert.equal(f.database.prepare("SELECT count(*) AS n FROM patient_relation WHERE status = 'active'").get().n, 1);
+});
+
+test('patient invitations reject unknown physicians and physician acceptance switches active care atomically', async t => {
+  const f = await fixture(t);
+  assert.equal((await f.request('/patient/invitations', {
+    actor: 'patient-a', method: 'POST', body: { physicianEmail: 'missing@example.invalid' },
+  })).status, 404);
+  f.approve('doctor-a');
+  f.proveStepUp('doctor-a');
+  const physicianInvite = await f.request('/invitations', { actor: 'doctor-a', method: 'POST', body: { patientEmail: 'patient-a@example.invalid' } });
+  assert.equal((await f.request(`/invitations/${physicianInvite.body.invitation.id}/accept`, {
+    actor: 'patient-a', method: 'POST', body: {},
+  })).status, 201);
+  f.approve('doctor-b');
+  f.proveStepUp('doctor-b');
+  const stalePhysicianInvite = await f.request('/invitations', {
+    actor: 'doctor-b', method: 'POST', body: { patientEmail: 'patient-a@example.invalid' },
+  });
+  const patientInvite = await f.request('/patient/invitations', {
+    actor: 'patient-a', method: 'POST', body: { physicianEmail: 'doctor-b@example.invalid' },
+  });
+  assert.equal(patientInvite.status, 201);
+  const patientState = await f.request('/patient', { actor: 'patient-a' });
+  assert.equal(patientState.body.invitations.length, 1);
+  assert.equal(patientState.body.outgoingInvitations.length, 1);
+  assert.equal((await f.request(`/physician/invitations/${patientInvite.body.invitation.id}/accept`, {
+    actor: 'doctor-b', method: 'POST', body: {},
+  })).status, 201);
+  assert.equal((await f.request('/physician/patients', { actor: 'doctor-a' })).body.patients.length, 0);
+  assert.equal((await f.request('/physician/patients', { actor: 'doctor-b' })).body.patients.length, 1);
+  assert.equal(f.database.prepare("SELECT status FROM patient_invitation WHERE id = ?")
+    .get(stalePhysicianInvite.body.invitation.id).status, 'withdrawn');
+  assert.equal((await f.request(`/invitations/${stalePhysicianInvite.body.invitation.id}/accept`, {
+    actor: 'patient-a', method: 'POST', body: {},
+  })).status, 409);
+});
+
+test('concurrent duplicate patient invitations reuse one row and acceptance invalidates competing pending switches', async t => {
+  const f = await fixture(t);
+  f.approve('doctor-a');
+  f.approve('doctor-b');
+  const [first, duplicate] = await Promise.all([
+    f.request('/patient/invitations', { actor: 'patient-a', method: 'POST', body: { physicianEmail: 'doctor-a@example.invalid' } }),
+    f.request('/patient/invitations', { actor: 'patient-a', method: 'POST', body: { physicianEmail: 'doctor-a@example.invalid' } }),
+  ]);
+  assert.equal(first.status, 201);
+  assert.equal(duplicate.status, 201);
+  assert.equal(first.body.invitation.id, duplicate.body.invitation.id);
+  const other = await f.request('/patient/invitations', {
+    actor: 'patient-a', method: 'POST', body: { physicianEmail: 'doctor-b@example.invalid' },
+  });
+  f.proveStepUp('doctor-a');
+  f.proveStepUp('doctor-b');
+  assert.equal((await f.request(`/physician/invitations/${first.body.invitation.id}/accept`, {
+    actor: 'doctor-a', method: 'POST', body: {},
+  })).status, 201);
+  assert.equal(f.database.prepare("SELECT status FROM patient_physician_invitation WHERE id = ?")
+    .get(other.body.invitation.id).status, 'withdrawn');
+  assert.equal((await f.request(`/physician/invitations/${other.body.invitation.id}/accept`, {
+    actor: 'doctor-b', method: 'POST', body: {},
+  })).status, 409);
+  assert.equal((await f.request('/physician/patients', { actor: 'doctor-a' })).body.patients.length, 1);
+  assert.equal((await f.request('/physician/patients', { actor: 'doctor-b' })).body.patients.length, 0);
+});
