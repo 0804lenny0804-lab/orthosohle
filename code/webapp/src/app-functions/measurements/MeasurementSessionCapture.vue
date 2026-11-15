@@ -20,17 +20,7 @@
       </p>
 
       <template v-if="identityId && profileState === 'ready' && draft">
-        <label class="form-label" for="session-source">Datenquelle</label>
-        <select id="session-source" v-model="draft.source" class="form-select mb-3" :disabled="draft.active || !!draft.pendingPayload">
-          <option value="ble">Bluetooth-Empfang</option>
-          <option value="simulation">Simulation (synthetische Werte)</option>
-        </select>
-        <p v-if="draft.source === 'ble'" class="small text-muted">
-          {{ bleConnected ? 'Bluetooth ist verbunden. Die tatsächliche Hardware und Messgenauigkeit sind nicht geprüft.' : 'Bluetooth ist nicht verbunden; starte zuerst die Geräteverbindung.' }}
-        </p>
-        <p v-else class="small text-muted">
-          {{ simulationRunning ? 'Die Simulation läuft. Diese Werte sind synthetisch und keine Messung an einer Person.' : 'Starte zuerst die Simulation. Diese Werte sind synthetisch.' }}
-        </p>
+        <p v-if="draft.source === 'simulation'" class="small text-muted" role="status">Simulation · keine echten Messwerte</p>
 
         <div class="d-flex flex-wrap gap-2">
           <button v-if="!draft.active && !draft.pendingPayload" type="button" class="btn btn-primary"
@@ -96,6 +86,10 @@ const sessionTimers = new Map();
 
 const sourceAvailable = computed(() => draft.value?.source === 'ble' ? props.bleConnected : props.simulationRunning);
 const otherAccountHasDraft = computed(() => hasUnsavedDraftForOtherIdentity(props.identityId));
+
+watch([draft, () => props.simulationRunning, () => draft.value?.active, () => draft.value?.pendingPayload], ([current, simulation]) => {
+  if (current && !current.active && !current.pendingPayload) current.source = simulation ? 'simulation' : 'ble';
+}, { immediate: true });
 
 function isCurrent(requestGeneration, identityId) {
   return mounted && requestGeneration === generation && identityId === props.identityId;

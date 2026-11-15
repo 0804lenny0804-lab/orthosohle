@@ -84,7 +84,7 @@
             <input id="profile-photo" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" @change="changeProfilePhoto" />
             <div><strong>{{ state.name || 'Dein Konto' }}</strong><span>{{ state.email }}</span>
               <button v-if="profilePhoto" type="button" class="btn btn-link btn-sm p-0 text-start" @click="removeProfilePhoto">Bild entfernen</button>
-              <small>Profilbild nur auf diesem Gerät</small></div>
+              </div>
           </div>
           <p v-if="photoError" class="alert alert-warning" role="alert">{{ photoError }}</p>
           <nav class="account-menu" aria-label="Kontobereiche">
@@ -183,7 +183,7 @@
         </p>
         <button v-if="!state.emailVerified" type="button" class="btn btn-outline-primary me-2 mb-2"
           :disabled="state.busy" @click="accountSession.resendVerification({ email: state.email })">Bestätigungslink erneut anfordern</button>
-        <button type="button" class="btn btn-outline-secondary me-2 mb-2"
+        <button v-if="!state.emailVerified" type="button" class="btn btn-outline-secondary me-2 mb-2"
           :disabled="state.busy" @click="accountSession.refresh">Status erneut prüfen</button>
         <button type="button" class="btn btn-primary mb-2" :disabled="state.busy" @click="accountSession.signOut">
           {{ state.busy ? 'Bitte warten …' : 'Abmelden' }}

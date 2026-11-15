@@ -2,10 +2,7 @@
   <section class="card mb-4" aria-labelledby="saved-sessions-title">
     <div class="card-body">
       <h2 id="saved-sessions-title" class="h5 text-sohle">Gespeicherte Messsitzungen</h2>
-      <p class="small text-muted">
-        Empfangszeiten und Quellen stammen aus der App-Auswahl, nicht aus einer Geräteprüfung. Eine Lücke zeigt nur, dass
-        in diesem Zeitbereich kein Wert empfangen wurde. Sie beweist keinen Geräteausfall. Simulationen sind synthetisch.
-      </p>
+
       <p v-if="!identityId" class="alert alert-warning" role="status">Melde dich an, um den deinem Konto zugeordneten Verlauf zu laden.</p>
       <p v-else-if="status === 'loading'" role="status" aria-live="polite">Gespeicherte Sitzungen werden geladen …</p>
       <p v-else-if="status === 'missing-profile'" class="alert alert-warning" role="status">
@@ -16,7 +13,7 @@
         <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="loadSessions">Erneut versuchen</button>
       </div>
       <template v-else>
-        <p v-if="sessions.length === 0" class="text-muted" role="status">Für dieses Konto sind keine Messsitzungen gespeichert.</p>
+        <p v-if="sessions.length === 0" class="text-muted" role="status">Noch keine Messungen.</p>
         <div v-else class="list-group mb-3">
           <button v-for="session in sessions" :key="session.id" type="button"
             class="list-group-item list-group-item-action text-start"
