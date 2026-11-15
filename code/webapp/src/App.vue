@@ -91,27 +91,27 @@
 
 <script>
 import { watch, computed, onMounted, onUnmounted } from "vue";
-import AppShell from "./components/shell/AppShell.vue";
-import AccountView from "./features/account/AccountView.vue";
-import PhysicianApproval from "./features/physician-approval/PhysicianApproval.vue";
-import SessionCapture from "./features/measurement/SessionCapture.vue";
-import Bluetooth from './components/Bluetooth.vue';
-import LiveChart from './components/LiveChart.vue';
-import LimitConfig from './components/LimitConfig.vue';
-import SimulationControl from './components/SimulationControl.vue';
-import MeasurementTable from './components/MeasurementTable.vue';
-import { StepDetector } from './components/stepdetector.js'; // Pfad prüfen!
-import Toastwarning from './components/Toastwarning.vue';
-import StepCounter from './components/stepcounter.vue';
-import HistoryView from './components/history/HistoryView.vue';
-import RunFeedbackWindow from "./components/RunFeedbackWindow.vue";
-import { accountSession } from "./features/account/session.js";
-import { clearLegacyDemoStorage, createDemoSessionState } from "./features/demo/demo-state.js";
-import { MAX_SESSION_VALUE } from "./features/measurement/measurement-sessions.js";
-import { loadDisplayPreferences, applyDisplayPreferenceClasses } from "./features/settings/local-preferences.js";
+import AppShell from "./shared/layout/AppShell.vue";
+import AccountView from "./app-functions/account/AccountView.vue";
+import PhysicianApproval from "./app-functions/doctor-access-approval/DoctorAccessApproval.vue";
+import SessionCapture from "./app-functions/measurements/MeasurementSessionCapture.vue";
+import Bluetooth from './app-functions/measurements/BluetoothConnection.vue';
+import LiveChart from './app-functions/measurements/LiveMeasurementChart.vue';
+import LimitConfig from './app-functions/measurements/MeasurementSettings.vue';
+import SimulationControl from './app-functions/measurements/MeasurementSimulation.vue';
+import MeasurementTable from './app-functions/measurements/RecentMeasurements.vue';
+import { measurementPreview } from './app-functions/measurements/measurement-preview.js';
+import Toastwarning from './app-functions/measurements/LoadLimitWarning.vue';
+import StepCounter from './app-functions/measurements/StepCounter.vue';
+import HistoryView from './app-functions/measurements/history/MeasurementHistory.vue';
+import RunFeedbackWindow from "./app-functions/measurements/StepGoalFeedback.vue";
+import { accountSession } from "./app-functions/account/account-session.js";
+import { clearLegacyDemoStorage, createDemoSessionState } from "./app-functions/demo/demo-state.js";
+import { loadDisplayPreferences, applyDisplayPreferenceClasses } from "./app-functions/settings/local-preferences.js";
 
 export default {
   name: 'App',
+  mixins: [measurementPreview],
   components: {
     AppShell, AccountView, PhysicianApproval, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
     MeasurementTable, Toastwarning, StepCounter, HistoryView, RunFeedbackWindow
@@ -180,56 +180,7 @@ export default {
       this.activeNav = this.getNavFromHash();
     },
 
-    updateDemoLimit(value) {
-      this.currentLimit = value;
-      this.limitHistory.push({ timestamp: new Date().toISOString(), limit_value: value });
-    },
 
-    // Zentraler Datenempfang
-    onRawValue({ kg, timestamp: receivedAt, source }) {
-      if (!['ble', 'simulation'].includes(source)) return;
-      const numericValue = Number(kg);
-      const timestamp = new Date(receivedAt);
-      if (!Number.isFinite(numericValue) || Number.isNaN(timestamp.getTime())) return;
-
-      this.$refs.sessionCapture?.acceptSample({ kg: numericValue, timestamp: timestamp.toISOString(), source });
-      if (numericValue < 0 || numericValue > MAX_SESSION_VALUE) return;
-
-      if (this.previewSource && this.previewSource !== source) {
-        this.rawValues = [];
-        this.stepCount = 0;
-        this.measurements = [];
-        this.stepDetector = this.createStepDetector();
-      }
-      this.previewSource = source;
-
-      // 1. Daten für Live-Graph speichern
-      this.rawValues.push({ value: numericValue, timestamp: timestamp.toISOString() });
-      if (this.rawValues.length > 300) this.rawValues.shift();
-
-      // 2. WICHTIG: Daten an den Schrittzähler-Algorithmus weitergeben
-      if (this.stepDetector) {
-        this.stepDetector.onSample(numericValue, timestamp);
-      }
-    },
-
-    resetDemoState() {
-      Object.assign(this, createDemoSessionState());
-      this.demoEpoch += 1;
-      this.previewSource = null;
-      this.stepDetector = this.createStepDetector();
-    },
-    createStepDetector() {
-      return new StepDetector({
-        threshold: 15,
-        minWindow: 8,
-        onPeak: ({ peak, timestamp }) => {
-          this.stepCount += 1;
-          this.measurements.unshift({ value: peak, timestamp: new Date(timestamp).toISOString(), time: new Date(timestamp).toLocaleTimeString() });
-          if (this.measurements.length > 20) this.measurements.pop();
-        }
-      });
-    }
   },
   computed: {
     identityId() { return accountSession.state.identityId || ""; }

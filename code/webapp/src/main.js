@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
-import { pwa__registerServiceWorker } from "./pwa__/pwa__registerSW.js"
+import { registerServiceWorker } from "./pwa/register.js"
 
 const app = createApp(App)
 
@@ -25,4 +25,4 @@ app.config.globalProperties.$vibrate = (pattern = [200, 100, 200]) => {
 
 app.mount('#app')
 
-pwa__registerServiceWorker()
+registerServiceWorker()

@@ -30,13 +30,13 @@ export default defineConfig({
       strategies: "injectManifest",
 
       // ✅ Source-Datei, die bei dir wirklich existiert:
-      srcDir: "src/pwa__",
+      srcDir: "src/pwa",
       // ✅ Output-Datei im dist/
-      filename: "pwa__sw.js",
+      filename: "browser-process.js",
 
       registerType: "autoUpdate",
       manifest: false,
-      includeAssets: ["pwa__manifest.webmanifest", "pwa__icons/*"],
+      includeAssets: ["pwa/manifest.webmanifest", "pwa/icons/*"],
 
 
     }),

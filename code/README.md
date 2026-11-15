@@ -2,6 +2,12 @@
 
 Auf Nutzerauftrag vom 06.11.2026 wird der vorhandene Vue-/Vite-Web-App-Prototyp als Ausgangspunkt weitergeführt. Die erste aktive Kopie liegt unter [webapp](webapp/README.md); die Referenz bleibt unverändert unter `context/legacy/orthopaul/local-comm/frontend`. Die frühere zusätzliche Vue-/Express-/Auth-Implementierung ist laut Projektgeschichte unter Git-Tag `archive/2026-10-29/before-mobile-restart` archiviert; der Tag ist in dieser Arbeitskopie nicht verfügbar. Der aktuelle Backend-Durchstich liegt unter `api/`.
 
+## Aufbau des Anwendungscodes
+
+`api/src` gruppiert Anmeldung (`sign-in`), Konten (`accounts`), Messungen (`measurements`), Arztzugang (`doctor-access`), Patient-Arzt-Zuordnung (`patient-doctor-relationship`) und Behandlungspläne (`treatment-plans`). Dateien mit `api` behandeln HTTP-Anfragen, `database` den Datenzugriff und `database-change` die ausdrücklichen Schemaänderungen. `local-admin-tools` enthält lokale Verwaltungsbefehle; `notifications` enthält den privaten Test-Mailausgang. Der API-Start und die Datenbankaktualisierung bleiben über die npm-Befehle unten erreichbar.
+
+`webapp/src/app-functions` enthält die fachlichen Oberflächen und Messregeln, `shared/layout` den Seitenrahmen und `pwa` den Browser-Hintergrundprozess. Installationsmanifest und Icons liegen in `webapp/public/pwa`. Tests sind unter `api/test` und `webapp/test` nach Fachbereich gruppiert. `scripts/check_project.py` prüft Dokumentationslinks, Backlog und die Integrität der unveränderten Altcode-Referenz.
+
 ## Lokaler Identitäts-Durchstich
 
 `api/` enthält Better Auth 1.7.18, Express 5.3.0 und better-sqlite3 12.11.1 mit Lockfile. Voraussetzung: Node 22.12+; tatsächlich geprüft mit Node 24.19.0 und npm 11.9.0. better-sqlite3 13.0.3 fiel unter Windows bei `npm ci` in einen Visual-Studio-Buildtools-Pfad; deshalb ist die lokale Version auf 12.11.1 festgesetzt. Der Windows-Installationsweg mit passendem Vorabpaket muss auf dem Zielrechner noch bestätigt werden.
@@ -49,7 +55,7 @@ npm run migrate --prefix code/api
 
 ```bash
 cd code/api
-node --env-file-if-exists=.env src/reviewer-bootstrap.js grant "Operator"
+node --env-file-if-exists=.env src/local-admin-tools/set-local-reviewer.js grant "Operator"
 ```
 
 Zum Entzug des Prüferstatus denselben Befehl mit `revoke` statt `grant` ausführen. Die Aktion betrifft nur das Konto mit der konfigurierten Adresse. Beide Rollenwechsel widerrufen dessen bestehende Sitzungen. Für den Entzug ist keine aktive E-Mail- oder TOTP-Verifikation erforderlich. Die CLI führt keine Migration selbst aus und meldet fehlende Tabellen; zuerst `npm run migrate` ausführen. Der Bootstrap verlangt TOTP-Enrollment, aber keinen aktuellen TOTP-Code als Betreiber-Nachweis. Der angegebene Operatorname wird nicht unabhängig authentifiziert; er ist ein deklarativer Auditwert und der Ablauf setzt vertrauenswürdigen lokalen Zugriff auf die Entwicklungsumgebung voraus.
@@ -58,7 +64,7 @@ Der lokale Sicherheitswiderruf einer Arztfreigabe ist ein eigener Befehl und ver
 
 ```powershell
 Set-Location code/api
-node --env-file-if-exists=.env src/physician-approval-revoke.js revoke "Operator" "arzt@example.invalid"
+node --env-file-if-exists=.env src/local-admin-tools/revoke-doctor-access.js revoke "Operator" "arzt@example.invalid"
 ```
 
 Der Befehl setzt einen bestehenden `pending`- oder `approved`-Antrag atomar auf `revoked`, entwertet offene Freigabelinks, widerruft die Kontositzungen und schreibt Operator, Zielkonto, Ergebnis, Belegreferenz und Zeitpunkt in das unveränderliche lokale Audit. Wiederholung ist idempotent. Die Live-Berechtigungsprüfung sperrt den Arztzugriff unmittelbar. Bestehende Betreuungsbeziehungen und Einladungen bleiben gespeichert, aber die gesperrte Arztidentität kann keine Arztaktionen ausführen. Es gibt keinen Regrant-Befehl; Wiederfreigabe und Ablehnung eines Arztantrags sowie die fachlichen Folgen vorhandener Beziehungen bleiben offen. Der Operatorname wird nicht unabhängig authentifiziert und setzt vertrauenswürdigen lokalen Zugriff auf die Entwicklungsumgebung voraus.

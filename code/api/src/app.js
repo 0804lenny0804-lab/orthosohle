@@ -1,13 +1,13 @@
 import express from 'express';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
-import { createPatientProfileRouter } from './patient-profile-routes.js';
-import { createMeasurementSessionRouter } from './measurement-session-routes.js';
-import { createPhysicianReviewRouter } from './physician-review-routes.js';
-import { createPhysicianApprovalRouter } from './physician-approval-routes.js';
-import { createTotpStepUpRouter, hasFreshTotpProof } from './totp-step-up.js';
-import { createPatientRelationsRouter } from './patient-relations.js';
-import { createPhysicianMeasurementSessionRouter } from './physician-measurement-session-routes.js';
-import { createTherapyPlanRouter } from './therapy-plan.js';
+import { createPatientProfileRouter } from './accounts/patient-profile-api.js';
+import { createMeasurementSessionRouter } from './measurements/measurement-session-api.js';
+import { createPhysicianReviewRouter } from './doctor-access/request/physician-review-api.js';
+import { createPhysicianApprovalRouter } from './doctor-access/approval/physician-approval-api.js';
+import { createTotpStepUpRouter, hasFreshTotpProof } from './sign-in/recent-totp-check.js';
+import { createPatientRelationsRouter } from './patient-doctor-relationship/patient-relations.js';
+import { createPhysicianMeasurementSessionRouter } from './measurements/physician-measurement-session-api.js';
+import { createTherapyPlanRouter } from './treatment-plans/therapy-plan-api.js';
 
 export function createApp(auth, config = {}) {
   const { database, webOrigin } = config;

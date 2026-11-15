@@ -17,6 +17,10 @@ Stand: 12.11.2026. Regeln ausschließlich in [AGENTS.md](../AGENTS.md); Start un
 - Die PWA allein erzeugt keine APK/IPA. Better Auth ist als Auth-Basis gewählt; native Verpackung, mobile BLE-Anbindung, Push und Hosting sind noch offen. Alte Demoaufrufe mit fester Nutzer-ID wurden entfernt; Testwerte sind flüchtige Browser-Vorschau und werden beim Identitätswechsel zurückgesetzt. Eine lokale Messsitzungs-API ordnet Daten dem eigenen Patientenprofil zu; freigegebene Ärzte können bei aktiver Zuordnung und frischem TOTP lesend darauf zugreifen. Produktfreigabe fehlt.
 - Zielrichtung bleibt: gemeinsame Web-Oberfläche/API-Basis, installierbarer Patientenclient und Ärzteportal. Die Migration erfolgt in kleinen, modularen und unabhängigen Review-Schritten gemäß [Agentenablauf](../AGENTS.md) und [Rollen](agents/).
 
+## Strukturüberarbeitung
+
+API, Webapp und Tests wurden fachlich gruppiert; Start- und Verwaltungsbefehle sind in [code/README.md](../code/README.md) dokumentiert. PWA-Manifest und Icons liegen unter `code/webapp/public/pwa`. Der Arduino-Sketch wurde als bytegleiche Kopie aus dem aktiven Webapp-Ordner entfernt; die unveränderte Referenz bleibt unter `context/legacy/`. Die Webapp nutzt relative API-Pfade; die ungenutzte URL-Datei und nicht importierte Abhängigkeiten axios und socket.io-client wurden entfernt. Messvorschau und Messentwürfe sowie Therapieplan-API und Datenbankzugriff sind getrennt; die gemeinsame Seiten- und Zeitvalidierung der Mess-API liegt an einer Stelle. Geräte-, Push- und mobile Plattformprüfungen stehen weiterhin aus.
+
 ## Nachweise und Grenzen
 
 Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Der aktuelle lokale App- und API-Durchstich ist gesondert prüfbar; Einzelheiten stehen in code/README.md. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.
