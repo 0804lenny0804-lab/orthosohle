@@ -1,7 +1,7 @@
 <template>
-  <section class="account-view card mx-auto" aria-labelledby="account-title" style="max-width: 38rem">
+  <section class="account-view mx-auto" aria-labelledby="account-title" style="max-width: 38rem">
     <div class="card-body">
-      <h2 id="account-title" class="h4">Dein Konto</h2>
+      <h2 v-if="!state.identityId" id="account-title" class="h4">Dein Konto</h2><h2 v-else id="account-title" class="visually-hidden">Kontoübersicht</h2>
       <p v-if="!state.identityId" class="small text-muted" id="account-scope">
         Wähle deinen Zugang. Patientinnen, Patienten und Ärzte verwenden dieselbe sichere Anmeldung.
       </p>
@@ -76,7 +76,17 @@
       </form>
       <div v-else-if="state.identityId">
         <section v-if="activeTab === 'overview'" aria-label="Kontoübersicht">
-          <div class="account-identity"><span class="account-avatar" aria-hidden="true"><i class="bi bi-person"></i></span><div><strong>{{ state.name || 'Dein Konto' }}</strong><span>{{ state.email }}</span></div></div>
+          <div class="account-identity">
+            <label class="account-avatar" for="profile-photo" title="Profilbild ändern">
+              <img v-if="profilePhoto" :src="profilePhoto" alt="" /><i v-else class="bi bi-person" aria-hidden="true"></i>
+              <span class="visually-hidden">Profilbild ändern</span>
+            </label>
+            <input id="profile-photo" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" @change="changeProfilePhoto" />
+            <div><strong>{{ state.name || 'Dein Konto' }}</strong><span>{{ state.email }}</span>
+              <button v-if="profilePhoto" type="button" class="btn btn-link btn-sm p-0 text-start" @click="removeProfilePhoto">Bild entfernen</button>
+              <small>Profilbild nur auf diesem Gerät</small></div>
+          </div>
+          <p v-if="photoError" class="alert alert-warning" role="alert">{{ photoError }}</p>
           <nav class="account-menu" aria-label="Kontobereiche">
             <button v-for="tab in visibleTabs" :key="tab.id" type="button" @click="selectTab(tab.id)">
               <span><strong>{{ tab.label }}</strong><small>{{ tab.description }}</small></span><span aria-hidden="true">›</span>
@@ -218,6 +228,40 @@ const accountTabs = [
 ];
 const activeTab = ref('overview');
 const editingName = ref(false);
+const profilePhoto = ref('');
+const photoError = ref('');
+let photoGeneration = 0;
+function photoKey(id) { return `orthosohle:profile-photo:v1:${encodeURIComponent(id)}`; }
+function loadProfilePhoto(id) {
+  photoGeneration += 1;
+  profilePhoto.value = '';
+  photoError.value = '';
+  if (!id) return;
+  try { profilePhoto.value = localStorage.getItem(photoKey(id)) || ''; } catch { photoError.value = 'Das lokale Profilbild kann nicht geladen werden.'; }
+}
+function changeProfilePhoto(event) {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 1024 * 1024) {
+    photoError.value = 'Bitte ein JPEG-, PNG- oder WebP-Bild bis 1 MB auswählen.'; return;
+  }
+  const id = state.identityId, generation = ++photoGeneration;
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (generation !== photoGeneration || id !== state.identityId) return;
+    try { localStorage.setItem(photoKey(id), reader.result); profilePhoto.value = reader.result; photoError.value = ''; }
+    catch { photoError.value = 'Das Profilbild konnte auf diesem Gerät nicht gespeichert werden.'; }
+  };
+  reader.onerror = () => { if (generation === photoGeneration) photoError.value = 'Das Bild konnte nicht gelesen werden.'; };
+  reader.readAsDataURL(file);
+}
+function removeProfilePhoto() {
+  photoGeneration += 1;
+  try { localStorage.removeItem(photoKey(state.identityId)); profilePhoto.value = ''; photoError.value = ''; }
+  catch { photoError.value = 'Das Profilbild konnte nicht entfernt werden.'; }
+}
+
 const accountIntent = ref('patient');
 const visibleTabs = computed(() => accountTabs.filter(tab => accountIntent.value === 'physician' ? !['patient', 'doctors'].includes(tab.id) : tab.id !== 'physician'));
 const mode = ref('login');
@@ -401,7 +445,8 @@ watch(() => state.name, (value) => {
   profileName.value = value;
 }, { immediate: true });
 
-watch(() => state.identityId, () => {
+watch(() => state.identityId, (identityId) => {
+  loadProfilePhoto(identityId);
   activeTab.value = 'overview';
   editingName.value = false;
   physicianAccessCheckGeneration += 1;
@@ -433,6 +478,7 @@ function handleAccountCallback() {
 }
 
 onMounted(() => {
+  loadProfilePhoto(state.identityId);
   handleAccountCallback();
   const page = window.history.state?.accountPage;
   if (visibleTabs.value.some(tab => tab.id === page)) activeTab.value = page;
@@ -447,6 +493,7 @@ onUnmounted(() => {
   window.removeEventListener('popstate', handleAccountNavigation);
   window.removeEventListener('focus', closePhysicianAccessOnResume);
   document.removeEventListener('visibilitychange', handleVisibilityChange);
+  photoGeneration += 1;
   clearPasswords();
   twoFactorPassword.value = '';
   setupCode.value = '';
@@ -461,8 +508,10 @@ onUnmounted(() => {
 <style scoped>
 .account-identity { display: flex; align-items: center; gap: 1rem; padding: 1rem .25rem; overflow-wrap: anywhere; }
 .account-identity > div { display: grid; gap: .2rem; }
-.account-avatar { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: #e9e9ee; color: #555; font-size: 1.75rem; flex: none; }
-.account-identity span, .account-menu small { color: #59616b; }
+.account-avatar:has(+ input:focus-visible) { outline: 3px solid #a00059; outline-offset: 3px; }
+.account-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.account-avatar { cursor: pointer; display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: #e9e9ee; color: #555; font-size: 1.75rem; flex: none; }
+.account-identity span, .account-identity small, .account-menu small { color: #59616b; }
 .account-menu { margin-top: 1rem; border: 1px solid #e1e3e7; border-radius: 1rem; overflow: hidden; }
 .account-menu button { width: 100%; min-height: 4.5rem; padding: .8rem 1rem; border: 0; border-bottom: 1px solid #e1e3e7; background: white; display: flex; justify-content: space-between; align-items: center; text-align: left; }
 .account-menu button:last-child { border-bottom: 0; }
