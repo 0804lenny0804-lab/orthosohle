@@ -1,5 +1,5 @@
 import { StepDetector } from './step-detector.js';
-import { createDemoSessionState } from '../demo/demo-state.js';
+import { createDemoSessionState } from './demo-session.js';
 import { MAX_SESSION_VALUE } from './measurement-rules.js';
 
 export const measurementPreview = {

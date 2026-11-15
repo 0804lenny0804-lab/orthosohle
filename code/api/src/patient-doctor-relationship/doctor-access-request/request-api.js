@@ -1,7 +1,7 @@
 import express from 'express';
 import { fromNodeHeaders } from 'better-auth/node';
-import { createPhysicianReviewRepository } from './physician-review-database.js';
-import { materializePhysicianReviewNotification } from './physician-review-notifier.js';
+import { createPhysicianReviewRepository } from './request-database.js';
+import { materializePhysicianReviewNotification } from './request-notification.js';
 
 function publicReview(review) {
   if (!review) return null;

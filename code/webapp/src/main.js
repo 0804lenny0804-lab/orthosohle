@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
-import { registerServiceWorker } from "./pwa/register.js"
+import { registerServiceWorker } from "./pwa/browser-background/register.js"
 
 const app = createApp(App)
 

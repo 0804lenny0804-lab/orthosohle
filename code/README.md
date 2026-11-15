@@ -4,7 +4,7 @@ Auf Nutzerauftrag vom 06.11.2026 wird der vorhandene Vue-/Vite-Web-App-Prototyp 
 
 ## Aufbau des Anwendungscodes
 
-`api/src` gruppiert Anmeldung (`sign-in`), Konten (`accounts`), Messungen (`measurements`), Arztzugang (`doctor-access`), Patient-Arzt-Zuordnung (`patient-doctor-relationship`) und Behandlungspläne (`treatment-plans`). Dateien mit `api` behandeln HTTP-Anfragen, `database` den Datenzugriff und `database-change` die ausdrücklichen Schemaänderungen. `local-admin-tools` enthält lokale Verwaltungsbefehle; `notifications` enthält den privaten Test-Mailausgang. Der API-Start und die Datenbankaktualisierung bleiben über die npm-Befehle unten erreichbar.
+`api/src` gruppiert Anmeldung (`sign-in`), Konten (`accounts`), Messungen (`measurements`), Patient-Arzt-Zuordnung und Arztzugang (`patient-doctor-relationship`) und Behandlungspläne (`treatment-plans`). Dateien mit `api` behandeln HTTP-Anfragen, `database` den Datenzugriff und `database-changes/` die ausdrücklichen Schemaänderungen. `local-admin-tools` enthält lokale Verwaltungsbefehle; `notifications` enthält den privaten Test-Mailausgang. Der API-Start und die Datenbankaktualisierung bleiben über die npm-Befehle unten erreichbar.
 
 `webapp/src/app-functions` enthält die fachlichen Oberflächen und Messregeln, `shared/layout` den Seitenrahmen und `pwa` den Browser-Hintergrundprozess. Installationsmanifest und Icons liegen in `webapp/public/pwa`. Tests sind unter `api/test` und `webapp/test` nach Fachbereich gruppiert. `scripts/check_project.py` prüft Dokumentationslinks, Backlog und die Integrität der unveränderten Altcode-Referenz.
 

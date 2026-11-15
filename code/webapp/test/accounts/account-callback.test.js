@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { consumeAccountCallback } from '../../src/app-functions/account/account-api.js';
+import { consumeAccountCallback } from '../../src/app-functions/account/account-callback.js';
 
 test('callback failures are consumed without exposing raw provider messages', () => {
   for (const query of ['error=TOKEN_EXPIRED', 'error=INVALID_TOKEN', 'verification=invalid', 'error=untrusted-text']) {

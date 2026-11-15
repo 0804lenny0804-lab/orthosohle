@@ -5,7 +5,7 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import Database from 'better-sqlite3';
 import { createTherapyPlanRouter } from '../../src/treatment-plans/therapy-plan-api.js';
-import { migrateTherapyPlans } from '../../src/treatment-plans/therapy-plan-database-change.js';
+import { migrateTherapyPlans } from '../../src/treatment-plans/database-changes/therapy-plan.js';
 import { createTherapyPlanRepository } from '../../src/treatment-plans/therapy-plan-database.js';
 import { migratePatientRelations } from '../../src/patient-doctor-relationship/patient-relations.js';
 

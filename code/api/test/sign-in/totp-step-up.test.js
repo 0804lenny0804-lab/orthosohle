@@ -5,7 +5,7 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { fixture, signUp, signIn, cookies, account } from '../helpers/test-support.js';
 import { createTotpStepUpRouter } from '../../src/sign-in/recent-totp-check.js';
-import { migrateTotpStepUp } from '../../src/sign-in/recent-totp-check-database-change.js';
+import { migrateTotpStepUp } from '../../src/sign-in/database-changes/recent-totp-check.js';
 
 function decodeBase32(value) {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';

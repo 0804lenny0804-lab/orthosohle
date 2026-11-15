@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import Database from 'better-sqlite3';
 import test from 'node:test';
-import { migratePhysicianApproval } from '../../src/doctor-access/approval/physician-approval-database-change.js';
-import { createPhysicianApprovalService } from '../../src/doctor-access/approval/physician-approval-service.js';
+import { migratePhysicianApproval } from '../../../src/patient-doctor-relationship/doctor-access-approval/database-changes/approval.js';
+import { createPhysicianApprovalService } from '../../../src/patient-doctor-relationship/doctor-access-approval/approval-rules.js';
 
 const secret = 'physician-approval-test-secret-with-sufficient-entropy';
 const reviewer = { userId: 'reviewer', sessionId: 'active-session' };

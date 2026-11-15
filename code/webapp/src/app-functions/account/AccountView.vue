@@ -180,7 +180,7 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { accountSession } from './account-session.js';
-import { consumeAccountCallback } from './account-api.js';
+import { consumeAccountCallback } from './account-callback.js';
 import PatientProfile from './PatientProfile.vue';
 import PatientProfileForm from './PatientProfileForm.vue';
 import PhysicianReview from './DoctorAccessRequest.vue';

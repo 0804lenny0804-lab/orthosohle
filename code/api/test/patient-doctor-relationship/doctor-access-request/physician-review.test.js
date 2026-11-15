@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { rm, stat, writeFile } from 'node:fs/promises';
 import test from 'node:test';
-import { migratePhysicianReview } from '../../src/doctor-access/request/physician-review-database-change.js';
-import { account, cookies, fixture, signIn, signUp } from '../helpers/test-support.js';
+import { migratePhysicianReview } from '../../../src/patient-doctor-relationship/doctor-access-request/database-changes/request.js';
+import { account, cookies, fixture, signIn, signUp } from '../../helpers/test-support.js';
 
 const endpoint = '/api/physician-review';
 const webOrigin = 'http://127.0.0.1:5173';

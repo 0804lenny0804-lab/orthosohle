@@ -4,8 +4,8 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { createApp } from '../../src/app.js';
 import { readConfig } from '../../src/config.js';
-import { migratePatientProfiles } from '../../src/accounts/patient-profile-database-change.js';
-import { migrateTwoFactorSessions } from '../../src/sign-in/two-factor-session-database-change.js';
+import { migratePatientProfiles } from '../../src/accounts/database-changes/patient-profile.js';
+import { migrateTwoFactorSessions } from '../../src/sign-in/database-changes/two-factor-session.js';
 import { account, cookies, fixture, signIn, signUp } from '../helpers/test-support.js';
 
 test('TOTP setup requires a verified code; enabled login has no session until the real code succeeds', async t => {

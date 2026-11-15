@@ -1,6 +1,6 @@
 import { createAuth } from '../sign-in/create-auth.js';
 import { readConfig } from '../config.js';
-import { createReviewerBootstrapRepository } from '../doctor-access/reviewer/reviewer-bootstrap-database.js';
+import { createReviewerBootstrapRepository } from '../patient-doctor-relationship/local-reviewer-access/reviewer-database.js';
 
 const [action, operator, ...extra] = process.argv.slice(2);
 if (!['grant', 'revoke'].includes(action) || !operator || extra.length) {

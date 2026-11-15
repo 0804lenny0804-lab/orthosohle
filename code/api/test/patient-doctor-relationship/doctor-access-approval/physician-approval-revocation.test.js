@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import Database from 'better-sqlite3';
 import test from 'node:test';
-import { migratePhysicianApproval } from '../../src/doctor-access/approval/physician-approval-database-change.js';
-import { createPhysicianApprovalRevocationRepository } from '../../src/doctor-access/approval/physician-approval-revocation.js';
-import { createPhysicianApprovalService } from '../../src/doctor-access/approval/physician-approval-service.js';
+import { migratePhysicianApproval } from '../../../src/patient-doctor-relationship/doctor-access-approval/database-changes/approval.js';
+import { createPhysicianApprovalRevocationRepository } from '../../../src/patient-doctor-relationship/doctor-access-approval/revoke-approval.js';
+import { createPhysicianApprovalService } from '../../../src/patient-doctor-relationship/doctor-access-approval/approval-rules.js';
 
 function fixture(status = 'approved', { legacyAudit = false } = {}) {
   const database = new Database(':memory:');

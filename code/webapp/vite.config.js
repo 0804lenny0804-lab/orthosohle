@@ -30,7 +30,7 @@ export default defineConfig({
       strategies: "injectManifest",
 
       // ✅ Source-Datei, die bei dir wirklich existiert:
-      srcDir: "src/pwa",
+      srcDir: "src/pwa/browser-background",
       // ✅ Output-Datei im dist/
       filename: "browser-process.js",
 

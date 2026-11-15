@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { migrateReviewerBootstrap } from '../../src/doctor-access/reviewer/reviewer-bootstrap-database-change.js';
-import { createReviewerBootstrapRepository } from '../../src/doctor-access/reviewer/reviewer-bootstrap-database.js';
-import { account, fixture, signUp } from '../helpers/test-support.js';
+import { migrateReviewerBootstrap } from '../../../src/patient-doctor-relationship/local-reviewer-access/database-changes/reviewer.js';
+import { createReviewerBootstrapRepository } from '../../../src/patient-doctor-relationship/local-reviewer-access/reviewer-database.js';
+import { account, fixture, signUp } from '../../helpers/test-support.js';
 
 const configuredEmail = 'configured-reviewer@example.invalid';
 

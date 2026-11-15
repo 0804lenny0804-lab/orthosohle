@@ -106,7 +106,7 @@ import StepCounter from './app-functions/measurements/StepCounter.vue';
 import HistoryView from './app-functions/measurements/history/MeasurementHistory.vue';
 import RunFeedbackWindow from "./app-functions/measurements/StepGoalFeedback.vue";
 import { accountSession } from "./app-functions/account/account-session.js";
-import { clearLegacyDemoStorage, createDemoSessionState } from "./app-functions/demo/demo-state.js";
+import { clearLegacyDemoStorage, createDemoSessionState } from "./app-functions/measurements/demo-session.js";
 import { loadDisplayPreferences, applyDisplayPreferenceClasses } from "./app-functions/settings/local-preferences.js";
 
 export default {

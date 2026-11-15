@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { cookies, fixture, signIn, signUp, account } from '../helpers/test-support.js';
 import { migratePatientRelations } from '../../src/patient-doctor-relationship/patient-relations.js';
-import { migrateTherapyPlans } from '../../src/treatment-plans/therapy-plan-database-change.js';
-import { migratePatientProfiles } from '../../src/accounts/patient-profile-database-change.js';
+import { migrateTherapyPlans } from '../../src/treatment-plans/database-changes/therapy-plan.js';
+import { migratePatientProfiles } from '../../src/accounts/database-changes/patient-profile.js';
 
 const ORIGIN = 'http://127.0.0.1:5173';
 const doctor = { ...account, name: 'Synthetic Doctor', email: 'plan-doctor@example.invalid' };

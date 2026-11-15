@@ -1,7 +1,7 @@
 import express from 'express';
 import { fromNodeHeaders } from 'better-auth/node';
-import { materializePhysicianApprovalNotification } from './physician-approval-notifier.js';
-import { createPhysicianApprovalService } from './physician-approval-service.js';
+import { materializePhysicianApprovalNotification } from './approval-notification.js';
+import { createPhysicianApprovalService } from './approval-rules.js';
 
 function activeSession(database, reviewer, configuredReviewerEmail) {
   const now = new Date().toISOString();

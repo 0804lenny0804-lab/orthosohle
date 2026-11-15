@@ -5,7 +5,7 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import Database from 'better-sqlite3';
 import { createPatientProfileRouter } from '../../src/accounts/patient-profile-api.js';
-import { migratePatientProfiles } from '../../src/accounts/patient-profile-database-change.js';
+import { migratePatientProfiles } from '../../src/accounts/database-changes/patient-profile.js';
 import { migratePatientRelations } from '../../src/patient-doctor-relationship/patient-relations.js';
 
 const ORIGIN = 'http://web.example.invalid';

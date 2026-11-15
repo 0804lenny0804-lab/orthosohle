@@ -9,14 +9,14 @@ import { getMigrations } from 'better-auth/db/migration';
 import { createAuth } from '../../src/sign-in/create-auth.js';
 import { createApp } from '../../src/app.js';
 import { readConfig } from '../../src/config.js';
-import { migratePatientProfiles } from '../../src/accounts/patient-profile-database-change.js';
-import { migratePhysicianReview } from '../../src/doctor-access/request/physician-review-database-change.js';
-import { migrateTwoFactorSessions } from '../../src/sign-in/two-factor-session-database-change.js';
-import { migrateReviewerBootstrap } from '../../src/doctor-access/reviewer/reviewer-bootstrap-database-change.js';
-import { migrateTotpStepUp } from '../../src/sign-in/recent-totp-check-database-change.js';
-import { migratePhysicianApproval } from '../../src/doctor-access/approval/physician-approval-database-change.js';
+import { migratePatientProfiles } from '../../src/accounts/database-changes/patient-profile.js';
+import { migratePhysicianReview } from '../../src/patient-doctor-relationship/doctor-access-request/database-changes/request.js';
+import { migrateTwoFactorSessions } from '../../src/sign-in/database-changes/two-factor-session.js';
+import { migrateReviewerBootstrap } from '../../src/patient-doctor-relationship/local-reviewer-access/database-changes/reviewer.js';
+import { migrateTotpStepUp } from '../../src/sign-in/database-changes/recent-totp-check.js';
+import { migratePhysicianApproval } from '../../src/patient-doctor-relationship/doctor-access-approval/database-changes/approval.js';
 import { migratePatientRelations } from '../../src/patient-doctor-relationship/patient-relations.js';
-import { migrateTherapyPlans } from '../../src/treatment-plans/therapy-plan-database-change.js';
+import { migrateTherapyPlans } from '../../src/treatment-plans/database-changes/therapy-plan.js';
 
 export const account = {
   name: 'Synthetic Test',

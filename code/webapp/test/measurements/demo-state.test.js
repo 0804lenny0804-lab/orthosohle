@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { clearLegacyDemoStorage, createDemoSessionState, legacyDemoStorageKeys } from '../../src/app-functions/demo/demo-state.js';
+import { clearLegacyDemoStorage, createDemoSessionState, legacyDemoStorageKeys } from '../../src/app-functions/measurements/demo-session.js';
 
 test('legacy shared demo keys are removed without clearing unrelated browser data', () => {
   const removed = [];

@@ -1,6 +1,6 @@
 import { createAuth } from '../sign-in/create-auth.js';
 import { readConfig } from '../config.js';
-import { PhysicianApprovalRevocationError, createPhysicianApprovalRevocationRepository } from '../doctor-access/approval/physician-approval-revocation.js';
+import { PhysicianApprovalRevocationError, createPhysicianApprovalRevocationRepository } from '../patient-doctor-relationship/doctor-access-approval/revoke-approval.js';
 
 const [action, operator, targetEmail, ...extra] = process.argv.slice(2);
 if (action !== 'revoke' || !operator || !targetEmail || extra.length) {
