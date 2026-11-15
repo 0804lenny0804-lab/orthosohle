@@ -5,7 +5,7 @@
       <p v-if="!state.identityId" class="small text-muted" id="account-scope">
         Wähle deinen Zugang. Patientinnen, Patienten und Ärzte verwenden dieselbe sichere Anmeldung.
       </p>
-      <p role="status" aria-live="polite">{{ statusText }}</p>
+      <p v-if="statusText" role="status" aria-live="polite">{{ statusText }}</p>
       <p v-if="callbackError" class="alert alert-danger" role="alert">{{ callbackError }}</p>
       <p v-if="physicianAccessMessage" class="alert alert-warning" role="alert">{{ physicianAccessMessage }}</p>
       <p v-if="state.error" class="alert alert-danger" role="alert">{{ state.error }}</p>
@@ -76,13 +76,12 @@
       </form>
       <div v-else-if="state.identityId">
         <section v-if="activeTab === 'overview'" aria-label="Kontoübersicht">
-          <div class="account-identity"><strong>{{ state.name || 'Dein Konto' }}</strong><span>{{ state.email }}</span></div>
+          <div class="account-identity"><span class="account-avatar" aria-hidden="true"><i class="bi bi-person"></i></span><div><strong>{{ state.name || 'Dein Konto' }}</strong><span>{{ state.email }}</span></div></div>
           <nav class="account-menu" aria-label="Kontobereiche">
             <button v-for="tab in visibleTabs" :key="tab.id" type="button" @click="selectTab(tab.id)">
               <span><strong>{{ tab.label }}</strong><small>{{ tab.description }}</small></span><span aria-hidden="true">›</span>
             </button>
           </nav>
-          <button class="btn btn-link px-0 mt-3" type="button" @click="accountIntent = accountIntent === 'patient' ? 'physician' : 'patient'">{{ accountIntent === 'patient' ? 'Zur Arztansicht wechseln' : 'Zur Patientenansicht wechseln' }}</button>
         </section>
         <section v-show="activeTab === 'security'" id="security-panel" class="border rounded p-3 mb-4" tabindex="0">
           <h3 id="two-factor-title" class="h5">Sicherheit</h3>
@@ -136,7 +135,7 @@
           <TherapyPlan v-if="state.emailVerified" :key="`patient-plan-${state.identityId}`" :identity-id="state.identityId" role="patient" />
         </section>
         <section v-show="activeTab === 'display'" aria-label="Darstellung"><SettingsView :key="`settings-${state.identityId}`" :identity-id="state.identityId" /></section>
-        <section v-show="activeTab === 'physician'" id="physician-panel" tabindex="0">
+        <section v-if="accountIntent === 'physician' && activeTab === 'physician'" id="physician-panel" tabindex="0">
           <h3 class="h5">Arzt</h3>
           <p class="small text-muted">Arztzugriff wird erst nach Prüfung und ausdrücklicher Freigabe eingerichtet.</p>
           <p v-if="physicianStatus === 'pending'" class="alert alert-info" role="status">Dein Antrag wird geprüft. Ein Konto oder eine Anmeldung allein erteilt keinen Arztzugriff.</p>
@@ -240,17 +239,17 @@ const titles = { login: 'Anmelden', register: 'Konto erstellen', verify: 'Bestä
   'request-reset': 'Link zum Zurücksetzen anfordern', reset: 'Neues Passwort speichern' };
 const needsPassword = computed(() => ['login', 'register', 'reset'].includes(mode.value));
 const statusText = computed(() => ({ loading: 'Anmeldestatus wird geprüft …',
-  authenticated: 'Du bist angemeldet.', anonymous: 'Melde dich an, um fortzufahren.',
+  authenticated: '', anonymous: 'Melde dich an, um fortzufahren.',
   unavailable: 'Der aktuelle Anmeldestatus kann nicht bestätigt werden.' })[state.status]);
 
 function selectTab(tabId) {
-  if (tabId !== 'overview' && !accountTabs.some((tab) => tab.id === tabId)) return;
+  if (tabId !== 'overview' && !visibleTabs.value.some((tab) => tab.id === tabId)) return;
   activeTab.value = tabId;
   window.history.pushState({ ...window.history.state, accountPage: tabId }, '');
 }
 function handleAccountNavigation(event) {
   const page = event.state?.accountPage;
-  activeTab.value = accountTabs.some(tab => tab.id === page) ? page : 'overview';
+  activeTab.value = visibleTabs.value.some(tab => tab.id === page) ? page : 'overview';
 }
 
 
@@ -436,7 +435,7 @@ function handleAccountCallback() {
 onMounted(() => {
   handleAccountCallback();
   const page = window.history.state?.accountPage;
-  if (accountTabs.some(tab => tab.id === page)) activeTab.value = page;
+  if (visibleTabs.value.some(tab => tab.id === page)) activeTab.value = page;
   window.addEventListener('hashchange', handleAccountCallback);
   window.addEventListener('popstate', handleAccountNavigation);
   window.addEventListener('focus', closePhysicianAccessOnResume);
@@ -460,7 +459,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.account-identity { display: grid; gap: .25rem; padding: 1.25rem; background: #f3f4f6; border-radius: 1rem; overflow-wrap: anywhere; }
+.account-identity { display: flex; align-items: center; gap: 1rem; padding: 1rem .25rem; overflow-wrap: anywhere; }
+.account-identity > div { display: grid; gap: .2rem; }
+.account-avatar { display: grid; place-items: center; width: 3.5rem; height: 3.5rem; border-radius: 50%; background: #e9e9ee; color: #555; font-size: 1.75rem; flex: none; }
 .account-identity span, .account-menu small { color: #59616b; }
 .account-menu { margin-top: 1rem; border: 1px solid #e1e3e7; border-radius: 1rem; overflow: hidden; }
 .account-menu button { width: 100%; min-height: 4.5rem; padding: .8rem 1rem; border: 0; border-bottom: 1px solid #e1e3e7; background: white; display: flex; justify-content: space-between; align-items: center; text-align: left; }
