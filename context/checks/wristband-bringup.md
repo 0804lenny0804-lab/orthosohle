@@ -34,4 +34,6 @@ Die PlatformIO-Konfiguration und ein vollständiger Arduino-IDE-Sketchordner sin
 
 ## Aktueller Stand
 
-Laut Nutzer funktioniert ein früherer Displaytest auf dem Board. Exakte Revision, USB-Prüfung und die Abnahme der neuen BLE-Firmware bleiben offen. Keine Arbeitsstunden oder Messergebnisse als geleistet erfasst.
+Nutzerbericht vom 17.11.2026: Die neue Firmware wurde auf das Waveshare-ESP32-S3-Touch-LCD-1.28 geflasht; Anzeige und direkte BLE-Messwertübertragung von der Sohle funktionieren. Der Nutzer hat außerdem Trennung und Wiederverbindung als erfolgreich gemeldet. Damit sind BLE-Empfang und Wiederverbindung (F03) praktisch bestätigt.
+
+Nicht mitgeteilt wurden Boardrevision, genaue Firmware-Commit-ID auf dem Gerät, Testmesswerte oder ein Protokoll/Foto. Datenalter, ungültige Messungen und Fehler-/Missing-Anzeige wurden nicht ausdrücklich bestätigt. Kein Test von Warnung/Motor, WLAN, Offlinepuffer, Backend-Upload oder dauerhaftem ACK. Die Anzeige-/Fehlerabnahme (F04) bleibt deshalb teilweise offen; die weitergehenden Firmwarepakete bleiben offen. Keine Arbeitsstunden oder Messergebnisse als geleistet erfasst.
