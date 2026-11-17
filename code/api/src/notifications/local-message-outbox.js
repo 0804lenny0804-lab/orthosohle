@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { platform } from 'node:os';
 import {
   chmodSync, closeSync, fsyncSync, linkSync, lstatSync, mkdirSync,
   openSync, readFileSync, unlinkSync, writeFileSync,
@@ -33,8 +34,12 @@ export function writeLocalMail(config, message, { idempotencyKey, acceptExisting
     try {
       // A same-directory hard link publishes the complete file atomically without replacement.
       linkSync(temporaryPath, path);
-      const directoryDescriptor = openSync(outbox, 'r');
-      try { fsyncSync(directoryDescriptor); } finally { closeSync(directoryDescriptor); }
+      // Windows does not support fsync on directory handles (EPERM). The file itself
+      // was synced before publication; POSIX systems also sync the directory entry.
+      if (platform() !== 'win32') {
+        const directoryDescriptor = openSync(outbox, 'r');
+        try { fsyncSync(directoryDescriptor); } finally { closeSync(directoryDescriptor); }
+      }
     } catch (error) {
       if (error?.code !== 'EEXIST' || idempotencyKey === undefined) throw error;
       const existing = lstatSync(path);
