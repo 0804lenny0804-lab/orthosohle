@@ -1,21 +1,27 @@
 <template>
-  <AppShell :active-nav="activeNav" @navigate="setNav">
-      <AccountView v-if="activeNav === 'account'" />
+  <AppShell :active-nav="activeNav" :navigation-intent="navigationIntent" @navigate="setNav">
+      <PhysicianApproval :identity-id="identityId" />
+      <AccountView v-if="activeNav === 'account'" :navigation-intent="navigationIntent" @intent-change="setNavigationIntent" />
+      <DoctorArea v-if="identityId && navigationIntent === 'physician' && ['doctor', 'patients', 'invitations'].includes(activeNav)"
+        :key="`doctor-${identityId}`" :identity-id="identityId" :page="activeNav" @navigate="setNav" />
 
+      <template v-if="identityId && navigationIntent === 'patient'">
+      <SessionFeedback v-if="feedbackSessionId" :session-id="feedbackSessionId" :identity-id="identityId" @dismiss="dismissSessionFeedback" />
       <div v-show="activeNav === 'live'">
         <SessionCapture
           ref="sessionCapture"
           :identity-id="identityId"
           :ble-connected="bleConnected"
           :simulation-running="simulationRunning"
+          @session-completed="showSessionFeedback"
         />
         <div class="row g-4">
           <div class="col-lg-7">
             <section id="live" class="card">
               <div class="card-body">
-                <h2 class="h5 mb-1 text-sohle">Gewichtsanzeige & Status</h2>
+                <h2 class="h5 mb-1 text-sohle">Aktuelle Belastung</h2>
                 <p class="text-muted small mb-3">
-                  {{ previewSource === 'simulation' ? 'Synthetischer Simulationsverlauf' : previewSource === 'ble' ? 'Bluetooth-Empfangsverlauf' : 'Noch keine Werte empfangen' }}
+                  {{ previewSource === 'simulation' ? 'Simulation' : previewSource === 'ble' ? 'Sohle verbunden' : 'Noch keine Werte empfangen' }}
                 </p>
                 <LiveChart :rawValues="rawValues" :currentLimit="currentLimit" />
               </div>
@@ -26,7 +32,7 @@
             <section id="steps" class="card">
               <div class="card-body">
                 <h2 class="h5 mb-1 text-sohle">Schrittzähler</h2>
-                <p class="text-muted small mb-3">Jeder erkannte Peak entspricht einem Schritt.</p>
+
                 <StepCounter :steps="stepCount" :goal="stepGoal" />
               </div>
             </section>
@@ -41,21 +47,11 @@
           </div>
         </div>
 
-        <section class="card mt-4">
-          <div class="card-body">
-            <RunFeedbackWindow :key="demoEpoch" :stepCount="stepCount" :stepGoal="stepGoal" />
-          </div>
-        </section>
 
-        <section id="simulation" class="card mt-4">
-          <div class="card-body">
-            <h2 class="h5 mb-3 text-sohle">Simulation</h2>
-            <SimulationControl :key="demoEpoch" :ble-blocked="bleConnected || bleBusy" @raw-value="onRawValue" @running-state="simulationRunning = $event" />
-          </div>
-        </section>
+
       </div>
 
-      <div v-if="activeNav === 'config'">
+      <div v-show="activeNav === 'config'">
         <section id="config" class="card">
           <div class="card-body">
             <h2 class="h5 mb-1 text-sohle">Konfiguration</h2>
@@ -65,7 +61,7 @@
               @updated="updateDemoLimit"
               @step-goal-updated="stepGoal = $event"
             />
-            <p class="small text-muted mt-3 mb-0">Push-Benachrichtigungen sind noch nicht eingerichtet.</p>
+
           </div>
         </section>
       </div>
@@ -73,133 +69,182 @@
       <div v-show="activeNav === 'connect'">
         <section id="connect-page" class="card">
           <div class="card-body">
-            <h2 class="h5 mb-1 text-sohle">Bluetooth</h2>
+
         <Bluetooth :key="demoEpoch" :simulation-running="simulationRunning" @raw-value="onRawValue" @connection-state="bleConnected = $event" @connection-busy="bleBusy = $event" />
           </div>
         </section>
+        <details id="simulation" class="card mt-3">
+          <summary class="card-body simulation-summary">Simulation <span>{{ simulationRunning ? 'Ein' : 'Aus' }}</span></summary>
+          <div class="card-body pt-0">
+            <SimulationControl :key="demoEpoch" :ble-blocked="bleConnected || bleBusy" @raw-value="onRawValue" @running-state="simulationRunning = $event" />
+          </div>
+        </details>
       </div>
 
-      <div v-if="activeNav === 'history'">
+      <div v-show="activeNav === 'history'">
         <HistoryView :measurements="measurements" :limit-history="limitHistory" :identity-id="identityId" />
       </div>
 
       <Toastwarning :rawValues="rawValues" :currentLimit="currentLimit" />
+      </template>
 
   </AppShell>
 </template>
 
 <script>
-import { watch } from "vue";
-import AppShell from "./components/shell/AppShell.vue";
-import AccountView from "./features/account/AccountView.vue";
-import SessionCapture from "./features/measurement/SessionCapture.vue";
-import Bluetooth from './components/Bluetooth.vue';
-import LiveChart from './components/LiveChart.vue';
-import LimitConfig from './components/LimitConfig.vue';
-import SimulationControl from './components/SimulationControl.vue';
-import MeasurementTable from './components/MeasurementTable.vue';
-import { StepDetector } from './components/stepdetector.js'; // Pfad prüfen!
-import Toastwarning from './components/Toastwarning.vue';
-import StepCounter from './components/stepcounter.vue';
-import HistoryView from './components/history/HistoryView.vue';
-import RunFeedbackWindow from "./components/RunFeedbackWindow.vue";
-import { accountSession } from "./features/account/session.js";
-import { clearLegacyDemoStorage, createDemoSessionState } from "./features/demo/demo-state.js";
-import { MAX_SESSION_VALUE } from "./features/measurement/measurement-sessions.js";
+import { watch, computed, onMounted, onUnmounted } from "vue";
+import AppShell from "./shared/layout/AppShell.vue";
+import AccountView from "./app-functions/account/AccountView.vue";
+import DoctorArea from "./app-functions/doctor-area/DoctorArea.vue";
+import PhysicianApproval from "./app-functions/doctor-access-approval/DoctorAccessApproval.vue";
+import SessionCapture from "./app-functions/measurements/MeasurementSessionCapture.vue";
+import Bluetooth from './app-functions/measurements/BluetoothConnection.vue';
+import LiveChart from './app-functions/measurements/LiveMeasurementChart.vue';
+import LimitConfig from './app-functions/measurements/MeasurementSettings.vue';
+import SimulationControl from './app-functions/measurements/MeasurementSimulation.vue';
+import MeasurementTable from './app-functions/measurements/RecentMeasurements.vue';
+import { measurementPreview } from './app-functions/measurements/measurement-preview.js';
+import Toastwarning from './app-functions/measurements/LoadLimitWarning.vue';
+import StepCounter from './app-functions/measurements/StepCounter.vue';
+import HistoryView from './app-functions/measurements/history/MeasurementHistory.vue';
+import SessionFeedback from "./app-functions/measurements/SessionFeedback.vue";
+import { accountSession } from "./app-functions/account/account-session.js";
+import { intentAfterIdentityChange, resolveNavigation } from "./app-functions/account/account-intent.js";
+import { clearLegacyDemoStorage, createDemoSessionState } from "./app-functions/measurements/demo-session.js";
+import { loadDisplayPreferences, applyDisplayPreferenceClasses } from "./app-functions/settings/local-preferences.js";
 
 export default {
   name: 'App',
+  mixins: [measurementPreview],
   components: {
-    AppShell, AccountView, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
-    MeasurementTable, Toastwarning, StepCounter, HistoryView, RunFeedbackWindow
+    AppShell, AccountView, DoctorArea, PhysicianApproval, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
+    MeasurementTable, Toastwarning, StepCounter, HistoryView, SessionFeedback
   },
   data() {
     return {
       ...createDemoSessionState(),
       stepDetector: null,
       activeNav: "account",
+      navigationIntent: accountSession.state.physicianApproved ? "physician" : "patient",
+      boundNavigationIdentity: "",
       demoEpoch: 0,
       bleConnected: false,
       bleBusy: false,
       simulationRunning: false,
       previewSource: null,
-      stopIdentityWatch: null
+      feedbackQueue: [],
+      stopIdentityWatch: null,
+      stopPhysicianApprovalWatch: null
     };
+  },
+  setup() {
+    const identityId = computed(() => accountSession.state.identityId || '');
+    let memoryPreferencesIdentity = '';
+    let memoryPreferences = null;
+    const getPreferences = () => {
+      if (memoryPreferencesIdentity === identityId.value && memoryPreferences) return memoryPreferences;
+      try {
+        return loadDisplayPreferences(window.localStorage, identityId.value);
+      } catch {
+        return memoryPreferencesIdentity === identityId.value && memoryPreferences
+          ? memoryPreferences
+          : loadDisplayPreferences(null, identityId.value);
+      }
+    };
+    const applyDisplayPreferences = () => {
+      applyDisplayPreferenceClasses(document.documentElement.classList, identityId.value, getPreferences());
+    };
+    const onPreferencesChanged = (event) => {
+      if (event.detail?.identityId !== identityId.value || !identityId.value) return;
+      memoryPreferencesIdentity = identityId.value;
+      memoryPreferences = event.detail.preferences;
+      applyDisplayPreferences();
+    };
+    let stopPreferenceWatch;
+    onMounted(() => {
+      applyDisplayPreferences();
+      stopPreferenceWatch = watch(identityId, applyDisplayPreferences);
+      window.addEventListener('display-preferences-changed', onPreferencesChanged);
+    });
+    onUnmounted(() => {
+      stopPreferenceWatch?.();
+      window.removeEventListener('display-preferences-changed', onPreferencesChanged);
+      document.documentElement.classList.remove('display-contrast-high', 'display-text-large');
+    });
+    return {};
   },
   methods: {
     setNav(nav) {
+      nav = resolveNavigation(this.navigationIntent, nav);
       this.activeNav = nav;
       if (window.location.hash !== `#${nav}`) window.history.pushState(null, "", `#${nav}`);
       window.scrollTo({ top: 0, behavior: "auto" });
     },
     getNavFromHash() {
       const hash = window.location.hash.replace("#", "").split("?")[0];
-      return ["account", "live", "config", "connect", "history"].includes(hash) ? hash : "account";
+      return resolveNavigation(this.navigationIntent, hash);
     },
 
     handleHashChange() {
       this.activeNav = this.getNavFromHash();
     },
 
-    updateDemoLimit(value) {
-      this.currentLimit = value;
-      this.limitHistory.push({ timestamp: new Date().toISOString(), limit_value: value });
-    },
-
-    // Zentraler Datenempfang
-    onRawValue({ kg, timestamp: receivedAt, source }) {
-      if (!['ble', 'simulation'].includes(source)) return;
-      const numericValue = Number(kg);
-      const timestamp = new Date(receivedAt);
-      if (!Number.isFinite(numericValue) || Number.isNaN(timestamp.getTime())) return;
-
-      this.$refs.sessionCapture?.acceptSample({ kg: numericValue, timestamp: timestamp.toISOString(), source });
-      if (numericValue < 0 || numericValue > MAX_SESSION_VALUE) return;
-
-      if (this.previewSource && this.previewSource !== source) {
-        this.rawValues = [];
-        this.stepCount = 0;
-        this.measurements = [];
-        this.stepDetector = this.createStepDetector();
-      }
-      this.previewSource = source;
-
-      // 1. Daten für Live-Graph speichern
-      this.rawValues.push({ value: numericValue, timestamp: timestamp.toISOString() });
-      if (this.rawValues.length > 300) this.rawValues.shift();
-
-      // 2. WICHTIG: Daten an den Schrittzähler-Algorithmus weitergeben
-      if (this.stepDetector) {
-        this.stepDetector.onSample(numericValue, timestamp);
+    showSessionFeedback({ sessionId, identityId }) {
+      if (identityId && sessionId && !this.feedbackQueue.some(item => item.identityId === identityId && item.sessionId === sessionId)) {
+        this.feedbackQueue.push({ sessionId, identityId });
       }
     },
-
-    resetDemoState() {
-      Object.assign(this, createDemoSessionState());
-      this.demoEpoch += 1;
-      this.previewSource = null;
-      this.stepDetector = this.createStepDetector();
+    dismissSessionFeedback() {
+      const index = this.feedbackQueue.findIndex(item => item.identityId === this.identityId);
+      if (index !== -1) this.feedbackQueue.splice(index, 1);
     },
-    createStepDetector() {
-      return new StepDetector({
-        threshold: 15,
-        minWindow: 8,
-        onPeak: ({ peak, timestamp }) => {
-          this.stepCount += 1;
-          this.measurements.unshift({ value: peak, timestamp: new Date(timestamp).toISOString(), time: new Date(timestamp).toLocaleTimeString() });
-          if (this.measurements.length > 20) this.measurements.pop();
-        }
-      });
-    }
+    setNavigationIntent(intent) {
+      const nextIntent = intent === 'physician' ? 'physician' : 'patient';
+      if (nextIntent !== this.navigationIntent && nextIntent === 'physician') {
+        this.resetDemoState();
+        this.bleConnected = false;
+        this.bleBusy = false;
+        this.simulationRunning = false;
+      }
+      this.navigationIntent = nextIntent;
+      this.setNav(this.navigationIntent === 'physician' && this.identityId ? 'doctor' : 'account');
+    },
+
+
   },
   computed: {
+    feedbackSessionId() { return this.feedbackQueue.find(item => item.identityId === this.identityId)?.sessionId || ''; },
     identityId() { return accountSession.state.identityId || ""; }
   },
 
   async mounted() {
     clearLegacyDemoStorage(window.localStorage);
     this.resetDemoState();
-    this.stopIdentityWatch = watch(() => accountSession.state.identityId, () => this.resetDemoState());
+    this.boundNavigationIdentity = accountSession.state.identityId || '';
+    this.stopIdentityWatch = watch(() => accountSession.state.identityId, (identityId) => {
+      this.resetDemoState();
+      this.bleConnected = false;
+      this.bleBusy = false;
+      this.simulationRunning = false;
+      const nextIdentity = identityId || '';
+      this.navigationIntent = !nextIdentity
+        ? 'patient'
+        : accountSession.state.physicianApproved
+          ? 'physician'
+          : intentAfterIdentityChange(this.navigationIntent, this.boundNavigationIdentity, nextIdentity);
+      this.boundNavigationIdentity = nextIdentity;
+      if (!nextIdentity) this.setNav('account');
+      if (this.navigationIntent === 'physician' && nextIdentity) this.setNav('doctor');
+    }, { flush: 'sync' });
+    this.stopPhysicianApprovalWatch = watch(() => accountSession.state.physicianApproved, approved => {
+      if (approved && accountSession.state.identityId) {
+        this.navigationIntent = 'physician';
+        this.setNav('doctor');
+      } else if (!approved && this.navigationIntent === 'physician') {
+        this.navigationIntent = 'patient';
+        this.setNav('account');
+      }
+    }, { flush: 'sync' });
 
     this.activeNav = this.getNavFromHash();
     window.addEventListener("hashchange", this.handleHashChange);
@@ -208,8 +253,14 @@ export default {
   },
   beforeUnmount() {
     this.stopIdentityWatch?.();
+    this.stopPhysicianApprovalWatch?.();
     window.removeEventListener("hashchange", this.handleHashChange);
     window.removeEventListener("popstate", this.handleHashChange);
   }
 }
 </script>
+
+<style scoped>
+.simulation-summary { cursor: pointer; color: #a00058; font-weight: 600; }
+.simulation-summary span { float: right; color: #62656f; font-weight: 400; }
+</style>

@@ -7,8 +7,8 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "start": "node --env-file-if-exists=.env src/start.js",
-    "migrate": "node --env-file-if-exists=.env src/migrate.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "migrate": "node --env-file-if-exists=.env src/update-database.js",
     "test": "node --test"
   },
   "dependencies": {
