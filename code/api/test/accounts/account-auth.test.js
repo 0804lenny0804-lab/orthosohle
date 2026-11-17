@@ -53,7 +53,7 @@ test('registration, invalid login, valid session and replay after logout', async
   const me = await f.request('/api/me', { cookie });
   assert.equal(me.status, 200);
   assert.equal(me.headers.get('cache-control'), 'no-store');
-  assert.deepEqual(await me.json(), { id, name: account.name, email: account.email, emailVerified: true, twoFactorEnabled: false });
+  assert.deepEqual(await me.json(), { id, name: account.name, email: account.email, emailVerified: true, twoFactorEnabled: false, physicianApproved: false });
   assert.equal((await f.request('/api/auth/sign-out', { cookie, body: {} })).status, 200);
   assert.equal((await f.request('/api/me', { cookie })).status, 401);
   assert.equal(f.auth.options.session.cookieCache.enabled, false);
@@ -66,7 +66,7 @@ test('account and session persist when server and SQLite connection reopen', asy
   await f.restart();
   const me = await f.request('/api/me', { cookie });
   assert.equal(me.status, 200);
-  assert.deepEqual(await me.json(), { id, name: account.name, email: account.email, emailVerified: true, twoFactorEnabled: false });
+  assert.deepEqual(await me.json(), { id, name: account.name, email: account.email, emailVerified: true, twoFactorEnabled: false, physicianApproved: false });
   const login = await signIn(f);
   assert.equal(login.status, 200);
   assert.equal((await login.json()).user.id, id);
@@ -95,8 +95,8 @@ test('explicit local web origin can register, sign in, reload identity and sign 
   assert.match(login.headers.getSetCookie().join(';'), /HttpOnly/i);
   assert.match(login.headers.getSetCookie().join(';'), /SameSite=Lax/i);
   const cookie = cookies(login);
-  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, name: account.name, email: account.email, emailVerified: true, twoFactorEnabled: false });
-  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, name: account.name, email: account.email, emailVerified: true, twoFactorEnabled: false });
+  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, name: account.name, email: account.email, emailVerified: true, twoFactorEnabled: false, physicianApproved: false });
+  assert.deepEqual(await (await f.request('/api/me', { cookie })).json(), { id, name: account.name, email: account.email, emailVerified: true, twoFactorEnabled: false, physicianApproved: false });
   assert.equal((await f.request('/api/auth/sign-out', { body: {}, origin, cookie })).status, 200);
   assert.equal((await f.request('/api/me', { cookie })).status, 401);
 });

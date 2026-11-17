@@ -7,7 +7,6 @@
       </p>
       <p v-if="statusText" role="status" aria-live="polite">{{ statusText }}</p>
       <p v-if="callbackError" class="alert alert-danger" role="alert">{{ callbackError }}</p>
-      <p v-if="physicianAccessMessage" class="alert alert-warning" role="alert">{{ physicianAccessMessage }}</p>
       <p v-if="state.error" class="alert alert-danger" role="alert">{{ state.error }}</p>
       <p v-if="state.notice" class="alert alert-info" role="status">{{ state.notice }}</p>
 
@@ -145,21 +144,6 @@
           <TherapyPlan v-if="state.emailVerified" :key="`patient-plan-${state.identityId}`" :identity-id="state.identityId" role="patient" />
         </section>
         <section v-show="activeTab === 'display'" aria-label="Darstellung"><SettingsView :key="`settings-${state.identityId}`" :identity-id="state.identityId" /></section>
-        <section v-if="accountIntent === 'physician' && activeTab === 'physician'" id="physician-panel" tabindex="0">
-          <h3 class="h5">Arzt</h3>
-          <p class="small text-muted">Arztzugriff wird erst nach Prüfung und ausdrücklicher Freigabe eingerichtet.</p>
-          <p v-if="physicianStatus === 'pending'" class="alert alert-info" role="status">Dein Antrag wird geprüft. Ein Konto oder eine Anmeldung allein erteilt keinen Arztzugriff.</p>
-          <p v-else-if="physicianStatus !== 'approved'" class="small text-muted">Nach der Anmeldung kannst du hier einen separaten Prüfungsantrag stellen.</p>
-          <PhysicianReview :key="`physician-${state.identityId}`" :identity-id="state.identityId" :email-verified="state.emailVerified" @status="physicianStatus = $event" />
-          <template v-if="physicianStatus === 'approved'">
-          <TotpStepUp :key="`physician-totp-${state.identityId}-${physicianStepUpGeneration}`" :identity-id="state.identityId"
-            :two-factor-enabled="state.twoFactorEnabled" @verified="markPhysicianStepUpVerified" @expired="physicianStepUp = false" />
-          <CareArea v-if="physicianStepUp" :key="`physician-care-${state.identityId}`" :identity-id="state.identityId" role="physician"
-            @access-error="handlePhysicianSessionAccessError" />
-          <PhysicianPatientWorkspace v-if="physicianStepUp" :key="`physician-workspace-${state.identityId}`" :identity-id="state.identityId"
-            @access-error="handlePhysicianSessionAccessError" />
-          </template>
-        </section>
         <section v-show="activeTab === 'account'" id="account-panel" tabindex="0">
           <h3 class="h5">Konto</h3>
 
@@ -197,31 +181,23 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { accountSession } from './account-session.js';
 import { consumeAccountCallback } from './account-callback.js';
 import PatientProfile from './PatientProfile.vue';
-import PhysicianReview from './DoctorAccessRequest.vue';
+import PatientProfileForm from './PatientProfileForm.vue';
 import CareArea from '../patient-doctor-relationship/RelationshipArea.vue';
-import PhysicianPatientWorkspace from '../patient-doctor-relationship/PhysicianPatientWorkspace.vue';
-import { physicianAccessErrorMessage, shouldClosePhysicianAccessOnResume } from '../patient-doctor-relationship/doctor-session-access.js';
-import TotpStepUp from '../additional-totp-check/TotpVerification.vue';
+import TherapyPlan from '../patient-doctor-relationship/TreatmentPlanView.vue';
 import SettingsView from '../settings/SettingsView.vue';
 import PasswordChange from './PasswordChange.vue';
-import { accountIntentDestination, accountIntentDescription } from './account-intent.js';
+import { accountIntentDescription } from './account-intent.js';
 
 const { state } = accountSession;
 const props = defineProps({
   navigationIntent: { type: String, default: 'patient', validator: value => ['patient', 'physician'].includes(value) },
 });
 const emit = defineEmits(['intent-change']);
-const physicianStatus = ref('loading');
-const physicianStepUp = ref(false);
-const physicianStepUpGeneration = ref(0);
-const physicianAccessMessage = ref('');
-let physicianAccessCheckGeneration = 0;
 const accountTabs = [
   { id: 'account', label: 'Konto', description: 'Name und E-Mail' },
   { id: 'security', label: 'Anmeldung & Sicherheit', description: 'Passwort und Zwei-Faktor-Anmeldung' },
   { id: 'patient', label: 'Mein Patientenbereich', description: 'Persönliches Profil' },
   { id: 'doctors', label: 'Meine Ärzte', description: 'Betreuung und Behandlungsplan' },
-  { id: 'physician', label: 'Meine Patienten', description: 'Arztzugang und Patienten' },
   { id: 'display', label: 'Darstellung', description: 'Kontrast und Schriftgröße' },
 ];
 const activeTab = ref('overview');
@@ -263,7 +239,7 @@ function removeProfilePhoto() {
 const accountIntent = ref(props.navigationIntent);
 watch(() => props.navigationIntent, value => { accountIntent.value = value; });
 watch(accountIntent, value => emit('intent-change', value));
-const visibleTabs = computed(() => accountTabs.filter(tab => accountIntent.value === 'physician' ? !['patient', 'doctors'].includes(tab.id) : tab.id !== 'physician'));
+const visibleTabs = computed(() => accountTabs.filter(tab => accountIntent.value === 'physician' ? !['patient', 'doctors'].includes(tab.id) : true));
 const mode = ref('login');
 const name = ref('');
 const profileName = ref('');
@@ -322,7 +298,7 @@ async function submit() {
       if (result?.requiresTwoFactor) mode.value = 'totp-login';
       else {
         await nextTick();
-        selectTab(accountIntentDestination(accountIntent.value));
+        selectTab(accountIntent.value === 'physician' ? 'account' : 'patient');
       }
     } else if (mode.value === 'verify') {
       await accountSession.resendVerification({ email: email.value.trim() });
@@ -345,7 +321,7 @@ async function submitTotpLogin() {
     loginCode.value = '';
     mode.value = 'login';
     await nextTick();
-    selectTab(accountIntentDestination(accountIntent.value));
+    selectTab(accountIntent.value === 'physician' ? 'account' : 'patient');
   }
 }
 
@@ -383,54 +359,6 @@ async function saveProfile() {
   if (await accountSession.saveProfile(profileName.value.trim())) editingName.value = false;
 }
 
-function markPhysicianStepUpVerified() {
-  physicianAccessCheckGeneration += 1;
-  physicianAccessMessage.value = '';
-  physicianStepUp.value = true;
-}
-
-async function handlePhysicianSessionAccessError({ status } = {}) {
-  const request = ++physicianAccessCheckGeneration;
-  const identity = state.identityId;
-  physicianStepUp.value = false;
-  physicianStepUpGeneration.value += 1;
-
-  if (status !== 401) {
-    physicianAccessMessage.value = physicianAccessErrorMessage(status);
-    return;
-  }
-
-  const refreshCanRun = !state.busy;
-  physicianAccessMessage.value = 'Der Arztzugriff wurde geschlossen. Anmeldestatus wird geprüft …';
-  try {
-    await accountSession.refresh();
-  } catch {
-    // accountSession.refresh records a safe error in its shared status state.
-  }
-  if (request !== physicianAccessCheckGeneration || identity !== state.identityId) return;
-  physicianAccessMessage.value = physicianAccessErrorMessage(401, {
-    accountStatus: state.status,
-    sessionChecked: refreshCanRun,
-  });
-}
-
-function closePhysicianAccessOnResume(eventType) {
-  const type = typeof eventType === 'string' ? eventType : eventType?.type;
-  if (!shouldClosePhysicianAccessOnResume({
-    active: physicianStepUp.value,
-    eventType: type,
-    visibilityState: document.visibilityState,
-  })) return;
-  physicianAccessCheckGeneration += 1;
-  physicianStepUp.value = false;
-  physicianStepUpGeneration.value += 1;
-  physicianAccessMessage.value = 'Die Arztansichten wurden beim Zurückkehren geschlossen. Bitte TOTP erneut bestätigen, um den aktuellen Zugriff zu prüfen.';
-}
-
-function handleVisibilityChange() {
-  closePhysicianAccessOnResume('visibilitychange');
-}
-
 watch(activeTab, (page, previous) => {
   if (previous === 'security' && page !== 'security') {
     twoFactorPassword.value = '';
@@ -449,10 +377,6 @@ watch(() => state.identityId, (identityId) => {
   loadProfilePhoto(identityId);
   activeTab.value = 'overview';
   editingName.value = false;
-  physicianAccessCheckGeneration += 1;
-  physicianStatus.value = 'loading';
-  physicianStepUp.value = false;
-  physicianAccessMessage.value = '';
   // Clear authenticator material when the active account changes.
   totpURI.value = '';
   recoveryCodes.value = [];
@@ -484,15 +408,11 @@ onMounted(() => {
   if (visibleTabs.value.some(tab => tab.id === page)) activeTab.value = page;
   window.addEventListener('hashchange', handleAccountCallback);
   window.addEventListener('popstate', handleAccountNavigation);
-  window.addEventListener('focus', closePhysicianAccessOnResume);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
   accountSession.refresh();
 });
 onUnmounted(() => {
   window.removeEventListener('hashchange', handleAccountCallback);
   window.removeEventListener('popstate', handleAccountNavigation);
-  window.removeEventListener('focus', closePhysicianAccessOnResume);
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
   photoGeneration += 1;
   clearPasswords();
   twoFactorPassword.value = '';

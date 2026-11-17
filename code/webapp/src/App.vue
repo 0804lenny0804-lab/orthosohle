@@ -2,6 +2,8 @@
   <AppShell :active-nav="activeNav" :navigation-intent="navigationIntent" @navigate="setNav">
       <PhysicianApproval :identity-id="identityId" />
       <AccountView v-if="activeNav === 'account'" :navigation-intent="navigationIntent" @intent-change="setNavigationIntent" />
+      <DoctorArea v-if="identityId && navigationIntent === 'physician' && ['doctor', 'patients', 'invitations'].includes(activeNav)"
+        :key="`doctor-${identityId}`" :identity-id="identityId" :page="activeNav" @navigate="setNav" />
 
       <template v-if="identityId && navigationIntent === 'patient'">
       <SessionFeedback v-if="feedbackSessionId" :session-id="feedbackSessionId" :identity-id="identityId" @dismiss="dismissSessionFeedback" />
@@ -93,6 +95,7 @@
 import { watch, computed, onMounted, onUnmounted } from "vue";
 import AppShell from "./shared/layout/AppShell.vue";
 import AccountView from "./app-functions/account/AccountView.vue";
+import DoctorArea from "./app-functions/doctor-area/DoctorArea.vue";
 import PhysicianApproval from "./app-functions/doctor-access-approval/DoctorAccessApproval.vue";
 import SessionCapture from "./app-functions/measurements/MeasurementSessionCapture.vue";
 import Bluetooth from './app-functions/measurements/BluetoothConnection.vue';
@@ -114,7 +117,7 @@ export default {
   name: 'App',
   mixins: [measurementPreview],
   components: {
-    AppShell, AccountView, PhysicianApproval, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
+    AppShell, AccountView, DoctorArea, PhysicianApproval, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
     MeasurementTable, Toastwarning, StepCounter, HistoryView, SessionFeedback
   },
   data() {
@@ -122,7 +125,7 @@ export default {
       ...createDemoSessionState(),
       stepDetector: null,
       activeNav: "account",
-      navigationIntent: "patient",
+      navigationIntent: accountSession.state.physicianApproved ? "physician" : "patient",
       boundNavigationIdentity: "",
       demoEpoch: 0,
       bleConnected: false,
@@ -130,7 +133,8 @@ export default {
       simulationRunning: false,
       previewSource: null,
       feedbackQueue: [],
-      stopIdentityWatch: null
+      stopIdentityWatch: null,
+      stopPhysicianApprovalWatch: null
     };
   },
   setup() {
@@ -203,7 +207,7 @@ export default {
         this.simulationRunning = false;
       }
       this.navigationIntent = nextIntent;
-      if (this.navigationIntent === 'physician') this.setNav('account');
+      this.setNav(this.navigationIntent === 'physician' && this.identityId ? 'doctor' : 'account');
     },
 
 
@@ -223,10 +227,23 @@ export default {
       this.bleBusy = false;
       this.simulationRunning = false;
       const nextIdentity = identityId || '';
-      this.navigationIntent = intentAfterIdentityChange(this.navigationIntent, this.boundNavigationIdentity, nextIdentity);
+      this.navigationIntent = !nextIdentity
+        ? 'patient'
+        : accountSession.state.physicianApproved
+          ? 'physician'
+          : intentAfterIdentityChange(this.navigationIntent, this.boundNavigationIdentity, nextIdentity);
       this.boundNavigationIdentity = nextIdentity;
       if (!nextIdentity) this.setNav('account');
-      if (this.navigationIntent === 'physician') this.setNav('account');
+      if (this.navigationIntent === 'physician' && nextIdentity) this.setNav('doctor');
+    }, { flush: 'sync' });
+    this.stopPhysicianApprovalWatch = watch(() => accountSession.state.physicianApproved, approved => {
+      if (approved && accountSession.state.identityId) {
+        this.navigationIntent = 'physician';
+        this.setNav('doctor');
+      } else if (!approved && this.navigationIntent === 'physician') {
+        this.navigationIntent = 'patient';
+        this.setNav('account');
+      }
     }, { flush: 'sync' });
 
     this.activeNav = this.getNavFromHash();
@@ -236,6 +253,7 @@ export default {
   },
   beforeUnmount() {
     this.stopIdentityWatch?.();
+    this.stopPhysicianApprovalWatch?.();
     window.removeEventListener("hashchange", this.handleHashChange);
     window.removeEventListener("popstate", this.handleHashChange);
   }

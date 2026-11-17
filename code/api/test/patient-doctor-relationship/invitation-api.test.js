@@ -281,3 +281,57 @@ test('concurrent duplicate patient invitations reuse one row and acceptance inva
   assert.equal((await f.request('/physician/patients', { actor: 'doctor-a' })).body.patients.length, 1);
   assert.equal((await f.request('/physician/patients', { actor: 'doctor-b' })).body.patients.length, 0);
 });
+
+test('patient doctor directory requires an authenticated patient and returns only approved verified doctors within bounds', async t => {
+  const f = await fixture(t);
+  f.approve('doctor-a');
+  f.approve('doctor-b');
+  f.database.prepare('UPDATE user SET emailVerified = 0 WHERE id = ?').run('doctor-b');
+
+  assert.equal((await f.request('/patient/doctors')).status, 401);
+  assert.equal((await f.request('/patient/doctors', { actor: 'doctor-a' })).status, 403);
+  assert.equal((await f.request('/patient/doctors?limit=0', { actor: 'patient-a' })).status, 400);
+  assert.equal((await f.request('/patient/doctors?limit=101', { actor: 'patient-a' })).status, 400);
+  assert.equal((await f.request('/patient/doctors?offset=-1', { actor: 'patient-a' })).status, 400);
+  for (let index = 0; index < 30; index += 1) {
+    const id = `directory-doctor-${String(index).padStart(2, '0')}`;
+    f.database.prepare('INSERT INTO user (id, email, emailVerified, name, twoFactorEnabled) VALUES (?, ?, 1, ?, 1)')
+      .run(id, `${id}@example.invalid`, `Directory Doctor ${index}`);
+    f.approve(id);
+  }
+  const firstPage = await f.request('/patient/doctors?limit=100&offset=0', { actor: 'patient-a' });
+  assert.equal(firstPage.status, 200);
+  assert.equal(firstPage.body.doctors.length, 25);
+  assert.equal(firstPage.body.offset, 0);
+  assert.equal(firstPage.body.limit, 25);
+  assert.equal(firstPage.body.hasMore, true);
+  assert.equal(firstPage.body.doctors.some(doctor => doctor.emailVerified === false), false);
+  const secondPage = await f.request('/patient/doctors?limit=100&offset=25', { actor: 'patient-a' });
+  assert.equal(secondPage.status, 200);
+  assert.equal(secondPage.body.doctors.length, 6);
+  assert.equal(secondPage.body.offset, 25);
+  assert.equal(secondPage.body.hasMore, false);
+});
+
+test('selected doctor invitations recheck approval and verified email while preserving email invitations', async t => {
+  const f = await fixture(t);
+  const badBody = await f.request('/patient/invitations', { actor: 'patient-a', method: 'POST', body: { physicianId: 'missing' } });
+  assert.equal(badBody.status, 404);
+  assert.equal((await f.request('/patient/invitations', { actor: 'patient-a', method: 'POST', body: { physicianId: 'patient-b' } })).status, 404);
+  f.approve('doctor-a');
+  const created = await f.request('/patient/invitations', { actor: 'patient-a', method: 'POST', body: { physicianId: 'doctor-a' } });
+  assert.equal(created.status, 201);
+  assert.equal(created.body.invitation.status, 'open');
+  assert.equal(typeof created.body.invitation.expiresAt, 'string');
+  const duplicate = await f.request('/patient/invitations', { actor: 'patient-a', method: 'POST', body: { physicianId: 'doctor-a' } });
+  assert.equal(duplicate.status, 201);
+  assert.equal(duplicate.body.invitation.id, created.body.invitation.id);
+  assert.equal(duplicate.body.invitation.expiresAt, created.body.invitation.expiresAt);
+  assert.equal((await f.request('/patient/invitations', {
+    actor: 'patient-b', method: 'POST', body: { physicianEmail: 'doctor-a@example.invalid' },
+  })).status, 201);
+  f.database.prepare('UPDATE user SET emailVerified = 0 WHERE id = ?').run('doctor-a');
+  assert.equal((await f.request('/patient/invitations', {
+    actor: 'patient-b', method: 'POST', body: { physicianId: 'doctor-a' },
+  })).status, 404);
+});

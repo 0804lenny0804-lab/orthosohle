@@ -4,7 +4,9 @@ export function accountIntentDestination(intent) {
 }
 
 export function resolveNavigation(intent, requestedNavigation) {
-  if (intent === 'physician') return 'account';
+  if (intent === 'physician') return ['doctor', 'patients', 'invitations', 'account'].includes(requestedNavigation)
+    ? requestedNavigation
+    : 'doctor';
   return ['account', 'live', 'config', 'connect', 'history'].includes(requestedNavigation)
     ? requestedNavigation
     : 'account';

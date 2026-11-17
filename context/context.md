@@ -27,6 +27,10 @@ Die Kontoansicht nutzt eine Menüübersicht mit getrennten Seiten für Konto, Si
 
 Die Weboberfläche wurde visuell vereinfacht: Simulation befindet sich unter Geräte und bleibt als solche gekennzeichnet. Mess- und Speicherlogik bleiben unverändert; die Ansicht der flüchtigen Werte und die produktive Einordnung von Grenzwerten sind weiterhin getrennt zu prüfen.
 
+## Arztoberfläche und Arztsuche (17.11.2026)
+
+Freigegebene Arztkonten erhalten nach der Anmeldung eine eigene Navigation für Übersicht, Patienten, Einladungen und Konto. Die Patientenakte verwendet die bestehenden Profil-, Messungs-, Feedback- und Therapieplanansichten; der Server prüft weiterhin Freigabe, aktive Zuordnung und aktuellen TOTP-Nachweis. Patienten können freigegebene und verifizierte Ärzte in einem begrenzten Verzeichnis auswählen und einladen; eine Zuordnung entsteht erst nach Annahme. Das Verzeichnis macht Anzeigenamen und interne Arztkennungen für angemeldete Konten mit Patientenprofil auffindbar. Betriebs-, Datenschutz- und Sichtbarkeitsentscheidungen sowie Browserabnahme bleiben offen.
+
 ## Automatische Messung und Arztarbeitsbereich (Entwicklungsstand)
 
 Auf Nutzerwunsch beginnt eine BLE-Messung nach Verbindung und erstem gültigen Empfang automatisch, sofern das bestätigte Konto und das eigene Patientenprofil bereit sind. Die App überträgt abgeschlossene Empfangssekunden als wiederholbare Zwischenstände; Trennung schließt die Messung und bietet nach bestätigtem Upload eine freiwillige Rückmeldung (Wohlbefinden und optionaler Kommentar). Simulation bleibt getrennt. Arztkonten nutzen eine Patientenliste und öffnen Profil, Messverlauf, Rückmeldung und Behandlungsplan für die ausgewählte Person; Zugriffe bleiben an aktive Zuordnung, Freigabe und frischen TOTP-Nachweis gebunden. Datenbankänderungen müssen ausdrücklich migriert werden.

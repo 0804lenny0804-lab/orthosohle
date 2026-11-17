@@ -49,7 +49,10 @@ const patientNavigation = [
   { id: 'account', label: 'Konto', icon: 'bi-person-circle', eyebrow: 'Dein persönlicher Zugang', title: 'Konto', description: 'Verwalte deine Kontodaten.' },
 ];
 const physicianNavigation = [
-  { id: 'account', label: 'Patienten', icon: 'bi-people', eyebrow: 'Arztbereich', title: 'Meine Patienten', description: 'Aktive Betreuungszuordnungen und freigegebene Patientenansichten.' },
+  { id: 'doctor', label: 'Übersicht', icon: 'bi-house-door', eyebrow: 'Arztbereich', title: 'Übersicht', description: 'Arztzugang, Patienten und offene Einladungen.' },
+  { id: 'patients', label: 'Patienten', icon: 'bi-people', eyebrow: 'Arztbereich', title: 'Meine Patienten', description: 'Aktive Betreuungszuordnungen und freigegebene Patientenansichten.' },
+  { id: 'invitations', label: 'Einladungen', icon: 'bi-envelope', eyebrow: 'Arztbereich', title: 'Einladungen', description: 'Patienten einladen und eingehende Anfragen bearbeiten.' },
+  { id: 'account', label: 'Konto', icon: 'bi-person-circle', eyebrow: 'Dein persönlicher Zugang', title: 'Konto', description: 'Verwalte deine Kontodaten und Sicherheit.' },
 ];
 function focusMain() {
   document.getElementById('main')?.focus();

@@ -49,3 +49,22 @@ test('care API uses same-origin session requests and encodes invitation IDs', as
   assert.equal(calls[4].options.method, 'POST');
   assert.deepEqual(JSON.parse(calls[4].options.body), {});
 });
+
+test('patient doctor directory request is bounded and invitations target a selected doctor ID', async t => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (path, options) => {
+    calls.push({ path, options });
+    return new Response(JSON.stringify({ invitation: { id: 'i-1', status: 'open', expiresAt: '2026-12-01T00:00:00Z' } }), {
+      status: 200, headers: { 'Content-Type': 'application/json' },
+    });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  await careApi.listDoctorDirectory(50, 500);
+  await careApi.inviteDirectoryDoctor('physician-1');
+  assert.equal(calls[0].path, '/api/care/patient/doctors?limit=25&offset=50');
+  assert.equal(calls[0].options.credentials, 'same-origin');
+  assert.equal(calls[1].path, '/api/care/patient/invitations');
+  assert.deepEqual(JSON.parse(calls[1].options.body), { physicianId: 'physician-1' });
+});

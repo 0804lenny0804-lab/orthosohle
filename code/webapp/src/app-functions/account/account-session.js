@@ -2,7 +2,7 @@ import { reactive, readonly } from 'vue';
 import { authRequest } from './account-api.js';
 
 const state = reactive({ status: 'loading', identityId: null, name: '', email: '', emailVerified: false,
-  twoFactorEnabled: false, busy: false, error: '', notice: '' });
+  twoFactorEnabled: false, physicianApproved: false, busy: false, error: '', notice: '' });
 
 async function loadIdentity() {
   try {
@@ -10,11 +10,12 @@ async function loadIdentity() {
     if (typeof identity.id !== 'string' || !identity.id) {
       throw new Error('Der Kontoserver hat keinen gültigen Anmeldestatus geliefert.');
     }
-    state.identityId = identity.id;
     state.name = typeof identity.name === 'string' ? identity.name : '';
     state.email = identity.email;
     state.emailVerified = identity.emailVerified === true;
     state.twoFactorEnabled = identity.twoFactorEnabled === true;
+    state.physicianApproved = identity.physicianApproved === true;
+    state.identityId = identity.id;
     state.status = 'authenticated';
   } catch (error) {
     state.identityId = null;
@@ -22,6 +23,7 @@ async function loadIdentity() {
     state.email = '';
     state.emailVerified = false;
     state.twoFactorEnabled = false;
+    state.physicianApproved = false;
     state.status = error.status === 401 ? 'anonymous' : 'unavailable';
     if (error.status !== 401) throw error;
   }
@@ -43,6 +45,7 @@ async function perform(action) {
       state.email = '';
       state.emailVerified = false;
       state.twoFactorEnabled = false;
+      state.physicianApproved = false;
       state.status = 'anonymous';
     }
     if (!error.status || error.status >= 500) state.status = 'unavailable';
@@ -118,6 +121,7 @@ export const accountSession = {
     state.name = '';
     state.emailVerified = false;
     state.twoFactorEnabled = false;
+    state.physicianApproved = false;
     state.notice = 'Du wurdest abgemeldet.';
   }),
   clearFeedback() {

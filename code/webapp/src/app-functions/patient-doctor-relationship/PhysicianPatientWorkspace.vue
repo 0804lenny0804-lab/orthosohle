@@ -64,17 +64,20 @@ onUnmounted(() => { mounted = false; clear(); });
       </div>
       <template v-else>
         <p v-if="patients.length === 0" role="status" class="text-muted">Es sind keine aktiven Patienten zugeordnet.</p>
+        <template v-else-if="!selectedPatientId">
+          <h4 class="h6">Aktive Patienten</h4>
+          <div class="list-group" aria-label="Aktive Patienten">
+            <button v-for="patient in patients" :key="patient.relationshipId" type="button"
+              class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3 text-start"
+              @click="selectedPatientId = patient.patientId">
+              <span><strong>{{ patient.displayName }}</strong><br><small class="text-muted">Aktiv seit {{ new Date(patient.startedAt).toLocaleDateString('de-DE') }}</small></span>
+              <span aria-hidden="true">›</span>
+            </button>
+          </div>
+        </template>
         <template v-else>
-          <label for="physician-patient-select" class="form-label">Aktiven Patienten auswählen</label>
-          <select id="physician-patient-select" v-model="selectedPatientId" class="form-select mb-3">
-            <option value="">Patient auswählen …</option>
-            <option v-for="patient in patients" :key="patient.relationshipId" :value="patient.patientId">
-              {{ patient.displayName }} · aktiv seit {{ new Date(patient.startedAt).toLocaleDateString('de-DE') }}
-            </option>
-          </select>
-          <p v-if="selectedPatientId" class="small text-muted" role="status">
-            Ausgewählt: {{ patients.find(patient => patient.patientId === selectedPatientId)?.displayName }}
-          </p>
+          <button type="button" class="btn btn-link px-0 mb-3" @click="selectedPatientId = ''">‹ Zurück zu allen Patienten</button>
+          <h4 class="h6">{{ patients.find(patient => patient.patientId === selectedPatientId)?.displayName }}</h4>
           <template v-if="selectedPatientId">
             <PatientProfileForm :key="`profile-${identityId}-${selectedPatientId}`" :identity-id="identityId" role="physician" :selected-patient-id="selectedPatientId" @access-error="emit('access-error', $event)" />
             <TreatmentPlanView :key="`plan-${identityId}-${selectedPatientId}`" :identity-id="identityId" role="physician" :selected-patient-id="selectedPatientId" @access-error="emit('access-error', $event)" />

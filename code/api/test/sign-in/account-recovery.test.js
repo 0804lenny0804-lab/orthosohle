@@ -34,7 +34,7 @@ test('local verification mail is private, verifiable once, and creates no sessio
   const cookie = cookies(await signIn(f));
   const me = await (await f.request('/api/me', { cookie })).json();
   assert.equal(me.emailVerified, true);
-  assert.deepEqual(Object.keys(me).sort(), ['email', 'emailVerified', 'id', 'name', 'twoFactorEnabled']);
+  assert.deepEqual(Object.keys(me).sort(), ['email', 'emailVerified', 'id', 'name', 'physicianApproved', 'twoFactorEnabled']);
 });
 test('invalid and expired verification cannot change account status', async t => {
   const f = await fixture(t, { verificationExpiresIn: 1 });
