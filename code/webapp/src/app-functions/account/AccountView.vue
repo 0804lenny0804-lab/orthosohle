@@ -156,11 +156,7 @@
             :two-factor-enabled="state.twoFactorEnabled" @verified="markPhysicianStepUpVerified" @expired="physicianStepUp = false" />
           <CareArea v-if="physicianStepUp" :key="`physician-care-${state.identityId}`" :identity-id="state.identityId" role="physician"
             @access-error="handlePhysicianSessionAccessError" />
-          <TherapyPlan v-if="physicianStepUp" :key="`physician-plan-${state.identityId}`" :identity-id="state.identityId" role="physician"
-            @access-error="handlePhysicianSessionAccessError" />
-          <PatientProfileForm v-if="physicianStepUp" :key="`physician-profile-form-${state.identityId}`" :identity-id="state.identityId" role="physician"
-            @access-error="handlePhysicianSessionAccessError" />
-          <PhysicianSessions v-if="physicianStepUp" :key="`physician-sessions-${state.identityId}`" :identity-id="state.identityId"
+          <PhysicianPatientWorkspace v-if="physicianStepUp" :key="`physician-workspace-${state.identityId}`" :identity-id="state.identityId"
             @access-error="handlePhysicianSessionAccessError" />
           </template>
         </section>
@@ -201,11 +197,9 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { accountSession } from './account-session.js';
 import { consumeAccountCallback } from './account-callback.js';
 import PatientProfile from './PatientProfile.vue';
-import PatientProfileForm from './PatientProfileForm.vue';
 import PhysicianReview from './DoctorAccessRequest.vue';
 import CareArea from '../patient-doctor-relationship/RelationshipArea.vue';
-import PhysicianSessions from '../patient-doctor-relationship/DoctorPatientSessions.vue';
-import TherapyPlan from '../patient-doctor-relationship/TreatmentPlanView.vue';
+import PhysicianPatientWorkspace from '../patient-doctor-relationship/PhysicianPatientWorkspace.vue';
 import { physicianAccessErrorMessage, shouldClosePhysicianAccessOnResume } from '../patient-doctor-relationship/doctor-session-access.js';
 import TotpStepUp from '../additional-totp-check/TotpVerification.vue';
 import SettingsView from '../settings/SettingsView.vue';
@@ -213,6 +207,10 @@ import PasswordChange from './PasswordChange.vue';
 import { accountIntentDestination, accountIntentDescription } from './account-intent.js';
 
 const { state } = accountSession;
+const props = defineProps({
+  navigationIntent: { type: String, default: 'patient', validator: value => ['patient', 'physician'].includes(value) },
+});
+const emit = defineEmits(['intent-change']);
 const physicianStatus = ref('loading');
 const physicianStepUp = ref(false);
 const physicianStepUpGeneration = ref(0);
@@ -262,7 +260,9 @@ function removeProfilePhoto() {
   catch { photoError.value = 'Das Profilbild konnte nicht entfernt werden.'; }
 }
 
-const accountIntent = ref('patient');
+const accountIntent = ref(props.navigationIntent);
+watch(() => props.navigationIntent, value => { accountIntent.value = value; });
+watch(accountIntent, value => emit('intent-change', value));
 const visibleTabs = computed(() => accountTabs.filter(tab => accountIntent.value === 'physician' ? !['patient', 'doctors'].includes(tab.id) : tab.id !== 'physician'));
 const mode = ref('login');
 const name = ref('');

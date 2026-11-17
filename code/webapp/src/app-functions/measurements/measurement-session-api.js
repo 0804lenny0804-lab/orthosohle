@@ -60,12 +60,35 @@ export async function fetchMeasurementSession(id) {
   return session;
 }
 
+export async function fetchActiveMeasurementSessions() {
+  const result = await authRequest('/api/measurement-sessions/active');
+  const sessions = parseSessionsResponse({ sessions: result?.sessions });
+  if (!sessions.every((session) => Number.isInteger(session.sequence) && session.sequence > 0)) {
+    throw new Error('Der Kontoserver hat einen ungültigen aktiven Sitzungsstand zurückgegeben.');
+  }
+  return sessions;
+}
+
 export async function uploadMeasurementSession(payload) {
   try {
     await authRequest('/api/measurement-sessions', payload);
   } catch (error) {
     if (error instanceof AuthRequestError && error.status === 409) {
       throw new Error('Diese Sitzungs-ID ist bereits mit anderen Daten gespeichert. Bitte den Kontosupport kontaktieren; die lokalen Werte bleiben bis dahin erhalten.');
+    }
+    throw error;
+  }
+}
+
+export async function uploadMeasurementCheckpoint(payload) {
+  try {
+    const requestPayload = { ...payload };
+    delete requestPayload.triggerFeedback;
+    delete requestPayload.bleEpoch;
+    return await authRequest('/api/measurement-sessions/checkpoints', requestPayload);
+  } catch (error) {
+    if (error instanceof AuthRequestError && error.status === 409) {
+      throw new Error('Der Messungs-Checkpoint passt nicht zum bestätigten Serverstand. Die lokalen Werte bleiben erhalten; bitte nicht neu starten und erneut versuchen.');
     }
     throw error;
   }

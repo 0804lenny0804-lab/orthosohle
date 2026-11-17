@@ -23,11 +23,11 @@ test('legacy BLE decoder reads valid little-endian Float32 weights', () => {
 
 test('BLE and simulation events retain explicit source with one receive timestamp for App consumers', async () => {
   const [bluetooth, simulation, app] = await Promise.all([
-    readFile(new URL('../../src/app-functions/measurements/BluetoothConnection.vue', import.meta.url), 'utf8'),
+    readFile(new URL('../../src/app-functions/measurements/legacy-ble-connection.js', import.meta.url), 'utf8'),
     readFile(new URL('../../src/app-functions/measurements/MeasurementSimulation.vue', import.meta.url), 'utf8'),
     readFile(new URL('../../src/app-functions/measurements/measurement-preview.js', import.meta.url), 'utf8'),
   ]);
-  assert.match(bluetooth, /emit\("raw-value", \{ kg, timestamp, source: "ble" \}\)/);
+  assert.match(bluetooth, /onRawValue\(\{ kg, timestamp: new Date\(\)\.toISOString\(\), source: 'ble' \}\)/);
   assert.match(simulation, /\{ kg: value, timestamp: new Date\(\)\.toISOString\(\), source: "simulation" \}/);
   assert.match(app, /onRawValue\(\{ kg, timestamp: receivedAt, source \}\)/);
   assert.match(app, /sessionCapture\?\.acceptSample\(\{ kg: numericValue, timestamp: timestamp\.toISOString\(\), source \}\)/);

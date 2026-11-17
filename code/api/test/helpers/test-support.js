@@ -10,6 +10,7 @@ import { createAuth } from '../../src/sign-in/create-auth.js';
 import { createApp } from '../../src/app.js';
 import { readConfig } from '../../src/config.js';
 import { migratePatientProfiles } from '../../src/accounts/database-changes/patient-profile.js';
+import { migrateMeasurementFeedback } from '../../src/measurements/database-changes/measurement-feedback.js';
 import { migratePhysicianReview } from '../../src/patient-doctor-relationship/doctor-access-request/database-changes/request.js';
 import { migrateTwoFactorSessions } from '../../src/sign-in/database-changes/two-factor-session.js';
 import { migrateReviewerBootstrap } from '../../src/patient-doctor-relationship/local-reviewer-access/database-changes/reviewer.js';
@@ -63,6 +64,7 @@ export async function fixture(t, {
       const { runMigrations } = await getMigrations(runtime.auth.options);
       await runMigrations();
       migratePatientProfiles(runtime.database);
+      migrateMeasurementFeedback(runtime.database);
       migratePhysicianReview(runtime.database);
       migrateTwoFactorSessions(runtime.database);
       migrateReviewerBootstrap(runtime.database);

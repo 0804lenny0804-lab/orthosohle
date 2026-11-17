@@ -50,6 +50,7 @@ test('measurement sessions require verified profile, isolate two accounts, valid
   const first = await f.request(path, { cookie: cookieA, body: good, origin: webOrigin });
   assert.equal(first.status, 201);
   const saved = (await first.json()).session;
+  assert.equal(f.database.prepare('SELECT status FROM measurement_session WHERE id = ?').get(good.sessionId).status, 'completed');
   assert.deepEqual(saved.gaps, [{ from: good.intervals[0].timestamp, to: good.intervals[1].timestamp }]);
   assert.equal(saved.source, 'ble');
   const retry = await f.request(path, { cookie: cookieA, body: { ...good, intervals: good.intervals.map(item => ({ max: item.max, avg: item.avg, count: item.count, timestamp: item.timestamp })) }, origin: webOrigin });
@@ -227,5 +228,7 @@ test('measurement migration is idempotent and preserves existing user, session, 
   assert.deepEqual(f.database.prepare('SELECT id, email FROM user WHERE id = ?').get(userId), userBefore);
   assert.equal(f.database.prepare('SELECT count(*) AS count FROM session').get().count, sessionsBefore);
   assert.equal(f.database.prepare('SELECT id FROM patient_profile WHERE id = ?').get(profile.id).id, profile.id);
-  assert.throws(() => f.database.prepare("INSERT INTO measurement_session VALUES ('bad', 'absent-profile', 'ble', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:01.000Z', 'hash', 'now')").run(), /FOREIGN KEY/);
+  assert.throws(() => f.database.prepare(`INSERT INTO measurement_session
+    (id, patient_profile_id, source, started_at, ended_at, payload_hash, created_at)
+    VALUES ('bad', 'absent-profile', 'ble', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:01.000Z', 'hash', 'now')`).run(), /FOREIGN KEY/);
 });

@@ -1,10 +1,11 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { careApi } from './relationship-api.js';
+import PatientSessionFeedback from './PatientSessionFeedback.vue';
 import { fetchPhysicianMeasurementSession, fetchPhysicianMeasurementSessions, isPhysicianSessionAccessError } from './physician-session-api.js';
 import { physicianDetailRequestIsCurrent, physicianRequestIsCurrent } from './doctor-session-access.js';
 
-const props = defineProps({ identityId: { type: String, required: true } });
+const props = defineProps({ identityId: { type: String, required: true }, selectedPatientId: { type: String, default: null } });
 const emit = defineEmits(['access-error']);
 
 const status = ref('loading');
@@ -93,6 +94,30 @@ async function loadPatients() {
   patients.value = [];
   selectedPatientId.value = '';
   clearPatientData();
+  if (props.selectedPatientId !== null) {
+    if (!identity || !props.selectedPatientId) {
+      error.value = 'Melde dich als Arzt an und wähle einen aktiven Patienten.';
+      status.value = 'error';
+      busy.value = false;
+      return;
+    }
+    selectedPatientId.value = props.selectedPatientId;
+    try {
+      const page = await fetchPhysicianMeasurementSessions(props.selectedPatientId);
+      if (!current(request, identity, props.selectedPatientId)) return;
+      sessions.value = page.sessions;
+      nextBefore.value = page.nextBefore;
+      status.value = 'ready';
+    } catch (cause) {
+      if (current(request, identity, props.selectedPatientId)) {
+        if (!clearAfterAccessError(cause)) error.value = cause.message || 'Die Sitzungen konnten nicht geladen werden.';
+        status.value = 'ready';
+      }
+    } finally {
+      if (current(request, identity, props.selectedPatientId)) busy.value = false;
+    }
+    return;
+  }
   if (!identity) {
     error.value = 'Melde dich als Arzt an, um zugeordnete Patienten zu sehen.';
     busy.value = false;
@@ -270,8 +295,8 @@ onUnmounted(() => {
         <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="loadPatients">Erneut versuchen</button>
       </div>
       <template v-else>
-        <label class="form-label" for="physician-session-patient">Patient auswählen</label>
-        <select id="physician-session-patient" class="form-select mb-3" :value="selectedPatientId" :disabled="busy && !selectedPatientId"
+        <label v-if="selectedPatientId === null" class="form-label" for="physician-session-patient">Patient auswählen</label>
+        <select v-if="selectedPatientId === null" id="physician-session-patient" class="form-select mb-3" :value="selectedPatientId" :disabled="busy && !selectedPatientId"
           @change="selectPatient($event.target.value)">
           <option value="">Patient auswählen …</option>
           <option v-for="patient in patients" :key="patient.relationshipId" :value="patient.patientId">
@@ -282,7 +307,7 @@ onUnmounted(() => {
           {{ error }}
           <button type="button" class="btn btn-sm btn-outline-secondary ms-2" :disabled="busy" @click="loadPatients">Zuordnungen erneut laden</button>
         </div>
-        <p v-if="patients.length === 0" class="text-muted" role="status">Es sind keine aktiven Patienten zugeordnet.</p>
+        <p v-if="patients.length === 0 && selectedPatientId === null" class="text-muted" role="status">Es sind keine aktiven Patienten zugeordnet.</p>
         <p v-else-if="selectedPatientId && busy" role="status" aria-live="polite">Messsitzungen werden geladen …</p>
         <p v-else-if="selectedPatientId && error" class="alert alert-danger" role="alert">
           {{ error }}
@@ -304,6 +329,7 @@ onUnmounted(() => {
             <button type="button" class="btn btn-sm btn-outline-secondary ms-2" :disabled="detailLoading" @click="selectedSessionId && loadDetails(selectedSessionId)">Erneut versuchen</button>
           </div>
           <section v-if="selectedSession" :aria-label="`Details ${formatDate(selectedSession.startedAt)}`">
+            <PatientSessionFeedback v-if="selectedSession.source === 'ble'" :identity-id="identityId" :patient-id="selectedPatientId" :session-id="selectedSessionId" @access-error="emit('access-error', $event)" />
             <h4 class="h6">Sekundenaggregate · {{ Math.min(visibleSampleCount, selectedSession.samples.length) }} von {{ selectedSession.samples.length }} Intervallen</h4>
             <p v-if="selectedSession.gaps.length" class="alert alert-warning small" role="note">
               {{ selectedSession.gaps.length }} Empfangslücke(n) zwischen gespeicherten Intervallen. Die Grenzen bezeichnen Zeiten benachbarter Empfangsintervalle:

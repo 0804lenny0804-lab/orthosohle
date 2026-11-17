@@ -2,6 +2,59 @@ export const MAX_SESSION_INTERVALS = 3600;
 export const MAX_SESSION_DURATION_MS = 60 * 60 * 1000;
 export const MAX_SESSION_VALUE = 1_000_000;
 export const MAX_SAMPLES_PER_INTERVAL = 100_000;
+// Bounds in-memory rollover buffering while a finalized segment waits for its server ACK.
+export const MAX_PENDING_BLE_SAMPLES = 6_000;
+
+export function queuePendingBleSample(draft, sample, limit = MAX_PENDING_BLE_SAMPLES) {
+  if (!draft || sample?.source !== 'ble' || sample.identityId !== draft.ownerIdentityId
+    || !Number.isInteger(sample.epoch) || sample.epoch < 1) return false;
+  if (draft.rolloverSamples.length >= limit) {
+    draft.rolloverOverflowSamples += 1;
+    return false;
+  }
+  draft.rolloverSamples.push(sample);
+  return true;
+}
+
+export function consumePendingBleSamples(draft, identityId, epoch) {
+  if (!draft || identityId !== draft.ownerIdentityId) return { consumed: 0, blocked: 'identity' };
+  let consumed = 0;
+  while (draft.rolloverSamples.length) {
+    const sample = draft.rolloverSamples[0];
+    if (sample.identityId !== identityId || sample.source !== 'ble') return { consumed, blocked: 'identity' };
+    if (sample.epoch !== epoch) return { consumed, nextEpoch: sample.epoch };
+    const sampleTime = Date.parse(sample.timestamp);
+    if (isAtSessionLimit(draft.startedAt, sampleTime, draft.aggregator.intervalCount)) {
+      return { consumed, reachedLimit: true };
+    }
+    if (!draft.aggregator.add(sample.kg, sample.timestamp)) return { consumed, reachedLimit: true, reason: 'aggregate' };
+    draft.rolloverSamples.shift();
+    draft.lastReceiveAt = new Date(sampleTime).toISOString();
+    consumed += 1;
+    if (draft.aggregator.intervalCount >= MAX_SESSION_INTERVALS) return { consumed, reachedLimit: true };
+  }
+  return { consumed, drained: true };
+}
+
+export function completeBleCheckpointSegment(draft, sessionId, epoch) {
+  draft.lastCompletedBleSessionId = sessionId;
+  draft.lastCompletedBleEpoch = epoch;
+  const sameEpochPending = draft.rolloverSamples.some((sample) => sample.epoch === epoch);
+  const requested = draft.feedbackRequestedSessionId === sessionId;
+  const disconnected = draft.disconnectedBleEpochs.includes(epoch);
+  if (!sameEpochPending && (disconnected || requested)) {
+    draft.disconnectedBleEpochs = draft.disconnectedBleEpochs.filter((value) => value !== epoch);
+    if (requested) draft.feedbackRequestedSessionId = '';
+    return { feedbackSessionId: sessionId, continueRollover: draft.rolloverSamples.length > 0 };
+  }
+  return { feedbackSessionId: '', continueRollover: draft.rolloverSamples.length > 0 };
+}
+
+export function canAutoStartBleSession({ source, connected, profileReady, ownerIdentityId, identityId, active, pending }) {
+  return source === 'ble' && connected === true && profileReady === true
+    && typeof identityId === 'string' && identityId.length > 0 && ownerIdentityId === identityId
+    && active !== true && pending !== true;
+}
 
 export function isAtSessionLimit(startedAt, sampleTime, intervalCount) {
   const start = Date.parse(startedAt);
@@ -20,8 +73,17 @@ export function getSessionEndTime(startedAt, currentTime, intervals) {
   return new Date(end).toISOString();
 }
 
-export function createSecondAggregator() {
+export function createSecondAggregator(initialIntervals = []) {
   const bySecond = new Map();
+  for (const interval of initialIntervals) {
+    const timestamp = Date.parse(interval.timestamp);
+    if (!Number.isFinite(timestamp) || !Number.isInteger(interval.count) || interval.count < 1
+      || !Number.isFinite(interval.avg) || !Number.isFinite(interval.max)) continue;
+    bySecond.set(timestamp, {
+      timestamp: new Date(timestamp).toISOString(), count: interval.count,
+      sum: interval.avg * interval.count, max: interval.max,
+    });
+  }
   return {
     add(kg, receivedAt) {
       const value = Number(kg);

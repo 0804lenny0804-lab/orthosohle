@@ -27,6 +27,14 @@ Die Kontoansicht nutzt eine Menüübersicht mit getrennten Seiten für Konto, Si
 
 Die Weboberfläche wurde visuell vereinfacht: Simulation befindet sich unter Geräte und bleibt als solche gekennzeichnet. Mess- und Speicherlogik bleiben unverändert; die Ansicht der flüchtigen Werte und die produktive Einordnung von Grenzwerten sind weiterhin getrennt zu prüfen.
 
+## Automatische Messung und Arztarbeitsbereich (Entwicklungsstand)
+
+Auf Nutzerwunsch beginnt eine BLE-Messung nach Verbindung und erstem gültigen Empfang automatisch, sofern das bestätigte Konto und das eigene Patientenprofil bereit sind. Die App überträgt abgeschlossene Empfangssekunden als wiederholbare Zwischenstände; Trennung schließt die Messung und bietet nach bestätigtem Upload eine freiwillige Rückmeldung (Wohlbefinden und optionaler Kommentar). Simulation bleibt getrennt. Arztkonten nutzen eine Patientenliste und öffnen Profil, Messverlauf, Rückmeldung und Behandlungsplan für die ausgewählte Person; Zugriffe bleiben an aktive Zuordnung, Freigabe und frischen TOTP-Nachweis gebunden. Datenbankänderungen müssen ausdrücklich migriert werden.
+
+Die Datei `MeasurementSessionCapture.vue` überschreitet den 500-Zeilen-Richtwert, weil sie derzeit UI, Wiederaufnahme und die koordinierte Übergabe von BLE-Segmenten zusammenführt. Bei der nächsten Änderung an Erfassung oder Wiederaufnahme den Ablauf anhand von Komponenten- und Race-Tests in ein eigenes Modul auslagern; dieser Schritt ist noch offen.
+
+Grenzen: Noch nicht bestätigte Daten liegen nur im Arbeitsspeicher und können bei Absturz/erzwungenem Schließen verloren gehen; der Übergangspuffer fasst höchstens 6000 BLE-Werte je Konto, weitere verworfene Werte werden angezeigt; Recovery erhält nur vom Server bestätigte Zwischenstände. Eine Wiederaufnahme ist kein Nachweis lückenloser Geräteerfassung. Mehrere bereits vorhandene offene Sitzungen erfordern eine gesonderte Auflösung. Ein realer BLE-/Hintergrundbetrieb und klinische Eignung sind nicht geprüft. Es werden ausschließlich synthetische Testdaten verwendet.
+
 ## Nachweise und Grenzen
 
 Die acht Auth-/API-Tests und der Webbuild des archivierten Versuchs sind historische Nachweise dieses entfernten Versuchs. Sie belegen keine Funktionen des Neustarts. Der aktuelle lokale App- und API-Durchstich ist gesondert prüfbar; Einzelheiten stehen in code/README.md. Hardware, mobile Buildkette, BLE, Hintergrundbetrieb, Watch, Datenschutz-/Betriebs- und Einsatzfreigaben bleiben offen.

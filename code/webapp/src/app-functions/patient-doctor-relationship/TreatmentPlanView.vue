@@ -6,6 +6,7 @@ import { isValidTherapyLimit, parsePatientPlan, parsePhysicianPlans, therapyPlan
 const props = defineProps({
   identityId: { type: String, required: true },
   role: { type: String, required: true, validator: value => ['physician', 'patient'].includes(value) },
+  selectedPatientId: { type: String, default: null },
 });
 const emit = defineEmits(['access-error']);
 
@@ -64,6 +65,7 @@ function reportPhysicianAccessError(cause) {
 }
 
 async function load() {
+  if (props.role === 'physician' && props.selectedPatientId !== null) patientId.value = props.selectedPatientId;
   const request = generation;
   const identity = props.identityId;
   status.value = 'loading';
@@ -78,10 +80,19 @@ async function load() {
   }
   try {
     if (props.role === 'physician') {
-      const result = await careApi.listPhysicianPatients();
-      if (!isCurrent(request, identity)) return;
-      if (!Array.isArray(result?.patients) || !result.patients.every(isPatientOption)) throw new Error('Der Server hat eine ungültige Patientenliste zurückgegeben.');
-      patients.value = result.patients;
+      if (props.selectedPatientId === null) {
+        const result = await careApi.listPhysicianPatients();
+        if (!isCurrent(request, identity)) return;
+        if (!Array.isArray(result?.patients) || !result.patients.every(isPatientOption)) throw new Error('Der Server hat eine ungültige Patientenliste zurückgegeben.');
+        patients.value = result.patients;
+      } else {
+        const result = await therapyPlanApi.listForPhysician(props.selectedPatientId);
+        if (!isCurrent(request, identity, props.selectedPatientId)) return;
+        const history = parsePhysicianPlans(result);
+        plans.value = history.plans;
+        currentVersion.value = history.currentVersion;
+        historyLoaded.value = true;
+      }
       status.value = 'ready';
     } else {
       const result = await therapyPlanApi.getForPatient();
@@ -231,12 +242,14 @@ onUnmounted(() => { mounted = false; clearData(); });
         <p>{{ error }}</p><button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="load">Erneut versuchen</button>
       </div>
       <template v-else-if="role === 'physician'">
+        <template v-if="selectedPatientId === null">
         <label class="form-label" for="therapy-plan-patient">Aktiv zugeordneten Patienten auswählen</label>
         <select id="therapy-plan-patient" class="form-select mb-3" :value="patientId" :disabled="busy" @change="selectPatient($event.target.value)">
           <option value="">Patient auswählen …</option>
           <option v-for="patient in patients" :key="patient.patientId" :value="patient.patientId">{{ patient.displayName }}</option>
         </select>
         <p v-if="patients.length === 0" class="text-muted" role="status">Es sind keine aktiven Patienten zugeordnet.</p>
+        </template>
         <template v-if="patientId">
           <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
           <button v-if="error && error.includes('parallel geändert')" type="button" class="btn btn-outline-secondary btn-sm mb-3"

@@ -76,6 +76,9 @@ function migratePatientProfilesInTransaction(database) {
       started_at TEXT NOT NULL,
       ended_at TEXT NOT NULL,
       payload_hash TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('active', 'completed')),
+      checkpoint_sequence INTEGER NOT NULL DEFAULT 0 CHECK (checkpoint_sequence >= 0),
+      checkpoint_hash TEXT,
       created_at TEXT NOT NULL,
       CHECK (started_at < ended_at)
     );
@@ -90,6 +93,12 @@ function migratePatientProfilesInTransaction(database) {
       PRIMARY KEY (session_id, received_at)
     ) WITHOUT ROWID;
   `);
+  // Existing rows represent the previously supported end-of-session upload,
+  // so the additive default keeps their history visible as completed.
+  const measurementColumns = new Set(database.prepare('PRAGMA table_info(measurement_session)').all().map(column => column.name));
+  if (!measurementColumns.has('status')) database.exec("ALTER TABLE measurement_session ADD COLUMN status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('active', 'completed'))");
+  if (!measurementColumns.has('checkpoint_sequence')) database.exec('ALTER TABLE measurement_session ADD COLUMN checkpoint_sequence INTEGER NOT NULL DEFAULT 0 CHECK (checkpoint_sequence >= 0)');
+  if (!measurementColumns.has('checkpoint_hash')) database.exec('ALTER TABLE measurement_session ADD COLUMN checkpoint_hash TEXT');
   database.exec(`
     CREATE TRIGGER IF NOT EXISTS measurement_interval_session_bounds
     BEFORE INSERT ON measurement_interval

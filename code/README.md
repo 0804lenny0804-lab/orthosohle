@@ -8,6 +8,12 @@ Auf Nutzerauftrag vom 06.11.2026 wird der vorhandene Vue-/Vite-Web-App-Prototyp 
 
 `webapp/src/app-functions` enthält die fachlichen Oberflächen und Messregeln, `shared/layout` den Seitenrahmen und `pwa` den Browser-Hintergrundprozess. Installationsmanifest und Icons liegen in `webapp/public/pwa`. Tests sind unter `api/test` und `webapp/test` nach Fachbereich gruppiert. `scripts/check_project.py` prüft Dokumentationslinks, Backlog und die Integrität der unveränderten Altcode-Referenz.
 
+## Automatische BLE-Aufzeichnung und Rückmeldung
+
+Nach ausdrücklicher lokaler Migration (`npm run migrate --prefix code/api`) beginnt die Aufzeichnung bei verbundenem BLE-Gerät und erstem gültigen Wert, wenn bestätigtes Konto und Patientenprofil bereit sind. Abgeschlossene Empfangssekunden werden fortlaufend als wiederholbare Zwischenstände übertragen. Nach BLE-Trennung und bestätigtem Abschluss kann freiwillig Wohlbefinden mit optionalem Kommentar gespeichert werden; ein aktuell zugeordneter, freigegebener Arzt mit frischem TOTP kann die Rückmeldung zur Sitzung lesen. Die Simulation bleibt getrennt.
+
+Nicht bestätigte Werte bleiben nur im offenen Browserfenster; Absturz, erzwungenes Schließen oder Unterbrechung können sie verlieren. Beim Übergang zwischen Abschnitten werden höchstens 6000 BLE-Werte je Konto im Arbeitsspeicher gepuffert; ein voller Puffer wird als Datenverlust angezeigt. Nach Wiederaufnahme sind nur serverseitig bestätigte Zwischenstände nachweisbar. Empfangszeit ist keine Gerätezeit und eine Verbindung kein Nachweis kontinuierlicher oder kalibrierter Messung. Reale Geräte, Hintergrundbetrieb, Löschung, Aufbewahrung und Produktfreigabe bleiben offen. Nur synthetische Daten verwenden.
+
 ## Lokaler Identitäts-Durchstich
 
 `api/` enthält Better Auth 1.7.18, Express 5.3.0 und better-sqlite3 12.11.1 mit Lockfile. Voraussetzung: Node 22.12+; tatsächlich geprüft mit Node 24.19.0 und npm 11.9.0. better-sqlite3 13.0.3 fiel unter Windows bei `npm ci` in einen Visual-Studio-Buildtools-Pfad; deshalb ist die lokale Version auf 12.11.1 festgesetzt. Der Windows-Installationsweg mit passendem Vorabpaket muss auf dem Zielrechner noch bestätigt werden.

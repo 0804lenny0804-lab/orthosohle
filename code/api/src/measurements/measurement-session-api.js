@@ -3,6 +3,7 @@ import { fromNodeHeaders } from 'better-auth/node';
 import { createMeasurementSessionRepository } from './measurement-session-database.js';
 
 const MAX_INTERVALS = 3600;
+const MAX_CHECKPOINT_INTERVALS = 60;
 const MAX_VALUE = 1000000;
 import { validTime, pagination } from './session-pagination.js';
 
@@ -40,9 +41,81 @@ function normalizedSession(body) {
   };
 }
 
+function validCheckpoint(body) {
+  if (!body || Array.isArray(body) || typeof body !== 'object') return false;
+  if (Object.keys(body).sort().join(',') !== 'checkpointAt,completed,intervals,sequence,sessionId,source,startedAt') return false;
+  if (typeof body.sessionId !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.sessionId)) return false;
+  if (!['ble', 'simulation'].includes(body.source) || !validTime(body.startedAt) || !validTime(body.checkpointAt)) return false;
+  if (!Number.isInteger(body.sequence) || body.sequence < 1 || body.sequence > MAX_INTERVALS + 1 || typeof body.completed !== 'boolean') return false;
+  const started = Date.parse(body.startedAt), checkpointAt = Date.parse(body.checkpointAt);
+  if (checkpointAt <= started || checkpointAt - started > MAX_INTERVALS * 1000) return false;
+  if (!Array.isArray(body.intervals) || body.intervals.length > MAX_CHECKPOINT_INTERVALS) return false;
+  if ((!body.completed || body.sequence === 1) && body.intervals.length < 1) return false;
+  if (body.sequence === MAX_INTERVALS + 1 && (!body.completed || body.intervals.length !== 0)) return false;
+  let previous = -Infinity;
+  const firstBucket = Math.floor(started / 1000) * 1000;
+  const lastBucket = Math.floor(checkpointAt / 1000) * 1000;
+  for (const item of body.intervals) {
+    if (!item || Array.isArray(item) || typeof item !== 'object' || Object.keys(item).sort().join(',') !== 'avg,count,max,timestamp') return false;
+    const time = Date.parse(item.timestamp);
+    if (!validTime(item.timestamp) || new Date(time).toISOString() !== new Date(time).toISOString().slice(0, 19) + '.000Z') return false;
+    if (time <= previous || time < firstBucket || time > lastBucket) return false;
+    if (!Number.isInteger(item.count) || item.count < 1 || item.count > 100000) return false;
+    if (![item.avg, item.max].every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= MAX_VALUE)) return false;
+    if (item.max < item.avg) return false;
+    previous = time;
+  }
+  return true;
+}
+
+function normalizedCheckpoint(body) {
+  return {
+    ...body,
+    startedAt: new Date(body.startedAt).toISOString(),
+    checkpointAt: new Date(body.checkpointAt).toISOString(),
+    intervals: body.intervals.map(item => ({ ...item, timestamp: new Date(item.timestamp).toISOString() })),
+  };
+}
+
 export function createMeasurementSessionRouter(auth, database, webOrigin) {
   const router = express.Router();
   const sessions = createMeasurementSessionRepository(database);
+  async function requestSession(req, res) {
+    let session;
+    try {
+      session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+    } catch {
+      res.status(401).json({ error: 'authentication_required' });
+      return null;
+    }
+    if (!session?.user?.id || !session?.session?.id || !session?.session?.token) {
+      res.status(401).json({ error: 'authentication_required' });
+      return null;
+    }
+    return session;
+  }
+
+  function withCurrentPatient(session, operation) {
+    return database.transaction(() => {
+      const current = database.prepare(`SELECT u.emailVerified AS emailVerified
+        FROM session s JOIN user u ON u.id = s.userId
+        WHERE s.id = ? AND s.userId = ? AND s.token = ? AND s.expiresAt > ?`)
+        .get(session.session.id, session.user.id, session.session.token, new Date().toISOString());
+      if (!current) return { kind: 'authentication_required' };
+      if (current.emailVerified !== 1) return { kind: 'email_verification_required' };
+      const profile = database.prepare('SELECT id FROM patient_profile WHERE account_user_id = ?').get(session.user.id);
+      if (!profile) return { kind: 'patient_profile_required' };
+      return { kind: 'ok', value: operation(profile.id) };
+    }).immediate();
+  }
+
+  function sendAccessError(res, kind) {
+    if (kind === 'authentication_required') return res.status(401).json({ error: kind });
+    if (kind === 'email_verification_required') return res.status(403).json({ error: kind });
+    if (kind === 'patient_profile_required') return res.status(403).json({ error: kind });
+    return null;
+  }
+
   router.use((req, res, next) => {
     if (req.method === 'POST' && req.get('Origin') !== webOrigin) return res.status(403).json({ error: 'origin_not_allowed' });
     if (req.method === 'POST' && !req.is('application/json')) return res.status(415).json({ error: 'json_required' });
@@ -58,6 +131,26 @@ export function createMeasurementSessionRouter(auth, database, webOrigin) {
     const page = pagination(req.query);
     if (!page) return res.status(400).json({ error: 'invalid_pagination' });
     return res.json(sessions.listForProfile(profile.id, page.before, page.limit));
+  });
+  router.get('/active', async (req, res) => {
+    const session = await requestSession(req, res);
+    if (!session) return;
+    const result = withCurrentPatient(session, profileId => sessions.listActiveForProfile(profileId));
+    if (sendAccessError(res, result.kind)) return;
+    return res.json({ sessions: result.value });
+  });
+  router.post('/checkpoints', async (req, res) => {
+    const session = await requestSession(req, res);
+    if (!session) return;
+    if (!validCheckpoint(req.body)) return res.status(400).json({ error: 'invalid_checkpoint' });
+    const access = withCurrentPatient(session, profileId =>
+      sessions.saveCheckpointForProfile(profileId, normalizedCheckpoint(req.body)));
+    if (sendAccessError(res, access.kind)) return;
+    const result = access.value;
+    if (result.kind === 'active_session_exists') return res.status(409).json({ error: 'active_measurement_session_exists' });
+    if (result.kind === 'conflict') return res.status(409).json({ error: 'checkpoint_conflict' });
+    if (result.kind === 'invalid') return res.status(400).json({ error: 'checkpoint_limit_exceeded' });
+    return res.status(result.kind === 'created' ? 201 : 200).json({ session: result.value });
   });
   router.post('/', async (req, res) => {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });

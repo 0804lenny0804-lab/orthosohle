@@ -35,21 +35,28 @@
 import { computed } from 'vue';
 import { accountSession } from '../../app-functions/account/account-session.js';
 
-const props = defineProps({ activeNav: { type: String, required: true } });
+const props = defineProps({
+  activeNav: { type: String, required: true },
+  navigationIntent: { type: String, default: 'patient', validator: value => ['patient', 'physician'].includes(value) },
+});
 defineEmits(['navigate']);
 
-const navigation = [
+const patientNavigation = [
   { id: 'live', label: 'Übersicht', icon: 'bi-house-door', eyebrow: 'Deine Übersicht', title: 'Übersicht', description: 'Belastung und Messwerte während einer aktiven Sitzung.' },
   { id: 'history', label: 'Verlauf', icon: 'bi-bar-chart', eyebrow: 'Rückblick', title: 'Verlauf', description: 'Messungen und Auswertungen.' },
   { id: 'connect', label: 'Geräte', icon: 'bi-bluetooth', eyebrow: 'Verbindung', title: 'Geräte', description: 'Verbinde eine unterstützte Sohle mit diesem Gerät.' },
   { id: 'config', label: 'Einstellungen', icon: 'bi-sliders', eyebrow: 'Einstellungen', title: 'Einstellungen', description: 'Lege deine persönlichen Werte fest.' },
   { id: 'account', label: 'Konto', icon: 'bi-person-circle', eyebrow: 'Dein persönlicher Zugang', title: 'Konto', description: 'Verwalte deine Kontodaten.' },
 ];
+const physicianNavigation = [
+  { id: 'account', label: 'Patienten', icon: 'bi-people', eyebrow: 'Arztbereich', title: 'Meine Patienten', description: 'Aktive Betreuungszuordnungen und freigegebene Patientenansichten.' },
+];
 function focusMain() {
   document.getElementById('main')?.focus();
 }
 
-const currentPage = computed(() => navigation.find(item => item.id === props.activeNav) || navigation[4]);
+const navigation = computed(() => props.navigationIntent === 'physician' ? physicianNavigation : patientNavigation);
+const currentPage = computed(() => navigation.value.find(item => item.id === props.activeNav) || navigation.value.at(-1));
 const authView = computed(() => props.activeNav === 'account' && accountSession.state.status !== 'authenticated');
 </script>
 

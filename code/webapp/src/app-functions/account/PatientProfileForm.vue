@@ -6,6 +6,7 @@ import { patientProfileFormApi, parseEditableProfile } from './patient-profile-f
 const props = defineProps({
   identityId: { type: String, required: true },
   role: { type: String, default: 'patient', validator: value => ['patient', 'physician'].includes(value) },
+  selectedPatientId: { type: String, default: null },
 });
 const emit = defineEmits(['access-error']);
 const status = ref('loading');
@@ -44,11 +45,12 @@ function applyProfile(profile) {
   dirty.value = false; conflict.value = false;
 }
 async function load() {
+  if (props.role === 'physician' && props.selectedPatientId !== null) patientId.value = props.selectedPatientId;
   const req = ++generation, identity = props.identityId, selected = patientId.value;
   status.value = 'loading'; busy.value = true; error.value = ''; notice.value = '';
   try {
     if (props.role === 'physician') {
-      if (!patients.value.length) {
+      if (props.selectedPatientId === null && !patients.value.length) {
         const result = await careApi.listPhysicianPatients();
         if (!current(req, identity, selected)) return;
         if (!Array.isArray(result?.patients) || !result.patients.every(validPatient)) throw new Error('Die Patientenliste ist ungültig.');
@@ -119,7 +121,7 @@ onUnmounted(() => { mounted = false; clear(); });
         <p>Das eigene Patientenprofil ist noch nicht eingerichtet. Richte es zuerst im Patientenbereich ein und lade danach diese Angaben neu.</p>
         <button class="btn btn-outline-secondary" type="button" :disabled="busy" @click="load">Erneut laden</button>
       </div>
-      <template v-if="status === 'ready' && role === 'physician'">
+      <template v-if="status === 'ready' && role === 'physician' && selectedPatientId === null">
         <label class="form-label" :for="`${formIdPrefix}-select`">Aktiv zugeordneten Patienten auswählen</label>
         <select :id="`${formIdPrefix}-select`" class="form-select mb-3" :value="patientId" :disabled="busy" @change="selectPatient($event.target.value)">
           <option value="">Patient auswählen …</option><option v-for="patient in patients" :key="patient.patientId" :value="patient.patientId">{{ patient.displayName }}</option>

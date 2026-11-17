@@ -2,6 +2,7 @@ import express from 'express';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import { createPatientProfileRouter } from './accounts/patient-profile-api.js';
 import { createMeasurementSessionRouter } from './measurements/measurement-session-api.js';
+import { createMeasurementFeedbackRouter } from './measurements/measurement-feedback-api.js';
 import { createPhysicianReviewRouter } from './patient-doctor-relationship/doctor-access-request/request-api.js';
 import { createPhysicianApprovalRouter } from './patient-doctor-relationship/doctor-access-approval/approval-api.js';
 import { createTotpStepUpRouter, hasFreshTotpProof } from './sign-in/recent-totp-check.js';
@@ -33,6 +34,9 @@ export function createApp(auth, config = {}) {
   const approved = userId => Boolean(database.prepare(`SELECT 1 FROM physician_review_application
     WHERE account_user_id = ? AND status = 'approved'`).get(userId));
   const assurance = ({ session }) => hasFreshTotpProof(database, session.session);
+  app.use('/api/measurement-feedback', createMeasurementFeedbackRouter(auth, database, {
+    webOrigin, guards: { isPhysicianApprovedInTransaction: ({ user }) => approved(user.id) },
+  }));
   app.use('/api/step-up', createTotpStepUpRouter(auth, database, config));
   app.use('/api/physician-review/approval', approval.router);
   app.use('/api/physician-review', createPhysicianReviewRouter(auth, database, config, () => approval.recoverPendingNotifications()));

@@ -13,6 +13,7 @@ const P_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const M_A = '11111111-1111-4111-8111-111111111111';
 const M_B = '22222222-2222-4222-8222-222222222222';
 const M_A2 = '33333333-3333-4333-8333-333333333333';
+const M_ACTIVE = '44444444-4444-4444-8444-444444444444';
 
 async function fixture(t) {
   const database = new Database(':memory:');
@@ -23,7 +24,7 @@ async function fixture(t) {
     CREATE TABLE twoFactor (userId TEXT PRIMARY KEY, verified INTEGER);
     CREATE TABLE totp_step_up_attempt (session_id TEXT PRIMARY KEY, user_id TEXT, verified_at INTEGER, expires_at INTEGER);
     CREATE TABLE physician_review_application (id TEXT PRIMARY KEY, account_user_id TEXT UNIQUE, status TEXT);
-    CREATE TABLE measurement_session (id TEXT PRIMARY KEY, patient_profile_id TEXT, source TEXT, started_at TEXT, ended_at TEXT, payload_hash TEXT, created_at TEXT);
+    CREATE TABLE measurement_session (id TEXT PRIMARY KEY, patient_profile_id TEXT, source TEXT, started_at TEXT, ended_at TEXT, payload_hash TEXT, status TEXT NOT NULL DEFAULT 'completed', checkpoint_sequence INTEGER NOT NULL DEFAULT 0, checkpoint_hash TEXT, created_at TEXT);
     CREATE TABLE measurement_interval (session_id TEXT, received_at TEXT, sample_count INTEGER, average REAL, maximum REAL);
   `);
   migratePatientRelations(database);
@@ -57,6 +58,7 @@ async function fixture(t) {
       .run(`${physician}-session`, physician, now, now + 30_000);
   }
   const sessionInsert = database.prepare(`INSERT INTO measurement_session
+    (id, patient_profile_id, source, started_at, ended_at, payload_hash, created_at)
     VALUES (?, ?, 'ble', ?, ?, 'hash', ?)`);
   for (const [id, profile] of [[M_A, P_A], [M_B, P_B]]) {
     sessionInsert.run(id, profile, '2026-11-11T10:00:00.000Z', '2026-11-11T10:00:02.000Z', new Date(now).toISOString());
@@ -66,6 +68,12 @@ async function fixture(t) {
   sessionInsert.run(M_A2, P_A, '2026-11-11T10:00:00.000Z', '2026-11-11T10:00:03.000Z', new Date(now).toISOString());
   database.prepare('INSERT INTO measurement_interval VALUES (?, ?, 3, 5, 7)')
     .run(M_A2, '2026-11-11T10:00:02.000Z');
+  database.prepare(`INSERT INTO measurement_session
+    (id, patient_profile_id, source, started_at, ended_at, payload_hash, status, checkpoint_sequence, checkpoint_hash, created_at)
+    VALUES (?, ?, 'ble', ?, ?, 'checkpoint-hash', 'active', 1, 'checkpoint-hash', ?)`)
+    .run(M_ACTIVE, P_A, '2026-11-11T10:00:00.000Z', '2026-11-11T10:00:03.000Z', new Date(now).toISOString());
+  database.prepare('INSERT INTO measurement_interval VALUES (?, ?, 1, 1, 1)')
+    .run(M_ACTIVE, '2026-11-11T10:00:02.000Z');
   const auth = { api: { async getSession({ headers }) {
     const cookie = headers.get('cookie') ?? '';
     const id = cookie.match(/(?:^|;\s*)test_session=([^;]+)/)?.[1];
@@ -114,6 +122,7 @@ async function fixture(t) {
 test('list and detail are restricted to the selected actively assigned patient', async t => {
   const f = await fixture(t);
   assert.equal((await f.get(`/patients/${P_A}/measurement-sessions`, 'doctor-a')).body.sessions[0].id, M_A2);
+  assert.equal((await f.get(`/patients/${P_A}/measurement-sessions/${M_ACTIVE}`, 'doctor-a')).status, 404);
   assert.equal((await f.get(`/patients/${P_B}/measurement-sessions`, 'doctor-a')).status, 404);
   assert.equal((await f.get(`/patients/${P_A}/measurement-sessions/${M_B}`, 'doctor-a')).status, 404);
   const detail = await f.get(`/patients/${P_A}/measurement-sessions/${M_A}`, 'doctor-a');
