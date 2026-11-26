@@ -1,6 +1,6 @@
 import express from 'express';
 import { fromNodeHeaders } from 'better-auth/node';
-import { hasFreshTotpProof } from '../sign-in/recent-totp-check.js';
+import { hasPhysicianTotpProof } from '../sign-in/recent-totp-check.js';
 import { createTherapyPlanRepository } from './therapy-plan-database.js';
 
 const MAX_LIMIT_KG = 1_000_000;
@@ -46,7 +46,7 @@ export function createTherapyPlanRouter(auth, database, { webOrigin, guards = {}
           WHERE s.id = ? AND s.userId = ? AND s.token = ? AND s.expiresAt > ? AND u.emailVerified = 1`)
           .get(session.session.id, session.user.id, session.session.token, new Date().toISOString());
         const context = { user: session.user, session, request: null };
-        if (!currentSession || approved(context) !== true || !hasFreshTotpProof(database, session.session)) return { kind: 'forbidden' };
+        if (!currentSession || approved(context) !== true || !hasPhysicianTotpProof(database, session.session)) return { kind: 'forbidden' };
         const relation = database.prepare(`SELECT 1 FROM patient_relation
           WHERE patient_profile_id = ? AND physician_user_id = ? AND status = 'active'`).get(patientId, session.user.id);
         if (!relation) return { kind: 'not_found' };

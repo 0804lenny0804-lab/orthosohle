@@ -16,11 +16,11 @@ test('patient and physician intent only chooses the next view after the shared l
   assert.doesNotMatch(accountIntentDescription('physician'), /freigegeben|Arztzugriff erhalten/i);
 });
 
-test('physician navigation has separate pages and identity changes clear the UI preference', () => {
+test('physician navigation maps legacy pages to patients and account', () => {
   assert.equal(resolveNavigation('physician', 'account'), 'account');
   assert.equal(resolveNavigation('physician', 'history'), 'doctor');
-  assert.equal(resolveNavigation('physician', 'patients'), 'patients');
-  assert.equal(resolveNavigation('physician', 'invitations'), 'invitations');
+  assert.equal(resolveNavigation('physician', 'patients'), 'doctor');
+  assert.equal(resolveNavigation('physician', 'invitations'), 'account');
   assert.equal(resolveNavigation('patient', 'history'), 'history');
   assert.equal(resolveNavigation('patient', 'unknown'), 'account');
   assert.equal(intentAfterIdentityChange('physician', '', 'user-a'), 'physician');

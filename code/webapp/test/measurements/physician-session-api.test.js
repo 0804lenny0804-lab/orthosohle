@@ -6,7 +6,6 @@ import {
   physicianDetailRequestIsCurrent,
   physicianRequestIsCurrent,
   shouldReportCareAccessError,
-  shouldClosePhysicianAccessOnResume,
 } from '../../src/app-functions/patient-doctor-relationship/doctor-session-access.js';
 
 const session = {
@@ -124,13 +123,6 @@ test('account and physician authorization messages distinguish authentication fr
   const notFound = physicianAccessErrorMessage(404);
   assert.match(notFound, /Sitzung oder aktive Patientenzuordnung ist nicht verfügbar/);
   assert.doesNotMatch(notFound, /Anmeldung ist abgelaufen/);
-});
-
-test('physician access closes on focus or return to a visible tab, with listener policy guarded by active step-up', () => {
-  assert.equal(shouldClosePhysicianAccessOnResume({ active: true, eventType: 'focus' }), true);
-  assert.equal(shouldClosePhysicianAccessOnResume({ active: true, eventType: 'visibilitychange', visibilityState: 'visible' }), true);
-  assert.equal(shouldClosePhysicianAccessOnResume({ active: true, eventType: 'visibilitychange', visibilityState: 'hidden' }), false);
-  assert.equal(shouldClosePhysicianAccessOnResume({ active: false, eventType: 'focus' }), false);
 });
 
 test('only physician care authentication and authorization errors escalate to AccountView', () => {

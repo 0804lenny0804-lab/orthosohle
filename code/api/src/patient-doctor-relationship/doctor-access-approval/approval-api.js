@@ -1,5 +1,6 @@
 import express from 'express';
 import { fromNodeHeaders } from 'better-auth/node';
+import { FRESH_PROOF_TTL_MS } from '../../sign-in/recent-totp-check.js';
 import { materializePhysicianApprovalNotification } from './approval-notification.js';
 import { createPhysicianApprovalService } from './approval-rules.js';
 
@@ -23,8 +24,8 @@ function currentStepUp(database, reviewer, configuredReviewerEmail) {
     JOIN user u ON u.id = s.userId AND u.twoFactorEnabled = 1
     JOIN twoFactor tf ON tf.userId = u.id AND tf.verified = 1
     WHERE s.id = ? AND s.userId = ? AND s.expiresAt > ? AND lower(u.email) = lower(?)
-      AND p.verified_at IS NOT NULL AND p.expires_at > ?
-  `).get(reviewer.sessionId, reviewer.userId, new Date(now).toISOString(), configuredReviewerEmail, now));
+      AND p.verified_at IS NOT NULL AND p.expires_at > ? AND p.verified_at > ?
+  `).get(reviewer.sessionId, reviewer.userId, new Date(now).toISOString(), configuredReviewerEmail, now, now - FRESH_PROOF_TTL_MS));
 }
 
 async function resolveSession(auth, req) {

@@ -152,6 +152,12 @@ test('real HTTP approval requires reviewer session and step-up, keeps GET read-o
   assert.equal((await call('/approval/inspect', { body: { token }, origin: 'https://foreign.invalid' })).status, 403);
 
   await establishFreshMfa(f, call, reviewerCookie, secret);
+  const proofTime = f.database.prepare('SELECT verified_at FROM totp_step_up_attempt').get().verified_at;
+  f.database.prepare('UPDATE totp_step_up_attempt SET verified_at = ?').run(Date.now() - 6 * 60_000);
+  assert.equal((await call('/approval/')).status, 403);
+  assert.equal((await call('/approval/inspect', { body: { token } })).status, 403);
+  assert.equal((await call('/approval/approve', { body: { token } })).status, 403);
+  f.database.prepare('UPDATE totp_step_up_attempt SET verified_at = ?').run(proofTime);
   const before = f.database.prepare('SELECT consumed_at FROM physician_review_approval_token').get().consumed_at;
   assert.equal(before, null);
   const page = await call('/approval/');

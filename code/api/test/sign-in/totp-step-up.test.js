@@ -4,7 +4,7 @@ import express from 'express';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { fixture, signUp, signIn, cookies, account } from '../helpers/test-support.js';
-import { createTotpStepUpRouter } from '../../src/sign-in/recent-totp-check.js';
+import { createTotpStepUpRouter, hasPhysicianTotpProof } from '../../src/sign-in/recent-totp-check.js';
 import { migrateTotpStepUp } from '../../src/sign-in/database-changes/recent-totp-check.js';
 
 function decodeBase32(value) {
@@ -58,8 +58,17 @@ test('TOTP step-up creates a short-lived session-bound proof and guard fails clo
   const code = (await f.auth.api.generateTOTP({ body: { secret } })).code;
   const verified = await call('verify', cookie, { code });
   assert.equal(verified.status, 200, await verified.clone().text());
-  assert.deepEqual(await verified.json(), { verified: true, expiresInSeconds: 300 });
+  assert.deepEqual(await verified.json(), { verified: true, expiresInSeconds: 300, physicianExpiresInSeconds: 1800 });
   assert.equal((await call('guard', cookie)).status, 200);
+  const session = (await f.auth.api.getSession({ headers: new Headers({ Cookie: cookie }) })).session;
+  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE user_id = ?').run(Date.now() + 1000, id);
+  assert.equal(hasPhysicianTotpProof(f.database, session), true);
+  assert.ok(f.database.prepare('SELECT expires_at FROM totp_step_up_attempt WHERE user_id = ?').get(id).expires_at > Date.now() + 29 * 60_000);
+  f.database.prepare('UPDATE totp_step_up_attempt SET verified_at = ? WHERE user_id = ?').run(Date.now() - 6 * 60_000, id);
+  assert.equal((await call('guard', cookie)).status, 403);
+  assert.equal(hasPhysicianTotpProof(f.database, session), true);
+  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE user_id = ?').run(Date.now() - 1, id);
+  assert.equal(hasPhysicianTotpProof(f.database, session), false);
   const stored = f.database.prepare('SELECT user_id, verified_at, expires_at FROM totp_step_up_attempt').get();
   assert.equal(stored.user_id, id);
   assert.ok(stored.expires_at > stored.verified_at);

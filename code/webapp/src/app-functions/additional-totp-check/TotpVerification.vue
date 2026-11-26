@@ -7,28 +7,22 @@ const props = defineProps({
   identityId: { type: String, required: true },
   twoFactorEnabled: { type: Boolean, default: false },
 });
-const emit = defineEmits(['verified', 'expired']);
+const emit = defineEmits(['verified']);
 const code = ref('');
-const status = ref('ready');
 const busy = ref(false);
 const error = ref('');
 let generation = 0;
-let expiryTimer = null;
 let mounted = false;
 
 function isCurrent(request, identity) {
   return mounted && request === generation && identity === props.identityId;
 }
 
-function clearProof(emitExpired = false) {
+function clearProof() {
   generation += 1;
-  if (expiryTimer !== null) clearTimeout(expiryTimer);
-  expiryTimer = null;
   code.value = '';
   busy.value = false;
-  status.value = 'ready';
   error.value = '';
-  if (emitExpired) emit('expired');
 }
 
 async function verify() {
@@ -42,48 +36,37 @@ async function verify() {
   try {
     const proof = await totpStepUpApi.verify(submittedCode);
     if (!isCurrent(request, identity)) return;
-    if (!validStepUp(proof)) throw new Error('Der Server hat keine fünfminütige TOTP-Prüfung bestätigt.');
+    if (!validStepUp(proof) || proof.physicianExpiresInSeconds !== 1800) throw new Error('Der Server hat keine fünfminütige TOTP-Prüfung bestätigt.');
     const guard = await totpStepUpApi.check();
     if (!isCurrent(request, identity)) return;
     if (guard?.authorized !== true) throw new Error('Die aktuelle TOTP-Prüfung konnte nicht bestätigt werden.');
-    status.value = 'verified';
-    expiryTimer = setTimeout(() => {
-      if (!isCurrent(request, identity)) return;
-      clearProof(true);
-    }, proof.expiresInSeconds * 1000);
-    emit('verified', { expiresInSeconds: proof.expiresInSeconds });
+    emit('verified', { expiresInSeconds: proof.physicianExpiresInSeconds });
   } catch (cause) {
     if (!isCurrent(request, identity)) return;
-    status.value = 'ready';
     error.value = cause.message || 'Der TOTP-Code konnte nicht geprüft werden. Bitte erneut versuchen.';
   } finally {
     if (isCurrent(request, identity)) busy.value = false;
   }
 }
 
-watch(() => props.identityId, () => clearProof(true));
+watch(() => props.identityId, () => clearProof());
 watch(() => props.twoFactorEnabled, enabled => {
-  if (!enabled) clearProof(true);
+  if (!enabled) clearProof();
 });
 
 onMounted(() => { mounted = true; });
 onUnmounted(() => {
   mounted = false;
-  clearProof(true);
+  clearProof();
 });
 </script>
 
 <template>
-  <section class="totp-step-up card mb-3" aria-labelledby="step-up-title">
-    <div class="card-body">
-      <h3 id="step-up-title" class="h6">Aktuelle Identitätsprüfung</h3>
+  <section class="totp-step-up mb-3">
+    <div>
       <p v-if="!twoFactorEnabled" class="text-muted" role="status">
         Aktiviere zuerst die Zwei-Faktor-Anmeldung in deinem Konto, um Arztfunktionen freizuschalten.
       </p>
-      <template v-else-if="status === 'verified'">
-        <p class="text-success" role="status" aria-live="polite">TOTP bestätigt. Die Freigabe gilt bis zu fünf Minuten für diese Sitzung.</p>
-        <button type="button" class="btn btn-outline-secondary" @click="clearProof(true)">Erneut prüfen</button>
-      </template>
       <form v-else @submit.prevent="verify">
         <label for="step-up-totp" class="form-label">Aktueller Authenticator-Code</label>
         <div class="d-flex flex-column flex-sm-row gap-2">

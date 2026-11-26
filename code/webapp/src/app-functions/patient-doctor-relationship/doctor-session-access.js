@@ -44,10 +44,6 @@ export function physicianAccessErrorMessage(status, { accountStatus = '', sessio
   return 'Der Arztzugriff konnte nicht bestätigt werden. Die Arztansichten bleiben geschlossen.';
 }
 
-export function shouldClosePhysicianAccessOnResume({ active, eventType, visibilityState = '' }) {
-  return active && (eventType === 'focus' || (eventType === 'visibilitychange' && visibilityState === 'visible'));
-}
-
 export function shouldReportCareAccessError(role, status) {
   return role === 'physician' && [401, 403].includes(status);
 }

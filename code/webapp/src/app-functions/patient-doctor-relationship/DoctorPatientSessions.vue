@@ -5,7 +5,11 @@ import PatientSessionFeedback from './PatientSessionFeedback.vue';
 import { fetchPhysicianMeasurementSession, fetchPhysicianMeasurementSessions, isPhysicianSessionAccessError } from './physician-session-api.js';
 import { physicianDetailRequestIsCurrent, physicianRequestIsCurrent } from './doctor-session-access.js';
 
-const props = defineProps({ identityId: { type: String, required: true }, selectedPatientId: { type: String, default: null } });
+const props = defineProps({
+  identityId: { type: String, required: true },
+  selectedPatientId: { type: String, default: null },
+  view: { type: String, default: 'history', validator: value => ['history', 'feedback'].includes(value) },
+});
 const emit = defineEmits(['access-error']);
 
 const status = ref('loading');
@@ -284,19 +288,19 @@ onUnmounted(() => {
 <template>
   <section class="card mb-4" aria-labelledby="physician-sessions-title">
     <div class="card-body">
-      <h3 id="physician-sessions-title" class="h5">Messsitzungen zugeordneter Patienten</h3>
-      <p class="small text-muted">
-        Es werden nur Patienten mit aktiver Zuordnung angeboten. Quellen und Empfangszeiten beruhen auf der App-Auswahl, nicht auf einer Geräteprüfung.
-        Eine Lücke zeigt nur, dass in diesem Zeitbereich kein Wert empfangen wurde; sie beweist keinen Geräteausfall. Simulationen sind synthetisch.
-      </p>
+      <h3 id="physician-sessions-title" class="h5">{{ view === 'feedback' ? 'Feedback' : 'Messsitzungen' }}</h3>
+      <details v-if="view === 'history'" class="small text-muted mb-3">
+        <summary>Hinweise zu Messdaten</summary>
+        <p class="mt-2 mb-0">Quellen und Empfangszeiten beruhen auf der App-Auswahl, nicht auf einer Geräteprüfung. Empfangslücken belegen keinen Geräteausfall; Simulationen sind synthetisch.</p>
+      </details>
       <p v-if="status === 'loading'" role="status" aria-live="polite">Zugeordnete Patienten werden geladen …</p>
       <div v-else-if="status === 'error'" class="alert alert-danger" role="alert">
         <p>{{ error }}</p>
         <button type="button" class="btn btn-outline-secondary" :disabled="busy" @click="loadPatients">Erneut versuchen</button>
       </div>
       <template v-else>
-        <label v-if="selectedPatientId === null" class="form-label" for="physician-session-patient">Patient auswählen</label>
-        <select v-if="selectedPatientId === null" id="physician-session-patient" class="form-select mb-3" :value="selectedPatientId" :disabled="busy && !selectedPatientId"
+        <label v-if="props.selectedPatientId === null" class="form-label" for="physician-session-patient">Patient auswählen</label>
+        <select v-if="props.selectedPatientId === null" id="physician-session-patient" class="form-select mb-3" :value="selectedPatientId" :disabled="busy && !selectedPatientId"
           @change="selectPatient($event.target.value)">
           <option value="">Patient auswählen …</option>
           <option v-for="patient in patients" :key="patient.relationshipId" :value="patient.patientId">
@@ -307,7 +311,7 @@ onUnmounted(() => {
           {{ error }}
           <button type="button" class="btn btn-sm btn-outline-secondary ms-2" :disabled="busy" @click="loadPatients">Zuordnungen erneut laden</button>
         </div>
-        <p v-if="patients.length === 0 && selectedPatientId === null" class="text-muted" role="status">Es sind keine aktiven Patienten zugeordnet.</p>
+        <p v-if="patients.length === 0 && props.selectedPatientId === null" class="text-muted" role="status">Es sind keine aktiven Patienten zugeordnet.</p>
         <p v-else-if="selectedPatientId && busy" role="status" aria-live="polite">Messsitzungen werden geladen …</p>
         <p v-else-if="selectedPatientId && error" class="alert alert-danger" role="alert">
           {{ error }}
@@ -315,7 +319,7 @@ onUnmounted(() => {
         </p>
         <template v-else-if="selectedPatientId">
           <p v-if="sessions.length === 0" class="text-muted" role="status">Für diesen Patienten sind keine Messsitzungen gespeichert.</p>
-          <div v-else class="list-group mb-3">
+          <div v-else-if="!selectedSessionId" class="list-group mb-3">
             <button v-for="session in sessions" :key="session.id" type="button"
               class="list-group-item list-group-item-action text-start" :aria-expanded="selectedSessionId === session.id"
               @click="toggleDetails(session.id)">
@@ -323,13 +327,19 @@ onUnmounted(() => {
               <span class="d-block small text-muted">{{ sourceLabel(session.source) }} · Ende {{ formatDate(session.endedAt) }}</span>
             </button>
           </div>
+          <button v-if="selectedSessionId" type="button" class="btn btn-link px-0 mb-3" @click="toggleDetails(selectedSessionId)">‹ Zurück zu Messsitzungen</button>
           <p v-if="detailLoading" role="status" aria-live="polite">Sitzungsdetails werden geladen …</p>
           <div v-if="detailError" class="alert alert-danger" role="alert">
             {{ detailError }}
             <button type="button" class="btn btn-sm btn-outline-secondary ms-2" :disabled="detailLoading" @click="selectedSessionId && loadDetails(selectedSessionId)">Erneut versuchen</button>
           </div>
           <section v-if="selectedSession" :aria-label="`Details ${formatDate(selectedSession.startedAt)}`">
-            <PatientSessionFeedback v-if="selectedSession.source === 'ble'" :identity-id="identityId" :patient-id="selectedPatientId" :session-id="selectedSessionId" @access-error="emit('access-error', $event)" />
+            <h4 class="h6">{{ formatDate(selectedSession.startedAt) }}</h4>
+            <template v-if="view === 'feedback'">
+              <PatientSessionFeedback v-if="selectedSession.source === 'ble'" :identity-id="identityId" :patient-id="selectedPatientId" :session-id="selectedSessionId" @access-error="emit('access-error', $event)" />
+              <p v-else class="text-muted">Für Simulationen gibt es kein Feedback.</p>
+            </template>
+            <template v-else>
             <h4 class="h6">Sekundenaggregate · {{ Math.min(visibleSampleCount, selectedSession.samples.length) }} von {{ selectedSession.samples.length }} Intervallen</h4>
             <p v-if="selectedSession.gaps.length" class="alert alert-warning small" role="note">
               {{ selectedSession.gaps.length }} Empfangslücke(n) zwischen gespeicherten Intervallen. Die Grenzen bezeichnen Zeiten benachbarter Empfangsintervalle:
@@ -354,8 +364,9 @@ onUnmounted(() => {
             <button v-if="visibleSampleCount < selectedSession.samples.length" type="button" class="btn btn-outline-secondary btn-sm" @click="visibleSampleCount += 100">
               Weitere Sekundenaggregate anzeigen
             </button>
+            </template>
           </section>
-          <button v-if="nextBefore" type="button" class="btn btn-outline-primary" :disabled="busy" @click="loadMore">
+          <button v-if="nextBefore && !selectedSessionId" type="button" class="btn btn-outline-primary" :disabled="busy" @click="loadMore">
             {{ busy ? 'Wird geladen …' : 'Ältere Sitzungen laden' }}
           </button>
           <p v-if="listError" class="small text-danger mt-2" role="alert">{{ listError }}</p>

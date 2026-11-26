@@ -5,7 +5,7 @@ import { createMeasurementSessionRouter } from './measurements/measurement-sessi
 import { createMeasurementFeedbackRouter } from './measurements/measurement-feedback-api.js';
 import { createPhysicianReviewRouter } from './patient-doctor-relationship/doctor-access-request/request-api.js';
 import { createPhysicianApprovalRouter } from './patient-doctor-relationship/doctor-access-approval/approval-api.js';
-import { createTotpStepUpRouter, hasFreshTotpProof } from './sign-in/recent-totp-check.js';
+import { createTotpStepUpRouter, hasPhysicianTotpProof } from './sign-in/recent-totp-check.js';
 import { createPatientRelationsRouter } from './patient-doctor-relationship/patient-relations.js';
 import { createPhysicianMeasurementSessionRouter } from './measurements/physician-measurement-session-api.js';
 import { createTherapyPlanRouter } from './treatment-plans/therapy-plan-api.js';
@@ -34,7 +34,7 @@ export function createApp(auth, config = {}) {
   const approval = createPhysicianApprovalRouter(auth, database, config);
   const approved = userId => Boolean(database.prepare(`SELECT 1 FROM physician_review_application
     WHERE account_user_id = ? AND status = 'approved'`).get(userId));
-  const assurance = ({ session }) => hasFreshTotpProof(database, session.session);
+  const assurance = ({ session }) => hasPhysicianTotpProof(database, session.session);
   app.use('/api/measurement-feedback', createMeasurementFeedbackRouter(auth, database, {
     webOrigin, guards: { isPhysicianApprovedInTransaction: ({ user }) => approved(user.id) },
   }));

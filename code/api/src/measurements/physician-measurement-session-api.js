@@ -1,7 +1,7 @@
 import express from 'express';
 import { fromNodeHeaders } from 'better-auth/node';
 import { createMeasurementSessionRepository } from './measurement-session-database.js';
-import { hasFreshTotpProof } from '../sign-in/recent-totp-check.js';
+import { hasPhysicianTotpProof } from '../sign-in/recent-totp-check.js';
 
 const ID = /^[0-9a-f-]{36}$/i;
 import { pagination } from './session-pagination.js';
@@ -37,7 +37,7 @@ export function createPhysicianMeasurementSessionRouter(auth, database, { guards
           WHERE s.id = ? AND s.userId = ? AND s.token = ? AND s.expiresAt > ? AND u.emailVerified = 1`)
           .get(session.session.id, session.user.id, session.session.token, new Date().toISOString());
         const context = { user: session.user, session, request: null };
-        if (!current || approved(context) !== true || hasFreshTotpProof(database, session.session) !== true) {
+        if (!current || approved(context) !== true || hasPhysicianTotpProof(database, session.session) !== true) {
           return { kind: 'forbidden' };
         }
         const relation = database.prepare(`SELECT 1 FROM patient_relation

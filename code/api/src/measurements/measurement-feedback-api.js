@@ -1,6 +1,6 @@
 import express from 'express';
 import { fromNodeHeaders } from 'better-auth/node';
-import { hasFreshTotpProof } from '../sign-in/recent-totp-check.js';
+import { hasPhysicianTotpProof } from '../sign-in/recent-totp-check.js';
 
 const ID = /^[0-9a-f-]{36}$/i;
 const MAX_COMMENT_LENGTH = 500;
@@ -137,7 +137,7 @@ export function createMeasurementFeedbackRouter(auth, database, { webOrigin, gua
           WHERE s.id = ? AND s.userId = ? AND s.token = ? AND s.expiresAt > ? AND u.emailVerified = 1`)
           .get(session.session.id, session.user.id, session.session.token, now);
         const context = { user: session.user, session, request: req };
-        if (!current || approved(context) !== true || !hasFreshTotpProof(database, session.session, Date.now())) return { kind: 'forbidden' };
+        if (!current || approved(context) !== true || !hasPhysicianTotpProof(database, session.session, Date.now())) return { kind: 'forbidden' };
         const relation = database.prepare(`SELECT 1 FROM patient_relation
           WHERE physician_user_id = ? AND patient_profile_id = ? AND status = 'active'`)
           .get(session.user.id, req.params.patientId);

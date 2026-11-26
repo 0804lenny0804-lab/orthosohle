@@ -143,6 +143,7 @@
           <CareArea v-if="state.emailVerified" :key="`patient-care-${state.identityId}`" :identity-id="state.identityId" role="patient" />
           <TherapyPlan v-if="state.emailVerified" :key="`patient-plan-${state.identityId}`" :identity-id="state.identityId" role="patient" />
         </section>
+        <section v-if="activeTab === 'invitations' && accountIntent === 'physician'" aria-label="Einladungen"><slot name="invitations" /></section>
         <section v-show="activeTab === 'display'" aria-label="Darstellung"><SettingsView :key="`settings-${state.identityId}`" :identity-id="state.identityId" /></section>
         <section v-show="activeTab === 'account'" id="account-panel" tabindex="0">
           <h3 class="h5">Konto</h3>
@@ -198,6 +199,7 @@ const accountTabs = [
   { id: 'security', label: 'Anmeldung & Sicherheit', description: 'Passwort und Zwei-Faktor-Anmeldung' },
   { id: 'patient', label: 'Mein Patientenbereich', description: 'Persönliches Profil' },
   { id: 'doctors', label: 'Meine Ärzte', description: 'Betreuung und Behandlungsplan' },
+  { id: 'invitations', label: 'Einladungen', description: 'Patienten einladen und Anfragen bearbeiten' },
   { id: 'display', label: 'Darstellung', description: 'Kontrast und Schriftgröße' },
 ];
 const activeTab = ref('overview');
@@ -239,7 +241,7 @@ function removeProfilePhoto() {
 const accountIntent = ref(props.navigationIntent);
 watch(() => props.navigationIntent, value => { accountIntent.value = value; });
 watch(accountIntent, value => emit('intent-change', value));
-const visibleTabs = computed(() => accountTabs.filter(tab => accountIntent.value === 'physician' ? !['patient', 'doctors'].includes(tab.id) : true));
+const visibleTabs = computed(() => accountTabs.filter(tab => accountIntent.value === 'physician' ? !['patient', 'doctors'].includes(tab.id) : tab.id !== 'invitations'));
 const mode = ref('login');
 const name = ref('');
 const profileName = ref('');

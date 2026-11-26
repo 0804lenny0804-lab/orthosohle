@@ -180,3 +180,9 @@ Dieser lokale SQLite-Durchstich und seine synthetischen Tests sind keine Produkt
 ### Lokaler Arztzugriff auf Messsitzungen
 
 Im Kontobereich nach Arztfreigabe den aktuellen Authenticator-Code eingeben. Unter „Messsitzungen zugeordneter Patienten“ einen aktiven Patienten auswählen und eine Sitzung öffnen. Die API stellt dafür `GET /api/care/physician/patients/:patientId/measurement-sessions` und `GET /api/care/physician/patients/:patientId/measurement-sessions/:sessionId` bereit. Die Ansicht ist lesend; andere Patienten und nach Beziehungsende vorhandene Daten bleiben unzugänglich. Quelle und Empfangszeiten sind Clientangaben; Lücken belegen keine vollständige Geräteaufzeichnung. Der Durchstich ist nur für synthetische lokale Daten und keine Produktfreigabe.
+
+### Arztansicht und TOTP
+
+Die Arztnavigation führt direkt zu Patienten und Konto. Einladungen liegen im Konto; Patientenkarten öffnen die Auswahl von Historie, Konfiguration, persönlichen Daten und Feedback. Nur der gewählte Bereich wird geladen. Feedback zeigt die Rückmeldung zur gewählten Sitzung, die Historie deren Messwerte.
+
+Nach Bestätigung verschwindet der Code-Dialog vollständig. Geschützte Arztanfragen verlängern den sitzungsgebundenen Arztnachweis auf 30 Minuten; nach 30 Minuten ohne solche Anfrage wird der nächste Zugriff abgelehnt und fordert eine erneute Prüfung. Es gibt keinen Hintergrund-Keepalive. Neue Websiteinstanzen/Neuladen verlangen im UI einen Code; parallele Tabs mit derselben Session teilen serverseitig den Nachweis. Sitzung, Faktor, Arztfreigabe und aktive Betreuung werden weiter serverseitig geprüft. Die separate Arztfreigabeprüfung verlangt unabhängig davon einen höchstens fünf Minuten alten Code. Eine Schemaänderung ist dafür nicht erforderlich.

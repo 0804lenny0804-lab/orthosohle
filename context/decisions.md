@@ -147,3 +147,7 @@ Der Nutzer präzisiert am 10.11.2026, dass die spätere Bestätigung per Bestät
 **Nutzerentscheidung:** Patient oder aktuell freigegebener und zugeordneter Arzt darf kurze Angaben zur Verletzung sowie optionales Körpergewicht erfassen. Der Patient kann Daten selbst eingeben; Arztzugriff erfordert weiterhin aktive Beziehung, Freigabe und frische TOTP-Prüfung.
 
 **Umsetzung und Grenze:** Verletzungsnotiz bis 240 Zeichen und Gewicht in kg; 1000 kg ist eine technische Eingabegrenze ohne klinische Bedeutung. Belastungsgrenze bleibt ausschließlich im bestehenden Therapieplan, damit es keine widersprüchliche zweite Quelle gibt. Felder sind optional und löschbar. Daten gelten als Gesundheitsangaben; ausschließlich synthetisch lokal testen. Zweck, Rechtsgrundlage, Aufbewahrung, Export, Löschung und Produktfreigabe müssen vor realem Einsatz festgelegt werden. Details im [aktuellen Kontext](context.md).
+
+## 26.11.2026 – Arztarbeit und Freigabeprüfung getrennt absichern
+
+Auf Nutzerauftrag wird die Arztarbeit ohne wiederholte TOTP-Eingabe bei Navigation gestaltet. Der serverseitige Arztnachweis endet nach 30 Minuten ohne Arztanfrage und bleibt an Sitzung, Faktor, Arztfreigabe und Betreuungsrechte gebunden. Die sensible Freigabeprüfung benötigt weiterhin einen maximal fünf Minuten alten Code. Websiteöffnungen starten im UI mit einer Prüfung; parallele Tabs derselben Sitzung sind serverseitig keine getrennten Identitäten. Die sichtbare Bedienung reduziert sich auf Patienten/Konto und den jeweils gewählten Bereich.

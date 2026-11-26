@@ -3,24 +3,38 @@ import { fromNodeHeaders } from 'better-auth/node';
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
-const PROOF_TTL_MS = 5 * 60 * 1000;
+export const FRESH_PROOF_TTL_MS = 5 * 60 * 1000;
+const PHYSICIAN_PROOF_TTL_MS = 30 * 60 * 1000;
 const CODE_RE = /^\d{6,8}$/;
 
 /** Check current DB state; pass the session returned by Better Auth. */
-export function hasFreshTotpProof(database, session, now = Date.now()) {
+function hasTotpProof(database, session, now, maxAge) {
   try {
     if (!session || typeof session.id !== 'string' || typeof session.userId !== 'string' || typeof session.token !== 'string') return false;
-    return !!database.prepare(`
+    const valid = !!database.prepare(`
       SELECT 1 FROM session s JOIN user u ON u.id = s.userId
         JOIN twoFactor tf ON tf.userId = u.id
         JOIN totp_step_up_attempt p ON p.user_id = u.id AND p.session_id = s.id
       WHERE s.id = ? AND s.userId = ? AND s.token = ? AND s.expiresAt > ?
         AND u.twoFactorEnabled = 1 AND tf.verified = 1
-        AND p.verified_at IS NOT NULL AND p.expires_at > ?
-    `).get(session.id, session.userId, session.token, new Date(now).toISOString(), now);
+        AND p.verified_at IS NOT NULL AND p.expires_at > ? AND p.verified_at > ?
+    `).get(session.id, session.userId, session.token, new Date(now).toISOString(), now, maxAge === null ? 0 : now - maxAge);
+    if (valid && maxAge === null) {
+      database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE session_id = ? AND user_id = ?')
+        .run(now + PHYSICIAN_PROOF_TTL_MS, session.id, session.userId);
+    }
+    return valid;
   } catch {
     return false;
   }
+}
+
+export function hasFreshTotpProof(database, session, now = Date.now()) {
+  return hasTotpProof(database, session, now, FRESH_PROOF_TTL_MS);
+}
+
+export function hasPhysicianTotpProof(database, session, now = Date.now()) {
+  return hasTotpProof(database, session, now, null);
 }
 
 /**
@@ -67,7 +81,7 @@ export function createTotpStepUpRouter(auth, database, { webOrigin }) {
   });
   const verifyTx = database.transaction((session, generation, now) => {
     if (!findSession.get(session.id, session.userId, session.token, new Date(now).toISOString())) return false;
-    return setVerified.run(now, now + PROOF_TTL_MS, session.id, session.userId, generation).changes === 1;
+    return setVerified.run(now, now + PHYSICIAN_PROOF_TTL_MS, session.id, session.userId, generation).changes === 1;
   });
 
   router.use((req, res, next) => {
@@ -108,7 +122,7 @@ export function createTotpStepUpRouter(auth, database, { webOrigin }) {
         return res.status(401).json({ error: 'totp_verification_failed' });
       }
       if (!verifyTx(session, charged.generation, Date.now())) return res.status(401).json({ error: 'session_or_factor_changed' });
-      return res.json({ verified: true, expiresInSeconds: PROOF_TTL_MS / 1000 });
+      return res.json({ verified: true, expiresInSeconds: FRESH_PROOF_TTL_MS / 1000, physicianExpiresInSeconds: PHYSICIAN_PROOF_TTL_MS / 1000 });
     } catch {
       return res.status(401).json({ error: 'totp_verification_failed' });
     }

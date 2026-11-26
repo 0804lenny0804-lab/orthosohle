@@ -10,6 +10,7 @@ const emit = defineEmits(['access-error']);
 const status = ref('loading');
 const patients = ref([]);
 const selectedPatientId = ref('');
+const selectedSection = ref('');
 const error = ref('');
 let generation = 0;
 let mounted = false;
@@ -19,6 +20,7 @@ function clear() {
   status.value = 'loading';
   patients.value = [];
   selectedPatientId.value = '';
+  selectedSection.value = '';
   error.value = '';
 }
 
@@ -54,10 +56,7 @@ onUnmounted(() => { mounted = false; clear(); });
 </script>
 
 <template>
-  <section class="card mb-4" aria-labelledby="physician-patients-title">
-    <div class="card-body">
-      <h3 id="physician-patients-title" class="h5">Patientenübersicht</h3>
-      <p class="small text-muted">Wähle eine aktive Betreuungszuordnung. Profilangaben, Sitzungen und Therapieplan werden für denselben Patienten angezeigt.</p>
+  <section class="mb-4" aria-label="Patienten">
       <p v-if="status === 'loading'" role="status" aria-live="polite">Aktive Patienten werden geladen …</p>
       <div v-else-if="status === 'error'" class="alert alert-danger" role="alert">
         <p>{{ error }}</p><button type="button" class="btn btn-outline-secondary" @click="loadPatients">Erneut versuchen</button>
@@ -65,26 +64,54 @@ onUnmounted(() => { mounted = false; clear(); });
       <template v-else>
         <p v-if="patients.length === 0" role="status" class="text-muted">Es sind keine aktiven Patienten zugeordnet.</p>
         <template v-else-if="!selectedPatientId">
-          <h4 class="h6">Aktive Patienten</h4>
-          <div class="list-group" aria-label="Aktive Patienten">
-            <button v-for="patient in patients" :key="patient.relationshipId" type="button"
-              class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3 text-start"
-              @click="selectedPatientId = patient.patientId">
-              <span><strong>{{ patient.displayName }}</strong><br><small class="text-muted">Aktiv seit {{ new Date(patient.startedAt).toLocaleDateString('de-DE') }}</small></span>
-              <span aria-hidden="true">›</span>
-            </button>
+          <div class="row g-3" aria-label="Aktive Patienten">
+            <div v-for="patient in patients" :key="patient.relationshipId" class="col-sm-6 col-lg-4">
+              <button type="button" class="card h-100 w-100 text-start patient-card"
+                @click="selectedPatientId = patient.patientId; selectedSection = ''">
+                <span class="card-body">
+                  <strong>{{ patient.displayName }}</strong><br>
+                  <small class="text-muted">Aktiv seit {{ new Date(patient.startedAt).toLocaleDateString('de-DE') }}</small>
+                  <span class="d-block mt-2">Patientenansicht öffnen <span aria-hidden="true">›</span></span>
+                </span>
+              </button>
+            </div>
           </div>
         </template>
         <template v-else>
-          <button type="button" class="btn btn-link px-0 mb-3" @click="selectedPatientId = ''">‹ Zurück zu allen Patienten</button>
-          <h4 class="h6">{{ patients.find(patient => patient.patientId === selectedPatientId)?.displayName }}</h4>
-          <template v-if="selectedPatientId">
-            <PatientProfileForm :key="`profile-${identityId}-${selectedPatientId}`" :identity-id="identityId" role="physician" :selected-patient-id="selectedPatientId" @access-error="emit('access-error', $event)" />
-            <TreatmentPlanView :key="`plan-${identityId}-${selectedPatientId}`" :identity-id="identityId" role="physician" :selected-patient-id="selectedPatientId" @access-error="emit('access-error', $event)" />
-            <DoctorPatientSessions :key="`sessions-${identityId}-${selectedPatientId}`" :identity-id="identityId" :selected-patient-id="selectedPatientId" @access-error="emit('access-error', $event)" />
+          <button v-if="!selectedSection" type="button" class="btn btn-link px-0 mb-3" @click="selectedPatientId = ''">‹ Zurück zu Patienten</button>
+          <button v-else type="button" class="btn btn-link px-0 mb-3" @click="selectedSection = ''">‹ Zurück zur Auswahl</button>
+          <h4 class="h5">{{ patients.find(patient => patient.patientId === selectedPatientId)?.displayName }}</h4>
+          <div v-if="!selectedSection" class="row g-3 mt-1" aria-label="Patientenbereiche">
+            <div v-for="section in [
+              { id: 'history', label: 'Historie', icon: 'bi-clock-history' },
+              { id: 'configuration', label: 'Konfiguration', icon: 'bi-sliders' },
+              { id: 'personal', label: 'Persönliche Daten', icon: 'bi-person' },
+              { id: 'feedback', label: 'Feedback', icon: 'bi-chat-left-text' },
+            ]" :key="section.id" class="col-sm-6">
+              <button type="button" class="card h-100 w-100 text-start patient-card" @click="selectedSection = section.id">
+                <span class="card-body section-card-content"><i :class="`bi ${section.icon}`" aria-hidden="true"></i><strong>{{ section.label }}</strong><span class="section-arrow" aria-hidden="true">›</span></span>
+              </button>
+            </div>
+          </div>
+          <template v-else>
+            <template v-if="selectedSection === 'personal'">
+              <PatientProfileForm :key="`profile-${identityId}-${selectedPatientId}`" :identity-id="identityId" role="physician" :selected-patient-id="selectedPatientId" @access-error="emit('access-error', $event)" />
+            </template>
+            <TreatmentPlanView v-else-if="selectedSection === 'configuration'" :key="`plan-${identityId}-${selectedPatientId}`" :identity-id="identityId" role="physician" :selected-patient-id="selectedPatientId" @access-error="emit('access-error', $event)" />
+            <template v-else>
+              <DoctorPatientSessions :key="`sessions-${identityId}-${selectedPatientId}-${selectedSection}`" :identity-id="identityId" :selected-patient-id="selectedPatientId" :view="selectedSection" @access-error="emit('access-error', $event)" />
+            </template>
           </template>
         </template>
       </template>
-    </div>
   </section>
 </template>
+
+<style scoped>
+.patient-card { cursor: pointer; color: inherit; }
+.patient-card:hover { border-color: var(--sohle); }
+.patient-card .card-body { display: block; }
+.patient-card .section-card-content { display: flex; align-items: center; gap: 14px; min-height: 88px; }
+.section-card-content i { color: var(--sohle); font-size: 1.3rem; }
+.section-arrow { margin-left: auto; color: var(--app-muted); font-size: 1.4rem; }
+</style>

@@ -1,9 +1,14 @@
 <template>
   <AppShell :active-nav="activeNav" :navigation-intent="navigationIntent" @navigate="setNav">
       <PhysicianApproval :identity-id="identityId" />
-      <AccountView v-if="activeNav === 'account'" :navigation-intent="navigationIntent" @intent-change="setNavigationIntent" />
-      <DoctorArea v-if="identityId && navigationIntent === 'physician' && ['doctor', 'patients', 'invitations'].includes(activeNav)"
-        :key="`doctor-${identityId}`" :identity-id="identityId" :page="activeNav" @navigate="setNav" />
+      <AccountView v-if="activeNav === 'account'" :navigation-intent="navigationIntent" @intent-change="setNavigationIntent">
+        <template #invitations>
+          <CareArea v-if="doctorStepUp && identityId" :identity-id="identityId" role="physician" @access-error="$refs.doctorArea?.handleAccessError($event)" />
+          <p v-else>Bitte bestätige zunächst den Arztzugriff in der Übersicht.</p>
+        </template>
+      </AccountView>
+      <DoctorArea v-if="identityId && navigationIntent === 'physician'" v-show="activeNav === 'doctor'" ref="doctorArea"
+        :key="`doctor-${identityId}`" :identity-id="identityId" :page="activeNav" @navigate="setNav" @access-change="doctorStepUp = $event" />
 
       <template v-if="identityId && navigationIntent === 'patient'">
       <SessionFeedback v-if="feedbackSessionId" :session-id="feedbackSessionId" :identity-id="identityId" @dismiss="dismissSessionFeedback" />
@@ -96,6 +101,7 @@ import { watch, computed, onMounted, onUnmounted } from "vue";
 import AppShell from "./shared/layout/AppShell.vue";
 import AccountView from "./app-functions/account/AccountView.vue";
 import DoctorArea from "./app-functions/doctor-area/DoctorArea.vue";
+import CareArea from "./app-functions/patient-doctor-relationship/RelationshipArea.vue";
 import PhysicianApproval from "./app-functions/doctor-access-approval/DoctorAccessApproval.vue";
 import SessionCapture from "./app-functions/measurements/MeasurementSessionCapture.vue";
 import Bluetooth from './app-functions/measurements/BluetoothConnection.vue';
@@ -117,7 +123,7 @@ export default {
   name: 'App',
   mixins: [measurementPreview],
   components: {
-    AppShell, AccountView, DoctorArea, PhysicianApproval, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
+    AppShell, AccountView, DoctorArea, CareArea, PhysicianApproval, SessionCapture, Bluetooth, LiveChart, LimitConfig, SimulationControl,
     MeasurementTable, Toastwarning, StepCounter, HistoryView, SessionFeedback
   },
   data() {
@@ -127,6 +133,7 @@ export default {
       activeNav: "account",
       navigationIntent: accountSession.state.physicianApproved ? "physician" : "patient",
       boundNavigationIdentity: "",
+      doctorStepUp: false,
       demoEpoch: 0,
       bleConnected: false,
       bleBusy: false,
@@ -206,6 +213,7 @@ export default {
         this.bleBusy = false;
         this.simulationRunning = false;
       }
+      if (nextIntent !== this.navigationIntent) this.doctorStepUp = false;
       this.navigationIntent = nextIntent;
       this.setNav(this.navigationIntent === 'physician' && this.identityId ? 'doctor' : 'account');
     },

@@ -1,7 +1,7 @@
 import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { fromNodeHeaders } from 'better-auth/node';
-import { hasFreshTotpProof } from '../sign-in/recent-totp-check.js';
+import { hasPhysicianTotpProof } from '../sign-in/recent-totp-check.js';
 
 const MAX_INJURY_LENGTH = 240;
 const MAX_WEIGHT_KG = 1_000;
@@ -39,7 +39,7 @@ function liveSession(database, session) {
 function physicianAllowed(database, session) {
   return Boolean(database.prepare(`SELECT 1 FROM physician_review_application a
     WHERE a.account_user_id = ? AND a.status = 'approved'`).get(session.user.id) &&
-    hasFreshTotpProof(database, session.session));
+    hasPhysicianTotpProof(database, session.session));
 }
 
 /** Mount at /api/patient-profile. Local development entry; 1000 kg is an input safety bound, not a clinical threshold. */
