@@ -20,7 +20,7 @@ async function fixture(t) {
     CREATE TABLE patient_profile (id TEXT PRIMARY KEY, account_user_id TEXT UNIQUE);
     CREATE TABLE session (id TEXT PRIMARY KEY, userId TEXT, token TEXT, expiresAt TEXT);
     CREATE TABLE twoFactor (userId TEXT PRIMARY KEY, verified INTEGER);
-    CREATE TABLE totp_step_up_attempt (session_id TEXT PRIMARY KEY, user_id TEXT, verified_at INTEGER, expires_at INTEGER);
+    CREATE TABLE physician_session_proof (session_id TEXT PRIMARY KEY, user_id TEXT, verified_at INTEGER);
     CREATE TABLE physician_review_application (id TEXT PRIMARY KEY, account_user_id TEXT UNIQUE, status TEXT);
   `);
   migratePatientRelations(database);
@@ -39,8 +39,8 @@ async function fixture(t) {
   database.prepare('INSERT INTO patient_profile VALUES (?, ?)').run(P_B, 'patient-b');
   for (const physician of ['doctor-a', 'doctor-b']) {
     database.prepare('INSERT INTO physician_review_application VALUES (?, ?, ?)').run(`app-${physician}`, physician, 'approved');
-    database.prepare('INSERT INTO totp_step_up_attempt VALUES (?, ?, ?, ?)')
-      .run(`${physician}-session`, physician, now, now + 30_000);
+    database.prepare('INSERT INTO physician_session_proof VALUES (?, ?, ?)')
+      .run(`${physician}-session`, physician, now);
   }
   function relate(physician, profile, invitation) {
     database.prepare(`INSERT INTO patient_invitation VALUES (?, ?, ?, ?, 'accepted', ?, ?)`).run(
@@ -136,7 +136,7 @@ test('invalid values, origin, unverified sessions, revoked approvals, stale sess
   f.database.prepare('UPDATE user SET emailVerified = 0 WHERE id = ?').run('doctor-a');
   assert.equal((await f.request('POST', `/physician/patients/${P_A}/therapy-plans`, 'doctor-a', { limitKg: 12, expectedVersion: null })).status, 403);
   f.database.prepare('UPDATE user SET emailVerified = 1 WHERE id = ?').run('doctor-a');
-  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE user_id = ?').run(Date.now() - 1, 'doctor-a');
+  f.database.prepare('DELETE FROM physician_session_proof WHERE user_id = ?').run('doctor-a');
   assert.equal((await f.request('POST', `/physician/patients/${P_A}/therapy-plans`, 'doctor-a', { limitKg: 12, expectedVersion: null })).status, 403);
   f.database.prepare('DELETE FROM session WHERE userId = ?').run('doctor-a');
   assert.equal((await f.request('POST', `/physician/patients/${P_A}/therapy-plans`, 'doctor-a', { limitKg: 12, expectedVersion: null })).status, 403);

@@ -134,3 +134,11 @@ Die serverseitige Arztfreigabe verwendet nun einen gleitenden Ablauf von 30 Minu
 Browserprüfung mit synthetischen Antworten bei 1440 px und 390 px: Dialog nach Bestätigung entfernt, Konto/Einladungen/Patienten ohne erneuten Dialog, Feedback ohne Messaggregate, kein horizontaler Überlauf oder Seitenfehler. Dies ersetzt keinen vollständigen Browserdurchstich mit realem Backend oder Geräteprüfung.
 
 Prüfnachweise dieses Stands: 95 API-Tests und 68 Webtests, Produktionsbuild, Projektprüfung und Whitespaceprüfung erfolgreich. Die API-Negativfälle prüfen insbesondere den fünfminütigen Prüferablauf trotz länger gültigem Arztnachweis sowie Verlängerung und Verfall des Arztnachweises.
+
+### Patientenbedienung und anmeldegebundenes TOTP – 26.11.2026
+
+Auf Folgeauftrag ersetzt die ausgewählte Aktion auch in der Patientenansicht ihre Auswahl: Belastung/Schritte/letzte Werte, Sohle/Simulation, gespeicherte Messungen/Vorschau und Betreuung/Therapieplan. Komponenten für laufende Messung und Verbindung bleiben eingebunden. Erklärungstexte und fertige Profilstatuskarten wurden reduziert, Fehlermeldungen und erforderliche Einrichtung bleiben erhalten.
+
+Die zuvor dokumentierte 30-Minuten-Arztfrist und die erneute Prüfung nach Neuladen entfallen auf Nutzerwunsch. Ein neuer serverseitiger Nachweis je Session wird bei erfolgreichem Better-Auth-TOTP-/Recoverycode-Login erfasst; für alte Sitzungen ist eine einmalige zusätzliche Prüfung möglich. Abmelden, Sitzungsablauf/-widerruf, Faktoränderungen und fachliche Rechte bleiben verbindlich. Parallele Anmeldungen überschreiben ihre Nachweise nicht. Die sensible Betreiberaktion der Arztfreigabe behält eine separate aktuelle Fünf-Minuten-Bestätigung. Vor Start ist die ausdrückliche Migration erforderlich; Details in code/README.md.
+
+Abnahme dieses Folgepakets: 96 API-Tests und 68 Webtests, Webbuild, Projekt- und Whitespaceprüfung bestanden; unabhängiger Review ohne blockierenden Befund. Browser mit synthetischen Antworten: Desktop/Mobil, exklusive Live-Unteransichten, Geräteauswahl, Verlaufsauswahl, Konto-Unterauswahl sowie Arztzugriff nach Neuladen ohne wiederholten Dialog erfolgreich, keine Seitenfehler/Überläufe. Keine reale BLE-/Geräteprüfung oder produktive Freigabe.

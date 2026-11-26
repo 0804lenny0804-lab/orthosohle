@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { totpStepUpApi } from '../../src/app-functions/additional-totp-check/totp-api.js';
 import { validStepUp } from '../../src/app-functions/additional-totp-check/totp-verification-state.js';
 
-test('step-up state requires an exact five-minute server proof', () => {
-  assert.equal(validStepUp({ verified: true, expiresInSeconds: 300 }), true);
-  assert.equal(validStepUp({ verified: true, expiresInSeconds: 60 }), false);
-  assert.equal(validStepUp({ verified: false, expiresInSeconds: 300 }), false);
+test('step-up state requires a server-issued session proof', () => {
+  assert.equal(validStepUp({ verified: true, sessionBound: true }), true);
+  assert.equal(validStepUp({ verified: true, sessionBound: false }), false);
+  assert.equal(validStepUp({ verified: false, sessionBound: true }), false);
 });
 
 test('step-up API verifies TOTP and checks proof using the current cookie session', async t => {

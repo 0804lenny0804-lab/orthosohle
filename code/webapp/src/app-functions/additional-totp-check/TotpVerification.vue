@@ -36,11 +36,11 @@ async function verify() {
   try {
     const proof = await totpStepUpApi.verify(submittedCode);
     if (!isCurrent(request, identity)) return;
-    if (!validStepUp(proof) || proof.physicianExpiresInSeconds !== 1800) throw new Error('Der Server hat keine fünfminütige TOTP-Prüfung bestätigt.');
+    if (!validStepUp(proof)) throw new Error('Der Server hat die TOTP-Prüfung für diese Sitzung nicht bestätigt.');
     const guard = await totpStepUpApi.check();
     if (!isCurrent(request, identity)) return;
     if (guard?.authorized !== true) throw new Error('Die aktuelle TOTP-Prüfung konnte nicht bestätigt werden.');
-    emit('verified', { expiresInSeconds: proof.physicianExpiresInSeconds });
+    emit('verified');
   } catch (cause) {
     if (!isCurrent(request, identity)) return;
     error.value = cause.message || 'Der TOTP-Code konnte nicht geprüft werden. Bitte erneut versuchen.';

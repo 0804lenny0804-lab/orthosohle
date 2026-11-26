@@ -67,6 +67,7 @@ test('physician route accepts a real Better Auth session with a current database
     VALUES (?, '2026-11-10T10:00:01.000Z', 2, 3, 5)`).run(historicalMeasurementId);
 
   const listPath = `/api/care/physician/patients/${patientProfile}/measurement-sessions`;
+  f.database.prepare('UPDATE physician_session_proof SET verified_at = ? WHERE user_id = ?').run(Date.now() - 60 * 60_000, physicianId);
   const listed = await f.request(listPath, { cookie });
   assert.equal(listed.status, 200, await listed.clone().text());
   const list = await listed.json();
@@ -80,4 +81,9 @@ test('physician route accepts a real Better Auth session with a current database
   f.database.prepare("UPDATE physician_review_application SET status = 'revoked' WHERE account_user_id = ?").run(physicianId);
   const afterRevocation = await f.request(`${listPath}/${measurementId}`, { cookie });
   assert.equal(afterRevocation.status, 403);
+  f.database.prepare("UPDATE physician_review_application SET status = 'approved' WHERE account_user_id = ?").run(physicianId);
+  f.database.prepare('UPDATE twoFactor SET verified = 0 WHERE userId = ?').run(physicianId);
+  assert.equal((await f.request(listPath, { cookie })).status, 403);
+  f.database.prepare('DELETE FROM session WHERE userId = ?').run(physicianId);
+  assert.equal((await f.request(listPath, { cookie })).status, 401);
 });

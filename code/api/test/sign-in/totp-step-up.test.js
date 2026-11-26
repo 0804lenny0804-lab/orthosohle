@@ -50,7 +50,7 @@ async function mountRouter(t, f, auth = f.auth) {
   });
 }
 
-test('TOTP step-up creates a short-lived session-bound proof and guard fails closed', async t => {
+test('TOTP verification grants a session-bound physician proof and guard fails closed', async t => {
   const f = await fixture(t);
   const { id, secret, cookie } = await enableTotp(f);
   const call = await mountRouter(t, f);
@@ -58,21 +58,18 @@ test('TOTP step-up creates a short-lived session-bound proof and guard fails clo
   const code = (await f.auth.api.generateTOTP({ body: { secret } })).code;
   const verified = await call('verify', cookie, { code });
   assert.equal(verified.status, 200, await verified.clone().text());
-  assert.deepEqual(await verified.json(), { verified: true, expiresInSeconds: 300, physicianExpiresInSeconds: 1800 });
+  assert.deepEqual(await verified.json(), { verified: true, expiresInSeconds: 300, sessionBound: true });
   assert.equal((await call('guard', cookie)).status, 200);
   const session = (await f.auth.api.getSession({ headers: new Headers({ Cookie: cookie }) })).session;
-  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE user_id = ?').run(Date.now() + 1000, id);
+  f.database.prepare('UPDATE totp_step_up_attempt SET verified_at = ? WHERE user_id = ?').run(Date.now() - 24 * 60 * 60_000, id);
+  assert.equal((await call('guard', cookie)).status, 200);
   assert.equal(hasPhysicianTotpProof(f.database, session), true);
-  assert.ok(f.database.prepare('SELECT expires_at FROM totp_step_up_attempt WHERE user_id = ?').get(id).expires_at > Date.now() + 29 * 60_000);
-  f.database.prepare('UPDATE totp_step_up_attempt SET verified_at = ? WHERE user_id = ?').run(Date.now() - 6 * 60_000, id);
-  assert.equal((await call('guard', cookie)).status, 403);
-  assert.equal(hasPhysicianTotpProof(f.database, session), true);
-  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE user_id = ?').run(Date.now() - 1, id);
-  assert.equal(hasPhysicianTotpProof(f.database, session), false);
   const stored = f.database.prepare('SELECT user_id, verified_at, expires_at FROM totp_step_up_attempt').get();
   assert.equal(stored.user_id, id);
   assert.ok(stored.expires_at > stored.verified_at);
   f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE user_id = ?').run(Date.now() - 1, id);
+  assert.equal((await call('guard', cookie)).status, 200);
+  f.database.prepare('DELETE FROM physician_session_proof WHERE session_id = ?').run(session.id);
   assert.equal((await call('guard', cookie)).status, 403);
 });
 

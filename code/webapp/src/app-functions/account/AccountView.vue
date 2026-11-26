@@ -11,7 +11,7 @@
       <p v-if="state.notice" class="alert alert-info" role="status">{{ state.notice }}</p>
 
       <div v-if="state.identityId && activeTab !== 'overview'" class="mb-3">
-        <button type="button" class="btn btn-link px-0" @click="selectTab('overview')">‹ Zurück zur Übersicht</button>
+        <button type="button" class="btn btn-link px-0" @click="accountSubpage ? accountSubpage = '' : selectTab('overview')">‹ {{ accountSubpage ? 'Zurück zur Auswahl' : 'Zurück zum Konto' }}</button>
       </div>
 
       <form v-if="mode === 'totp-login' && !state.identityId" @submit.prevent="submitTotpLogin">
@@ -88,11 +88,11 @@
           <p v-if="photoError" class="alert alert-warning" role="alert">{{ photoError }}</p>
           <nav class="account-menu" aria-label="Kontobereiche">
             <button v-for="tab in visibleTabs" :key="tab.id" type="button" @click="selectTab(tab.id)">
-              <span><strong>{{ tab.label }}</strong><small>{{ tab.description }}</small></span><span aria-hidden="true">›</span>
+              <span><strong>{{ tab.label }}</strong></span><span aria-hidden="true">›</span>
             </button>
           </nav>
         </section>
-        <section v-show="activeTab === 'security'" id="security-panel" class="border rounded p-3 mb-4" tabindex="0">
+        <section v-if="activeTab === 'security'" id="security-panel" class="border rounded p-3 mb-4" tabindex="0">
           <h3 id="two-factor-title" class="h5">Sicherheit</h3>
           <section aria-labelledby="two-factor-heading">
           <h4 id="two-factor-heading" class="h6">Zwei-Faktor-Anmeldung</h4>
@@ -132,20 +132,24 @@
           </section>
           <PasswordChange :active="activeTab === 'security'" />
         </section>
-        <section v-show="activeTab === 'patient'" id="patient-panel" tabindex="0">
-          <h3 class="h5">Patient</h3>
+        <section v-if="activeTab === 'patient'" id="patient-panel" tabindex="0">
+          <h3 class="h5">Persönliche Daten</h3>
           <PatientProfile :key="state.identityId" :identity-id="state.identityId" />
           <PatientProfileForm :key="`patient-profile-form-${state.identityId}`" :identity-id="state.identityId" role="patient" />
-
         </section>
-        <section v-show="activeTab === 'doctors'" aria-label="Meine Ärzte">
+        <section v-if="activeTab === 'doctors'" aria-label="Meine Ärzte">
           <h3 class="h5">Meine Ärzte</h3>
-          <CareArea v-if="state.emailVerified" :key="`patient-care-${state.identityId}`" :identity-id="state.identityId" role="patient" />
-          <TherapyPlan v-if="state.emailVerified" :key="`patient-plan-${state.identityId}`" :identity-id="state.identityId" role="patient" />
+          <nav v-if="!accountSubpage && state.emailVerified" class="account-menu" aria-label="Meine Ärzte">
+            <button type="button" @click="accountSubpage = 'care'"><strong>Betreuung und Einladungen</strong><span aria-hidden="true">›</span></button>
+            <button type="button" @click="accountSubpage = 'plan'"><strong>Therapieplan</strong><span aria-hidden="true">›</span></button>
+          </nav>
+          <p v-if="!state.emailVerified" class="alert alert-warning" role="status">Bestätige deine E-Mail-Adresse, um Betreuung und Therapieplan zu öffnen.</p>
+          <CareArea v-if="state.emailVerified && accountSubpage === 'care'" :key="`patient-care-${state.identityId}`" :identity-id="state.identityId" role="patient" />
+          <TherapyPlan v-if="state.emailVerified && accountSubpage === 'plan'" :key="`patient-plan-${state.identityId}`" :identity-id="state.identityId" role="patient" />
         </section>
         <section v-if="activeTab === 'invitations' && accountIntent === 'physician'" aria-label="Einladungen"><slot name="invitations" /></section>
-        <section v-show="activeTab === 'display'" aria-label="Darstellung"><SettingsView :key="`settings-${state.identityId}`" :identity-id="state.identityId" /></section>
-        <section v-show="activeTab === 'account'" id="account-panel" tabindex="0">
+        <section v-if="activeTab === 'display'" aria-label="Darstellung"><SettingsView :key="`settings-${state.identityId}`" :identity-id="state.identityId" /></section>
+        <section v-if="activeTab === 'account'" id="account-panel" tabindex="0">
           <h3 class="h5">Konto</h3>
 
         <button v-if="!editingName" class="btn btn-link px-0" type="button" @click="editingName = true">Anzeigename bearbeiten</button>
@@ -203,6 +207,7 @@ const accountTabs = [
   { id: 'display', label: 'Darstellung', description: 'Kontrast und Schriftgröße' },
 ];
 const activeTab = ref('overview');
+const accountSubpage = ref('');
 const editingName = ref(false);
 const profilePhoto = ref('');
 const photoError = ref('');
@@ -265,11 +270,13 @@ const statusText = computed(() => ({ loading: 'Anmeldestatus wird geprüft …',
   unavailable: 'Der aktuelle Anmeldestatus kann nicht bestätigt werden.' })[state.status]);
 
 function selectTab(tabId) {
+  accountSubpage.value = '';
   if (tabId !== 'overview' && !visibleTabs.value.some((tab) => tab.id === tabId)) return;
   activeTab.value = tabId;
   window.history.pushState({ ...window.history.state, accountPage: tabId }, '');
 }
 function handleAccountNavigation(event) {
+  accountSubpage.value = '';
   const page = event.state?.accountPage;
   activeTab.value = visibleTabs.value.some(tab => tab.id === page) ? page : 'overview';
 }

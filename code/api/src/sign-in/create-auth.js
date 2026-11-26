@@ -29,6 +29,22 @@ export function createAuth(config, { forMigration = false } = {}) {
         await verification.before(ctx);
       }),
       after: createAuthMiddleware(async ctx => {
+        if (!forMigration && ['/two-factor/verify-totp', '/two-factor/verify-backup-code'].includes(ctx.path)
+            && ctx.context.newSession?.session && ctx.context.newSession?.user
+            && await ctx.getSignedCookie(ctx.context.createAuthCookie('two_factor').name, ctx.context.secret)) {
+          const { session, user } = ctx.context.newSession;
+          const now = Date.now();
+          // Only a successful second-factor login creates a new session. Enrollment
+          // and verification inside an existing session do not grant this proof.
+          database.prepare(`
+            INSERT INTO physician_session_proof(session_id, user_id, verified_at)
+            SELECT s.id, u.id, ? FROM session s
+              JOIN user u ON u.id = s.userId AND u.twoFactorEnabled = 1
+              JOIN twoFactor tf ON tf.userId = u.id AND tf.verified = 1
+            WHERE s.id = ? AND s.userId = ? AND s.token = ? AND s.expiresAt > ?
+            ON CONFLICT(session_id) DO UPDATE SET user_id = excluded.user_id, verified_at = excluded.verified_at
+          `).run(now, session.id, user.id, session.token, new Date(now).toISOString());
+        }
         if (ctx.path !== '/sign-in/email' || !ctx.context.newSession
             || ctx.context.newSession.user.twoFactorEnabled === true) return;
         const userId = ctx.context.newSession.user.id;

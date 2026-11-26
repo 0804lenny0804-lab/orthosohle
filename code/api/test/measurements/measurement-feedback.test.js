@@ -28,7 +28,7 @@ async function setup(t) {
     CREATE TABLE user (id TEXT PRIMARY KEY, emailVerified INTEGER, twoFactorEnabled INTEGER);
     CREATE TABLE session (id TEXT PRIMARY KEY, userId TEXT, token TEXT, expiresAt TEXT);
     CREATE TABLE twoFactor (userId TEXT, verified INTEGER);
-    CREATE TABLE totp_step_up_attempt (user_id TEXT, session_id TEXT, verified_at INTEGER, expires_at INTEGER);
+    CREATE TABLE physician_session_proof (session_id TEXT PRIMARY KEY, user_id TEXT, verified_at INTEGER);
     CREATE TABLE patient_profile (id TEXT PRIMARY KEY, account_user_id TEXT);
     CREATE TABLE measurement_session (id TEXT PRIMARY KEY, patient_profile_id TEXT, source TEXT, status TEXT);
     CREATE TABLE physician_review_application (account_user_id TEXT, status TEXT);
@@ -47,8 +47,8 @@ async function setup(t) {
   database.prepare('INSERT INTO session VALUES (?, ?, ?, ?)').run('other-session', otherPatientId, 'other-token', future);
   database.prepare('INSERT INTO session VALUES (?, ?, ?, ?)').run(physicianSessionId, physicianId, 'physician-token', future);
   database.prepare('INSERT INTO twoFactor VALUES (?, 1)').run(physicianId);
-  database.prepare('INSERT INTO totp_step_up_attempt VALUES (?, ?, ?, ?)')
-    .run(physicianId, physicianSessionId, Date.now(), Date.now() + 60_000);
+  database.prepare('INSERT INTO physician_session_proof VALUES (?, ?, ?)')
+    .run(physicianSessionId, physicianId, Date.now());
   database.prepare('INSERT INTO physician_review_application VALUES (?, \'approved\')').run(physicianId);
   database.prepare('INSERT INTO patient_relation VALUES (?, ?, \'active\')').run(physicianId, patientProfileId);
   migrateMeasurementFeedback(database);
@@ -134,10 +134,10 @@ test('physician feedback read requires active approved relation, fresh TOTP, and
   f.database.prepare("UPDATE patient_relation SET status = 'ended'").run();
   assert.equal((await f.request(path, { user: 'physician' })).status, 404);
   f.database.prepare("UPDATE patient_relation SET status = 'active'").run();
-  f.database.prepare('DELETE FROM totp_step_up_attempt').run();
+  f.database.prepare('DELETE FROM physician_session_proof').run();
   assert.equal((await f.request(path, { user: 'physician' })).status, 403);
-  f.database.prepare('INSERT INTO totp_step_up_attempt VALUES (?, ?, ?, ?)')
-    .run(physicianId, physicianSessionId, Date.now(), Date.now() + 60_000);
+  f.database.prepare('INSERT INTO physician_session_proof VALUES (?, ?, ?)')
+    .run(physicianSessionId, physicianId, Date.now());
   f.database.prepare("UPDATE physician_review_application SET status = 'revoked'").run();
   assert.equal((await f.request(path, { user: 'physician' })).status, 403);
 });

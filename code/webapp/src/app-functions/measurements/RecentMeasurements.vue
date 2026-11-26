@@ -12,7 +12,7 @@
 
       <div class="p-2 border-top">
         <p class="mb-0 small text-muted">
-          <strong>Vorheriger Peak:</strong>
+          <strong class="me-1">Vorheriger Peak:</strong>
           <span v-if="previousPeak !== null" :class="getAlertClass(previousPeak)">
             {{ formatValue(previousPeak) }} kg
           </span>

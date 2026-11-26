@@ -21,6 +21,7 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { accountSession } from '../account/account-session.js';
 import DoctorAccessRequest from '../account/DoctorAccessRequest.vue';
 import TotpVerification from '../additional-totp-check/TotpVerification.vue';
+import { totpStepUpApi } from '../additional-totp-check/totp-api.js';
 import PhysicianPatientWorkspace from '../patient-doctor-relationship/PhysicianPatientWorkspace.vue';
 import { physicianAccessErrorMessage } from '../patient-doctor-relationship/doctor-session-access.js';
 
@@ -35,15 +36,22 @@ const accessMessage = ref('');
 const emailVerified = ref(false);
 const twoFactorEnabled = ref(false);
 let generation = 0;
+const checkingProof = ref(false);
 
-function resetForIdentity() {
-  generation += 1;
+async function resetForIdentity() {
+  const request = ++generation;
   approved.value = Boolean(accountSession.state.physicianApproved);
   emailVerified.value = Boolean(accountSession.state.emailVerified);
   twoFactorEnabled.value = Boolean(accountSession.state.twoFactorEnabled);
   stepUp.value = false;
   stepUpGeneration.value += 1;
   accessMessage.value = '';
+  checkingProof.value = true;
+  try {
+    const result = await totpStepUpApi.check();
+    if (request === generation && result?.authorized === true) stepUp.value = true;
+  } catch { /* No server proof means the user must verify. */ }
+  finally { if (request === generation) checkingProof.value = false; }
 }
 function markStepUpVerified() { generation += 1; accessMessage.value = ''; stepUp.value = true; }
 async function handleAccessError({ status } = {}) {
@@ -62,12 +70,12 @@ function goToAccount() {
   dialog.value?.close();
   emit('navigate', 'account');
 }
-watch([approved, stepUp, () => props.page], async ([isApproved, verified, page]) => {
+watch([approved, stepUp, checkingProof, () => props.page], async ([isApproved, verified, checking, page]) => {
   emit('access-change', isApproved && verified);
   await nextTick();
   if (!dialog.value) return;
-  if (isApproved && !verified && page === 'doctor' && !dialog.value.open) dialog.value.showModal();
-  else if ((!isApproved || verified || page !== 'doctor') && dialog.value.open) dialog.value.close();
+  if (isApproved && !verified && !checking && page === 'doctor' && !dialog.value.open) dialog.value.showModal();
+  else if ((!isApproved || verified || checking || page !== 'doctor') && dialog.value.open) dialog.value.close();
 });
 watch(() => props.identityId, resetForIdentity);
 watch(() => accountSession.state.physicianApproved, value => { approved.value = Boolean(value); if (!value) stepUp.value = false; });

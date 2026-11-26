@@ -151,3 +151,7 @@ Der Nutzer präzisiert am 10.11.2026, dass die spätere Bestätigung per Bestät
 ## 26.11.2026 – Arztarbeit und Freigabeprüfung getrennt absichern
 
 Auf Nutzerauftrag wird die Arztarbeit ohne wiederholte TOTP-Eingabe bei Navigation gestaltet. Der serverseitige Arztnachweis endet nach 30 Minuten ohne Arztanfrage und bleibt an Sitzung, Faktor, Arztfreigabe und Betreuungsrechte gebunden. Die sensible Freigabeprüfung benötigt weiterhin einen maximal fünf Minuten alten Code. Websiteöffnungen starten im UI mit einer Prüfung; parallele Tabs derselben Sitzung sind serverseitig keine getrennten Identitäten. Die sichtbare Bedienung reduziert sich auf Patienten/Konto und den jeweils gewählten Bereich.
+
+## 26.11.2026 – TOTP für die normale Nutzung einmal je Anmeldung
+
+Der Nutzer ersetzt die zuvor gewählte 30-Minuten-Frist durch die Lebensdauer der authentifizierten Sitzung. Ein eigener, serverseitig gespeicherter MFA-Nachweis pro Session zählt erfolgreiche TOTP- und Recoverycode-Anmeldung und verhindert doppelte Eingabe beim Arzteinstieg. Bestehende Sitzungen erhalten keine ungeprüfte Aufwertung. Die separate sensible Arztfreigabeprüfung behält ihre Fünf-Minuten-Frischeprüfung. Konsequenz: normale Nutzung und Neuladen erzeugen keine zusätzlichen Codeabfragen, Zugriffsentzug bleibt an Sitzungs-/Faktorwiderruf und Fachrechte gebunden.

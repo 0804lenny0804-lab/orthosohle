@@ -28,6 +28,7 @@ test('TOTP setup requires a verified code; enabled login has no session until th
   const activated = await f.request('/api/auth/two-factor/verify-totp', { cookie: setupCookie, body: { code } });
   assert.equal(activated.status, 200, await activated.clone().text());
   assert.equal(f.database.prepare('SELECT twoFactorEnabled FROM user WHERE id = ?').get(userId).twoFactorEnabled, 1);
+  assert.equal(f.database.prepare('SELECT COUNT(*) AS n FROM physician_session_proof').get().n, 0);
   const enabledCookie = cookies(activated);
   await f.restart();
   assert.equal((await f.request('/api/me', { cookie: enabledCookie })).status, 200);
@@ -51,8 +52,36 @@ test('TOTP setup requires a verified code; enabled login has no session until th
   assert.equal(verified.status, 200);
   const loginCookie = cookies(verified);
   assert.equal((await f.request('/api/me', { cookie: loginCookie })).status, 200);
+  assert.equal((await f.request('/api/step-up/guard', { cookie: loginCookie, body: {}, origin: 'http://127.0.0.1:5173' })).status, 200);
   assert.equal((await f.request('/api/auth/sign-out', { cookie: loginCookie, body: {} })).status, 200);
   assert.equal((await f.request('/api/me', { cookie: loginCookie })).status, 401);
+});
+test('parallel second-factor sessions keep independent physician proofs after one logout', async t => {
+  const f = await fixture(t);
+  await signUp(f);
+  const setupCookie = cookies(await signIn(f));
+  const setup = await f.request('/api/auth/two-factor/enable', { cookie: setupCookie, body: { password: account.password, method: 'totp' } });
+  const data = await setup.json();
+  const secret = decodeBase32(new URL(data.totpURI).searchParams.get('secret'));
+  const code = (await f.auth.api.generateTOTP({ body: { secret } })).code;
+  assert.equal((await f.request('/api/auth/two-factor/verify-totp', { cookie: setupCookie, body: { code } })).status, 200);
+  const challengeA = await signIn(f);
+  const loginA = await f.request('/api/auth/two-factor/verify-totp', { cookie: cookies(challengeA), body: { code } });
+  assert.equal(loginA.status, 200);
+  const challengeB = await signIn(f);
+  const loginB = await f.request('/api/auth/two-factor/verify-backup-code', { cookie: cookies(challengeB), body: { code: data.backupCodes[0] } });
+  assert.equal(loginB.status, 200);
+  const cookieA = cookies(loginA), cookieB = cookies(loginB);
+  const guard = cookie => f.request('/api/step-up/guard', { cookie, body: {}, origin: 'http://127.0.0.1:5173' });
+  assert.equal((await guard(cookieA)).status, 200);
+  assert.equal((await guard(cookieB)).status, 200);
+  f.database.prepare('UPDATE physician_session_proof SET verified_at = ?').run(Date.now() - 60 * 60_000);
+  assert.equal((await guard(cookieA)).status, 200);
+  assert.equal((await f.request('/api/auth/sign-out', { cookie: cookieA, body: {} })).status, 200);
+  assert.equal((await guard(cookieA)).status, 401);
+  assert.equal((await guard(cookieB)).status, 200);
+  f.database.prepare('UPDATE twoFactor SET verified = 0').run();
+  assert.equal((await guard(cookieB)).status, 403);
 });
 test('a recovery code can finish login once and cannot be replayed', async t => {
   const f = await fixture(t);
@@ -76,6 +105,7 @@ test('a recovery code can finish login once and cannot be replayed', async t => 
   assert.equal(firstLogin.status, 200);
   const firstSession = cookies(firstLogin);
   assert.equal((await f.request('/api/me', { cookie: firstSession })).status, 200);
+  assert.equal((await f.request('/api/step-up/guard', { cookie: firstSession, body: {}, origin: 'http://127.0.0.1:5173' })).status, 200);
   await f.request('/api/auth/sign-out', { cookie: firstSession, body: {} });
 
   const secondChallenge = await signIn(f);

@@ -20,7 +20,6 @@
 
     <section class="card shadow-sm p-4 mb-5 mx-auto" style="max-width: 600px">
       <h2 class="h5 fw-bold mb-2">Schrittziel</h2>
-      <p class="text-muted small mb-3">Zielanzahl der Schritte für diese Sitzung.</p>
       <div class="d-flex align-items-center gap-3">
         <label class="visually-hidden" for="demo-step-goal">Schrittziel</label>
         <input id="demo-step-goal" v-model.number="localStepGoal" type="number" min="1" step="1"

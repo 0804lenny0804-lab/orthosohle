@@ -4,7 +4,6 @@ import { fromNodeHeaders } from 'better-auth/node';
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 export const FRESH_PROOF_TTL_MS = 5 * 60 * 1000;
-const PHYSICIAN_PROOF_TTL_MS = 30 * 60 * 1000;
 const CODE_RE = /^\d{6,8}$/;
 
 /** Check current DB state; pass the session returned by Better Auth. */
@@ -19,10 +18,6 @@ function hasTotpProof(database, session, now, maxAge) {
         AND u.twoFactorEnabled = 1 AND tf.verified = 1
         AND p.verified_at IS NOT NULL AND p.expires_at > ? AND p.verified_at > ?
     `).get(session.id, session.userId, session.token, new Date(now).toISOString(), now, maxAge === null ? 0 : now - maxAge);
-    if (valid && maxAge === null) {
-      database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE session_id = ? AND user_id = ?')
-        .run(now + PHYSICIAN_PROOF_TTL_MS, session.id, session.userId);
-    }
     return valid;
   } catch {
     return false;
@@ -34,11 +29,19 @@ export function hasFreshTotpProof(database, session, now = Date.now()) {
 }
 
 export function hasPhysicianTotpProof(database, session, now = Date.now()) {
-  return hasTotpProof(database, session, now, null);
+  try {
+    if (!session || typeof session.id !== 'string' || typeof session.userId !== 'string' || typeof session.token !== 'string') return false;
+    return !!database.prepare(`
+      SELECT 1 FROM session s JOIN user u ON u.id = s.userId
+      JOIN twoFactor tf ON tf.userId = u.id AND tf.verified = 1
+      JOIN physician_session_proof p ON p.session_id = s.id AND p.user_id = u.id
+      WHERE s.id = ? AND s.userId = ? AND s.token = ? AND s.expiresAt > ? AND u.twoFactorEnabled = 1
+    `).get(session.id, session.userId, session.token, new Date(now).toISOString());
+  } catch { return false; }
 }
 
 /**
- * Installs POST /verify and POST /guard for short-lived TOTP step-up.
+ * Installs POST /verify and POST /guard for session-bound physician access.
  * The Better Auth session id is taken from getSession and cross-checked with
  * SQLite; no client-supplied identity or session token is accepted.
  */
@@ -81,7 +84,11 @@ export function createTotpStepUpRouter(auth, database, { webOrigin }) {
   });
   const verifyTx = database.transaction((session, generation, now) => {
     if (!findSession.get(session.id, session.userId, session.token, new Date(now).toISOString())) return false;
-    return setVerified.run(now, now + PHYSICIAN_PROOF_TTL_MS, session.id, session.userId, generation).changes === 1;
+    if (setVerified.run(now, now + FRESH_PROOF_TTL_MS, session.id, session.userId, generation).changes !== 1) return false;
+    database.prepare(`INSERT INTO physician_session_proof(session_id, user_id, verified_at) VALUES (?, ?, ?)
+      ON CONFLICT(session_id) DO UPDATE SET user_id = excluded.user_id, verified_at = excluded.verified_at`)
+      .run(session.id, session.userId, now);
+    return true;
   });
 
   router.use((req, res, next) => {
@@ -122,7 +129,7 @@ export function createTotpStepUpRouter(auth, database, { webOrigin }) {
         return res.status(401).json({ error: 'totp_verification_failed' });
       }
       if (!verifyTx(session, charged.generation, Date.now())) return res.status(401).json({ error: 'session_or_factor_changed' });
-      return res.json({ verified: true, expiresInSeconds: FRESH_PROOF_TTL_MS / 1000, physicianExpiresInSeconds: PHYSICIAN_PROOF_TTL_MS / 1000 });
+      return res.json({ verified: true, expiresInSeconds: FRESH_PROOF_TTL_MS / 1000, sessionBound: true });
     } catch {
       return res.status(401).json({ error: 'totp_verification_failed' });
     }
@@ -135,7 +142,7 @@ export function createTotpStepUpRouter(auth, database, { webOrigin }) {
     if (!session) return res.status(401).json({ error: 'authentication_required' });
     try {
       const now = Date.now();
-      const valid = database.transaction(() => hasFreshTotpProof(database, session, now))();
+      const valid = database.transaction(() => hasPhysicianTotpProof(database, session, now))();
       return valid ? res.json({ authorized: true }) : res.status(403).json({ error: 'fresh_totp_required' });
     } catch {
       return res.status(403).json({ error: 'fresh_totp_required' });

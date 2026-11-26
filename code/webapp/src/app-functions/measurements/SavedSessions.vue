@@ -14,7 +14,7 @@
       </div>
       <template v-else>
         <p v-if="sessions.length === 0" class="text-muted" role="status">Noch keine Messungen.</p>
-        <div v-else class="list-group mb-3">
+        <div v-else-if="!selectedId" class="list-group mb-3">
           <button v-for="session in sessions" :key="session.id" type="button"
             class="list-group-item list-group-item-action text-start"
             :aria-expanded="selectedId === session.id"
@@ -23,6 +23,7 @@
             <span class="d-block small text-muted">{{ sourceLabel(session.source) }} · {{ formatDate(session.endedAt) }}</span>
           </button>
         </div>
+        <button v-if="selectedId" type="button" class="btn btn-link px-0 mb-3" @click="toggleDetails(selectedId)">‹ Zurück zu Messungen</button>
         <p v-if="detailLoading" role="status" aria-live="polite">Sitzungsdetails werden geladen …</p>
         <div v-if="detailError" class="alert alert-danger" role="alert">
           {{ detailError }}
@@ -53,7 +54,7 @@
             Weitere Sekundenaggregate anzeigen
           </button>
         </section>
-        <button v-if="nextBefore" type="button" class="btn btn-outline-primary" :disabled="busy" @click="loadMore">
+        <button v-if="nextBefore && !selectedId" type="button" class="btn btn-outline-primary" :disabled="busy" @click="loadMore">
           {{ busy ? 'Wird geladen …' : 'Ältere Sitzungen laden' }}
         </button>
         <p v-if="listError" class="small text-danger mt-2" role="alert">{{ listError }}</p>

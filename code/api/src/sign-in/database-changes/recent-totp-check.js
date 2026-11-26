@@ -11,6 +11,20 @@ export function migrateTotpStepUp(database) {
       CHECK ((verified_at IS NULL AND expires_at IS NULL)
         OR (verified_at IS NOT NULL AND expires_at IS NOT NULL))
     );
+    CREATE TABLE IF NOT EXISTS physician_session_proof (
+      session_id TEXT PRIMARY KEY NOT NULL REFERENCES session(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+      verified_at INTEGER NOT NULL
+    );
+    CREATE TRIGGER IF NOT EXISTS clear_physician_proof_on_factor_disable
+      AFTER UPDATE OF twoFactorEnabled ON user WHEN NEW.twoFactorEnabled = 0
+      BEGIN DELETE FROM physician_session_proof WHERE user_id = NEW.id; END;
+    CREATE TRIGGER IF NOT EXISTS clear_physician_proof_on_factor_change
+      AFTER UPDATE OF secret, verified ON twoFactor
+      BEGIN DELETE FROM physician_session_proof WHERE user_id = NEW.userId; END;
+    CREATE TRIGGER IF NOT EXISTS clear_physician_proof_on_factor_delete
+      AFTER DELETE ON twoFactor
+      BEGIN DELETE FROM physician_session_proof WHERE user_id = OLD.userId; END;
     CREATE INDEX IF NOT EXISTS totp_step_up_session_idx ON totp_step_up_attempt(session_id);
     CREATE TRIGGER IF NOT EXISTS clear_totp_step_up_on_factor_disable
       AFTER UPDATE OF twoFactorEnabled ON user

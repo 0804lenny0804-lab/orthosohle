@@ -1,14 +1,21 @@
 <template>
   <div class="history-wrapper">
-    <SavedSessions :identity-id="identityId" />
+    <nav v-if="!view" class="history-menu" aria-label="Verlauf auswählen">
+      <button type="button" class="card history-choice" @click="view = 'sessions'"><i class="bi bi-clock-history" aria-hidden="true"></i><strong>Gespeicherte Messungen</strong><span aria-hidden="true">›</span></button>
+      <button type="button" class="card history-choice" @click="view = 'preview'"><i class="bi bi-bar-chart" aria-hidden="true"></i><strong>Aktuelle Vorschau</strong><span aria-hidden="true">›</span></button>
+    </nav>
+    <button v-if="view" type="button" class="btn btn-link px-0 mb-3" @click="view = ''">‹ Zurück zur Auswahl</button>
+    <SavedSessions v-if="view === 'sessions'" :identity-id="identityId" />
+    <div v-show="view === 'preview'">
     <p class="alert alert-info small" role="note">
-      Die folgenden Diagramme zeigen nur flüchtige Werte dieser Browseransicht. Dauerhaft gespeicherte Sekundenaggregate stehen oben.
+      Vorschau · nicht gespeichert.
     </p>
     <HistoryRangeSelect :range="range" @update="onRangeChange" />
     <PeakChart :peaks="peaks" :limits="limits" />
     <StepChart :steps="steps" />
     <HistoryStats :avgPeak="avgPeak" />
     <OutlierTable :outliers="outliers" />
+    </div>
   </div>
 </template>
 
@@ -28,7 +35,7 @@ export default {
     limitHistory: { type: Array, default: () => [] },
     identityId: { type: String, default: "" },
   },
-  data() { return { range: 7 }; },
+  data() { return { range: 7, view: '' }; },
   computed: {
     rangeStart() {
       if (this.range === 0) {
@@ -64,4 +71,8 @@ export default {
 
 <style scoped>
 .history-wrapper { max-width: 900px; margin: auto; }
+.history-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 1rem; }
+.history-choice { padding: 24px; display: flex; flex-direction: row; align-items: center; gap: 14px; text-align: left; color: inherit; }
+.history-choice i { color: var(--sohle); font-size: 1.3rem; }
+.history-choice span { margin-left: auto; font-size: 1.4rem; }
 </style>

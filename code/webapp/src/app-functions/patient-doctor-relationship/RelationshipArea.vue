@@ -273,8 +273,8 @@ onUnmounted(() => { mounted = false; clearState(); });
       <template v-else>
         <p v-if="relationship" role="status">Aktiv betreut durch {{ relationship.displayName }}.</p>
         <p v-else class="text-muted">Es ist keine aktive Arztzuordnung vorhanden.</p>
-        <div class="mt-3">
-          <h4 class="h6">Verifizierte Ärzte</h4>
+        <details class="mt-3">
+          <summary class="h6">Arzt auswählen</summary>
           <p class="small text-muted">Angezeigt werden nur freigegebene Ärzte mit bestätigter E-Mail. Eine Einladung aktiviert noch keine Betreuung.</p>
           <p v-if="doctors.length === 0" class="text-muted">Derzeit sind keine freigegebenen Ärzte verfügbar.</p>
           <ul v-else class="list-group" aria-label="Freigegebene Ärzte">
@@ -288,7 +288,7 @@ onUnmounted(() => { mounted = false; clearState(); });
             <span class="align-self-center small text-muted">Einträge {{ directoryOffset + 1 }}–{{ directoryOffset + doctors.length }}</span>
             <button class="btn btn-outline-secondary" type="button" :disabled="directoryBusy || busy || !directoryHasMore" @click="changeDirectoryPage(1)">Weiter</button>
           </nav>
-        </div>
+        </details>
         <div v-if="outgoingInvitations.length" class="mt-3"><h4 class="h6">Gesendete Einladungen</h4><ul class="list-group"><li v-for="invitation in outgoingInvitations" :key="invitation.id" class="list-group-item">{{ invitation.physicianName }} · ausstehend bis {{ new Date(invitation.expiresAt).toLocaleDateString() }}</li></ul></div>
         <h4 class="h6 mt-3">Offene Einladungen</h4>
         <p v-if="invitations.length === 0" class="text-muted">Es liegen keine offenen Einladungen vor.</p>

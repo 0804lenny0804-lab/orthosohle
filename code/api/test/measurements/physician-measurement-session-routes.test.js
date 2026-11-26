@@ -22,7 +22,7 @@ async function fixture(t) {
     CREATE TABLE patient_profile (id TEXT PRIMARY KEY, account_user_id TEXT UNIQUE);
     CREATE TABLE session (id TEXT PRIMARY KEY, userId TEXT, token TEXT, expiresAt TEXT);
     CREATE TABLE twoFactor (userId TEXT PRIMARY KEY, verified INTEGER);
-    CREATE TABLE totp_step_up_attempt (session_id TEXT PRIMARY KEY, user_id TEXT, verified_at INTEGER, expires_at INTEGER);
+    CREATE TABLE physician_session_proof (session_id TEXT PRIMARY KEY, user_id TEXT, verified_at INTEGER);
     CREATE TABLE physician_review_application (id TEXT PRIMARY KEY, account_user_id TEXT UNIQUE, status TEXT);
     CREATE TABLE measurement_session (id TEXT PRIMARY KEY, patient_profile_id TEXT, source TEXT, started_at TEXT, ended_at TEXT, payload_hash TEXT, status TEXT NOT NULL DEFAULT 'completed', checkpoint_sequence INTEGER NOT NULL DEFAULT 0, checkpoint_hash TEXT, created_at TEXT);
     CREATE TABLE measurement_interval (session_id TEXT, received_at TEXT, sample_count INTEGER, average REAL, maximum REAL);
@@ -54,8 +54,8 @@ async function fixture(t) {
   for (const physician of ['doctor-a', 'doctor-b']) {
     database.prepare('INSERT INTO physician_review_application VALUES (?, ?, ?)')
       .run(`application-${physician}`, physician, 'approved');
-    database.prepare('INSERT INTO totp_step_up_attempt VALUES (?, ?, ?, ?)')
-      .run(`${physician}-session`, physician, now, now + 30_000);
+    database.prepare('INSERT INTO physician_session_proof VALUES (?, ?, ?)')
+      .run(`${physician}-session`, physician, now);
   }
   const sessionInsert = database.prepare(`INSERT INTO measurement_session
     (id, patient_profile_id, source, started_at, ended_at, payload_hash, created_at)
@@ -140,9 +140,9 @@ test('every read rechecks approval, active relation, MFA freshness, verified ema
   f.database.prepare("UPDATE physician_review_application SET status = 'revoked' WHERE account_user_id = 'doctor-a'").run();
   assert.equal((await f.get(list, 'doctor-a')).status, 403);
   f.database.prepare("UPDATE physician_review_application SET status = 'approved' WHERE account_user_id = 'doctor-a'").run();
-  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE session_id = ?').run(Date.now() - 1, 'doctor-a-session');
+  f.database.prepare('DELETE FROM physician_session_proof WHERE session_id = ?').run('doctor-a-session');
   assert.equal((await f.get(list, 'doctor-a')).status, 403);
-  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE session_id = ?').run(Date.now() + 30_000, 'doctor-a-session');
+  f.database.prepare('INSERT INTO physician_session_proof VALUES (?, ?, ?)').run('doctor-a-session', 'doctor-a', Date.now());
   f.database.prepare("UPDATE patient_relation SET status = 'ended' WHERE physician_user_id = 'doctor-a'").run();
   assert.equal((await f.get(list, 'doctor-a')).status, 404);
   f.database.prepare("UPDATE patient_relation SET status = 'active' WHERE physician_user_id = 'doctor-a'").run();

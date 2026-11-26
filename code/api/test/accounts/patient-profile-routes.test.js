@@ -17,7 +17,7 @@ async function fixture(t) {
     CREATE TABLE patient_profile (id TEXT PRIMARY KEY, account_user_id TEXT UNIQUE, created_at TEXT);
     CREATE TABLE session (id TEXT PRIMARY KEY, userId TEXT, token TEXT, expiresAt TEXT);
     CREATE TABLE twoFactor (userId TEXT PRIMARY KEY, verified INTEGER);
-    CREATE TABLE totp_step_up_attempt (session_id TEXT PRIMARY KEY, user_id TEXT, verified_at INTEGER, expires_at INTEGER);
+    CREATE TABLE physician_session_proof (session_id TEXT PRIMARY KEY, user_id TEXT, verified_at INTEGER);
     CREATE TABLE physician_review_application (id TEXT PRIMARY KEY, account_user_id TEXT UNIQUE, status TEXT);
   `);
   const now = Date.now();
@@ -35,7 +35,7 @@ async function fixture(t) {
   migratePatientRelations(database);
   for (const physician of ['doctor-a', 'doctor-b']) {
     database.prepare('INSERT INTO physician_review_application VALUES (?, ?, ?)').run(`app-${physician}`, physician, 'approved');
-    database.prepare('INSERT INTO totp_step_up_attempt VALUES (?, ?, ?, ?)').run(`${physician}-session`, physician, now, now + 30_000);
+    database.prepare('INSERT INTO physician_session_proof VALUES (?, ?, ?)').run(`${physician}-session`, physician, now);
   }
   function relate(physician, profile, patient, suffix) {
     database.prepare(`INSERT INTO patient_invitation VALUES (?, ?, ?, ?, 'accepted', ?, ?)`).run(
@@ -114,9 +114,9 @@ test('physician requires active relationship, approval, fresh TOTP and live sess
   f.database.prepare("UPDATE physician_review_application SET status = 'revoked' WHERE account_user_id = 'doctor-b'").run();
   assert.equal((await f.request('GET', path, 'doctor-b')).status, 403);
   f.database.prepare("UPDATE physician_review_application SET status = 'approved' WHERE account_user_id = 'doctor-b'").run();
-  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE user_id = ?').run(Date.now() - 1, 'doctor-b');
+  f.database.prepare('DELETE FROM physician_session_proof WHERE user_id = ?').run('doctor-b');
   assert.equal((await f.request('GET', path, 'doctor-b')).status, 403);
-  f.database.prepare('UPDATE totp_step_up_attempt SET expires_at = ? WHERE user_id = ?').run(Date.now() + 30_000, 'doctor-b');
+  f.database.prepare('INSERT INTO physician_session_proof VALUES (?, ?, ?)').run('doctor-b-session', 'doctor-b', Date.now());
   f.database.prepare('UPDATE session SET expiresAt = ? WHERE userId = ?').run(new Date(Date.now() - 1).toISOString(), 'doctor-b');
   assert.equal((await f.request('GET', path, 'doctor-b')).status, 401);
   assert.equal((await f.request('GET', path, null)).status, 401);

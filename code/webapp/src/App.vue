@@ -14,43 +14,27 @@
       <SessionFeedback v-if="feedbackSessionId" :session-id="feedbackSessionId" :identity-id="identityId" @dismiss="dismissSessionFeedback" />
       <div v-show="activeNav === 'live'">
         <SessionCapture
+          v-show="liveView === 'load'"
           ref="sessionCapture"
           :identity-id="identityId"
           :ble-connected="bleConnected"
           :simulation-running="simulationRunning"
           @session-completed="showSessionFeedback"
         />
-        <div class="row g-4">
-          <div class="col-lg-7">
-            <section id="live" class="card">
-              <div class="card-body">
-                <h2 class="h5 mb-1 text-sohle">Aktuelle Belastung</h2>
-                <p class="text-muted small mb-3">
-                  {{ previewSource === 'simulation' ? 'Simulation' : previewSource === 'ble' ? 'Sohle verbunden' : 'Noch keine Werte empfangen' }}
-                </p>
-                <LiveChart :rawValues="rawValues" :currentLimit="currentLimit" />
-              </div>
-            </section>
+        <button v-if="liveView !== 'load'" type="button" class="btn btn-link px-0 mb-3" @click="liveView = 'load'">‹ Zurück zur Belastung</button>
+        <section v-show="liveView === 'load'" id="live" class="card mt-3">
+          <div class="card-body">
+            <h2 class="h5 mb-1 text-sohle">Aktuelle Belastung</h2>
+            <p class="text-muted small mb-3">{{ previewSource === 'simulation' ? 'Simulation' : previewSource === 'ble' ? 'Sohle verbunden' : 'Noch keine Werte empfangen' }}</p>
+            <LiveChart :rawValues="rawValues" :currentLimit="currentLimit" />
           </div>
-
-          <div class="col-lg-5 d-flex flex-column gap-4">
-            <section id="steps" class="card">
-              <div class="card-body">
-                <h2 class="h5 mb-1 text-sohle">Schrittzähler</h2>
-
-                <StepCounter :steps="stepCount" :goal="stepGoal" />
-              </div>
-            </section>
-
-            <section id="history-preview" class="card">
-              <div class="card-body">
-                <h2 class="h5 mb-1 text-sohle">Letzte Messwerte</h2>
-                <p class="text-muted small mb-3">Die neuesten erkannten Peaks</p>
-                <MeasurementTable :measurements="measurements" />
-              </div>
-            </section>
-          </div>
+        </section>
+        <div v-if="liveView === 'load'" class="row g-3 mt-1">
+          <div class="col-sm-6"><button type="button" class="card w-100 text-start device-choice" @click="liveView = 'steps'"><i class="bi bi-activity" aria-hidden="true"></i><strong>Schrittzähler</strong><span aria-hidden="true">›</span></button></div>
+          <div class="col-sm-6"><button type="button" class="card w-100 text-start device-choice" @click="liveView = 'recent'"><i class="bi bi-list-ul" aria-hidden="true"></i><strong>Letzte Messwerte</strong><span aria-hidden="true">›</span></button></div>
         </div>
+        <StepCounter v-if="liveView === 'steps'" :steps="stepCount" :goal="stepGoal" />
+        <MeasurementTable v-if="liveView === 'recent'" :measurements="measurements" />
 
 
 
@@ -72,18 +56,21 @@
       </div>
 
       <div v-show="activeNav === 'connect'">
-        <section id="connect-page" class="card">
+        <div v-if="!deviceView" class="row g-3" aria-label="Gerät oder Simulation auswählen">
+          <div class="col-sm-6"><button type="button" class="card w-100 text-start device-choice" @click="deviceView = 'bluetooth'"><i class="bi bi-bluetooth" aria-hidden="true"></i><strong>Sohle</strong><span aria-hidden="true">›</span></button></div>
+          <div class="col-sm-6"><button type="button" class="card w-100 text-start device-choice" @click="deviceView = 'simulation'"><i class="bi bi-play-circle" aria-hidden="true"></i><strong>Simulation {{ simulationRunning ? '· Ein' : '' }}</strong><span aria-hidden="true">›</span></button></div>
+        </div>
+        <button v-if="deviceView" type="button" class="btn btn-link px-0 mb-3" @click="deviceView = ''">‹ Zurück zur Auswahl</button>
+        <section v-show="deviceView === 'bluetooth'" id="connect-page" class="card">
           <div class="card-body">
-
-        <Bluetooth :key="demoEpoch" :simulation-running="simulationRunning" @raw-value="onRawValue" @connection-state="bleConnected = $event" @connection-busy="bleBusy = $event" />
+            <Bluetooth :key="demoEpoch" :simulation-running="simulationRunning" @raw-value="onRawValue" @connection-state="bleConnected = $event" @connection-busy="bleBusy = $event" />
           </div>
         </section>
-        <details id="simulation" class="card mt-3">
-          <summary class="card-body simulation-summary">Simulation <span>{{ simulationRunning ? 'Ein' : 'Aus' }}</span></summary>
-          <div class="card-body pt-0">
+        <section v-show="deviceView === 'simulation'" id="simulation" class="card">
+          <div class="card-body">
             <SimulationControl :key="demoEpoch" :ble-blocked="bleConnected || bleBusy" @raw-value="onRawValue" @running-state="simulationRunning = $event" />
           </div>
-        </details>
+        </section>
       </div>
 
       <div v-show="activeNav === 'history'">
@@ -138,6 +125,8 @@ export default {
       bleConnected: false,
       bleBusy: false,
       simulationRunning: false,
+      deviceView: '',
+      liveView: 'load',
       previewSource: null,
       feedbackQueue: [],
       stopIdentityWatch: null,
@@ -271,4 +260,10 @@ export default {
 <style scoped>
 .simulation-summary { cursor: pointer; color: #a00058; font-weight: 600; }
 .simulation-summary span { float: right; color: #62656f; font-weight: 400; }
+</style>
+
+<style scoped>
+.device-choice { min-height: 88px; padding: 24px; display: flex; flex-direction: row; align-items: center; gap: 14px; color: inherit; }
+.device-choice i { color: var(--sohle); font-size: 1.3rem; }
+.device-choice span { margin-left: auto; font-size: 1.4rem; }
 </style>
