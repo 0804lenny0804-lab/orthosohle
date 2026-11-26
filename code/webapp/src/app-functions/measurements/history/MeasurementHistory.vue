@@ -1,8 +1,8 @@
 <template>
   <div class="history-wrapper">
     <nav v-if="!view" class="history-menu" aria-label="Verlauf auswählen">
-      <button type="button" class="card history-choice" @click="view = 'sessions'"><i class="bi bi-clock-history" aria-hidden="true"></i><strong>Gespeicherte Messungen</strong><span aria-hidden="true">›</span></button>
-      <button type="button" class="card history-choice" @click="view = 'preview'"><i class="bi bi-bar-chart" aria-hidden="true"></i><strong>Aktuelle Vorschau</strong><span aria-hidden="true">›</span></button>
+      <button type="button" class="card history-choice" @click="view = 'sessions'"><i class="bi bi-clock-history" aria-hidden="true"></i><span class="choice-text"><strong>Gespeicherte Messungen</strong><small>Gespeicherte Sitzungen mit Messwerten pro Sekunde, auch später abrufbar.</small></span><span aria-hidden="true">›</span></button>
+      <button type="button" class="card history-choice" @click="view = 'preview'"><i class="bi bi-bar-chart" aria-hidden="true"></i><span class="choice-text"><strong>Aktuelle Vorschau</strong><small>Belastungsspitzen und Schritte dieser Browseransicht; nach Neuladen oder Kontowechsel weg.</small></span><span aria-hidden="true">›</span></button>
     </nav>
     <button v-if="view" type="button" class="btn btn-link px-0 mb-3" @click="view = ''">‹ Zurück zur Auswahl</button>
     <SavedSessions v-if="view === 'sessions'" :identity-id="identityId" />
@@ -74,5 +74,7 @@ export default {
 .history-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 1rem; }
 .history-choice { padding: 24px; display: flex; flex-direction: row; align-items: center; gap: 14px; text-align: left; color: inherit; }
 .history-choice i { color: var(--sohle); font-size: 1.3rem; }
-.history-choice span { margin-left: auto; font-size: 1.4rem; }
+.history-choice > span:last-child { margin-left: auto; font-size: 1.4rem; }
+.choice-text { display: grid; gap: 4px; }
+.choice-text small { color: var(--app-muted); font-size: .8rem; }
 </style>

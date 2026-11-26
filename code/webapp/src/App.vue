@@ -14,27 +14,30 @@
       <SessionFeedback v-if="feedbackSessionId" :session-id="feedbackSessionId" :identity-id="identityId" @dismiss="dismissSessionFeedback" />
       <div v-show="activeNav === 'live'">
         <SessionCapture
-          v-show="liveView === 'load'"
           ref="sessionCapture"
           :identity-id="identityId"
           :ble-connected="bleConnected"
           :simulation-running="simulationRunning"
           @session-completed="showSessionFeedback"
         />
-        <button v-if="liveView !== 'load'" type="button" class="btn btn-link px-0 mb-3" @click="liveView = 'load'">‹ Zurück zur Belastung</button>
-        <section v-show="liveView === 'load'" id="live" class="card mt-3">
-          <div class="card-body">
-            <h2 class="h5 mb-1 text-sohle">Aktuelle Belastung</h2>
-            <p class="text-muted small mb-3">{{ previewSource === 'simulation' ? 'Simulation' : previewSource === 'ble' ? 'Sohle verbunden' : 'Noch keine Werte empfangen' }}</p>
-            <LiveChart :rawValues="rawValues" :currentLimit="currentLimit" />
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <section id="live" class="card">
+              <div class="card-body">
+                <h2 class="h5 mb-1 text-sohle">Aktuelle Belastung</h2>
+                <p class="text-muted small mb-3">
+                  {{ previewSource === 'simulation' ? 'Simulation' : previewSource === 'ble' ? 'Sohle verbunden' : 'Noch keine Werte empfangen' }}
+                </p>
+                <LiveChart :rawValues="rawValues" :currentLimit="currentLimit" />
+              </div>
+            </section>
           </div>
-        </section>
-        <div v-if="liveView === 'load'" class="row g-3 mt-1">
-          <div class="col-sm-6"><button type="button" class="card w-100 text-start device-choice" @click="liveView = 'steps'"><i class="bi bi-activity" aria-hidden="true"></i><strong>Schrittzähler</strong><span aria-hidden="true">›</span></button></div>
-          <div class="col-sm-6"><button type="button" class="card w-100 text-start device-choice" @click="liveView = 'recent'"><i class="bi bi-list-ul" aria-hidden="true"></i><strong>Letzte Messwerte</strong><span aria-hidden="true">›</span></button></div>
+
+          <div class="col-lg-5 d-flex flex-column gap-4">
+            <StepCounter :steps="stepCount" :goal="stepGoal" />
+            <MeasurementTable :measurements="measurements" />
+          </div>
         </div>
-        <StepCounter v-if="liveView === 'steps'" :steps="stepCount" :goal="stepGoal" />
-        <MeasurementTable v-if="liveView === 'recent'" :measurements="measurements" />
 
 
 
@@ -126,7 +129,6 @@ export default {
       bleBusy: false,
       simulationRunning: false,
       deviceView: '',
-      liveView: 'load',
       previewSource: null,
       feedbackQueue: [],
       stopIdentityWatch: null,
