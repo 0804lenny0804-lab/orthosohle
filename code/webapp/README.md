@@ -13,7 +13,7 @@ npm run dev --prefix code/webapp
 npm run build --prefix code/webapp
 ```
 
-Der Entwicklungsserver ist unter `http://127.0.0.1:5173` erreichbar (fester lokaler Port). Der neue Bereich `#account` verwendet ausschließlich relative Kontoaufrufe über den Vite-Proxy zum Backend. API-Konfiguration, Migration und Start stehen maßgeblich in [code/README.md](../README.md#web-app-mit-lokalem-kontobereich-starten). Für API-Aufrufe kann `VITE_API_URL` gesetzt werden; der bestehende Standard `http://localhost:3000` funktioniert nicht als Adresse eines entfernten Mobilgeräts.
+Der Entwicklungsserver ist unter `http://127.0.0.1:5173` erreichbar (fester lokaler Port). Der neue Bereich `#account` verwendet ausschließlich relative Kontoaufrufe über den Vite-Proxy zum Backend. API-Konfiguration, Migration und Start stehen maßgeblich in [code/README.md](../README.md#web-app-mit-lokalem-kontobereich-starten). Die aktiven API-Aufrufe verwenden relative Pfade und den lokalen Vite-Proxy. Eine API-Adresse für entfernte Mobilgeräte ist noch nicht eingerichtet.
 
 Erstprüfung am 06.11.2026: `npm ci` und `npm run build` erfolgreich mit Node 24.19.0 und npm 11.9.0. Das bestätigt nur den Web/PWA-Build, keine APK, IPA oder Gerätefunktion.
 

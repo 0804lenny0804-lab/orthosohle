@@ -135,3 +135,23 @@ Der Nutzer präzisiert am 10.11.2026, dass die spätere Bestätigung per Bestät
 **Nutzerpräzisierung:** Die alte Webapp zu einer produktreifen Webapp weiterentwickeln und daraus APK und IPA erzeugen. Das Waveshare-Gerät erhält eigene Software, eine eigene Verbindung zur Sohle und eine Anbindung an App, Daten und Backend.
 
 **Konsequenz:** Die Altcode-Nutzung als reine Referenz im Neustartbeschluss vom 29.10. ist ersetzt. Die erste Übernahme und lokale Weiterentwicklung sind erfolgt; Verpackung, Schnittstellen und Verbindungswege bleiben zu evaluieren.
+
+## 11.11.2026 – Historischer Messdatenzugriff des aktuell zugeordneten Arztes
+
+**Entscheidung des Nutzers:** Ein aktuell zugeordneter Patient gibt dem aktuell verantwortlichen, geprüften Arzt ausdrücklich alle bisherigen Messsitzungen dieses Patienten frei, auch Sitzungen vor Beginn der aktuellen Arztzuordnung. Erforderlich bleiben für jeden Zugriff eine aktive Betreuungsbeziehung, eine gültige Arztfreigabe und die vorgeschriebene frische MFA. Mit Ende der Beziehung oder Widerruf der Arztfreigabe endet der Messdatenzugriff sofort; eine frühere Zuordnung begründet keinen späteren Zugriff.
+
+**Grenze und Konsequenz:** Clientseitig gelieferte Sitzungs- und Empfangszeiten belegen weder Messherkunft noch, dass die Sitzung tatsächlich innerhalb einer bestimmten Arztzuordnung stattgefunden hat. Die Freigabe ist eine Zugriffsentscheidung des Patienten, keine nachträgliche Herkunfts- oder Gerätebestätigung. Die Regel gilt derzeit ausschließlich für den lokalen synthetischen Entwicklungsstand; keine echten Gesundheitsdaten und keine Produkt- oder Einsatzfreigabe. Zweck, Aufbewahrung, Löschung, Rechtsgrundlage und Betriebsverfahren bleiben gesondert zu klären.
+
+## 12.11.2026 – Zweckgebundene Patientenangaben im lokalen Profil
+
+**Nutzerentscheidung:** Patient oder aktuell freigegebener und zugeordneter Arzt darf kurze Angaben zur Verletzung sowie optionales Körpergewicht erfassen. Der Patient kann Daten selbst eingeben; Arztzugriff erfordert weiterhin aktive Beziehung, Freigabe und frische TOTP-Prüfung.
+
+**Umsetzung und Grenze:** Verletzungsnotiz bis 240 Zeichen und Gewicht in kg; 1000 kg ist eine technische Eingabegrenze ohne klinische Bedeutung. Belastungsgrenze bleibt ausschließlich im bestehenden Therapieplan, damit es keine widersprüchliche zweite Quelle gibt. Felder sind optional und löschbar. Daten gelten als Gesundheitsangaben; ausschließlich synthetisch lokal testen. Zweck, Rechtsgrundlage, Aufbewahrung, Export, Löschung und Produktfreigabe müssen vor realem Einsatz festgelegt werden. Details im [aktuellen Kontext](context.md).
+
+## 26.11.2026 – Arztarbeit und Freigabeprüfung getrennt absichern
+
+Auf Nutzerauftrag wird die Arztarbeit ohne wiederholte TOTP-Eingabe bei Navigation gestaltet. Der serverseitige Arztnachweis endet nach 30 Minuten ohne Arztanfrage und bleibt an Sitzung, Faktor, Arztfreigabe und Betreuungsrechte gebunden. Die sensible Freigabeprüfung benötigt weiterhin einen maximal fünf Minuten alten Code. Websiteöffnungen starten im UI mit einer Prüfung; parallele Tabs derselben Sitzung sind serverseitig keine getrennten Identitäten. Die sichtbare Bedienung reduziert sich auf Patienten/Konto und den jeweils gewählten Bereich.
+
+## 26.11.2026 – TOTP für die normale Nutzung einmal je Anmeldung
+
+Der Nutzer ersetzt die zuvor gewählte 30-Minuten-Frist durch die Lebensdauer der authentifizierten Sitzung. Ein eigener, serverseitig gespeicherter MFA-Nachweis pro Session zählt erfolgreiche TOTP- und Recoverycode-Anmeldung und verhindert doppelte Eingabe beim Arzteinstieg. Bestehende Sitzungen erhalten keine ungeprüfte Aufwertung. Die separate sensible Arztfreigabeprüfung behält ihre Fünf-Minuten-Frischeprüfung. Konsequenz: normale Nutzung und Neuladen erzeugen keine zusätzlichen Codeabfragen, Zugriffsentzug bleibt an Sitzungs-/Faktorwiderruf und Fachrechte gebunden.
