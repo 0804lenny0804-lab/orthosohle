@@ -13,7 +13,7 @@
         <option :value="1">Letzter Tag</option>
         <option :value="3">Letzte 3 Tage</option>
         <option :value="7">Letzte 7 Tage</option>
-        <option :value="30">Letzter Monat</option>
+        <option :value="30">Letzte 30 Tage</option>
       </select>
     </div>
   </div>

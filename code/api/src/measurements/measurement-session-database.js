@@ -156,6 +156,28 @@ export function createMeasurementSessionRepository(database) {
       const last = hasMore ? page[page.length - 1] : null;
       return { sessions: page.map(readSummary), nextBefore: last ? { startedAt: last.startedAt, id: last.id } : null };
     },
+    historyForProfile(profileId, { from, to, bucketSeconds, limit, after }) {
+      const pageFrom = after && after.timestamp > from ? after.timestamp : from;
+      const rows = database.prepare(`
+        SELECT s.id AS sessionId, s.source AS source,
+          strftime('%Y-%m-%dT%H:%M:%S.000Z', (CAST(strftime('%s', i.received_at) AS INTEGER) / CAST(? AS INTEGER)) * CAST(? AS INTEGER), 'unixepoch') AS timestamp,
+          MIN(i.received_at) AS firstAt, MAX(i.received_at) AS lastAt,
+          SUM(i.sample_count) AS count, COUNT(*) AS intervalCount,
+          CAST(strftime('%s', MAX(i.received_at)) AS INTEGER) - CAST(strftime('%s', MIN(i.received_at)) AS INTEGER) + 1 - COUNT(*) AS missingSeconds,
+          SUM(i.average * i.sample_count) / SUM(i.sample_count) AS avg, MAX(i.maximum) AS max
+        FROM measurement_session s JOIN measurement_interval i ON i.session_id = s.id
+        WHERE s.patient_profile_id = ? AND s.status = 'completed'
+          AND s.started_at < ? AND s.ended_at >= ? AND i.received_at >= ? AND i.received_at < ?
+        GROUP BY s.id, timestamp
+        HAVING (? IS NULL OR timestamp > ? OR (timestamp = ? AND s.id > ?))
+        ORDER BY timestamp, s.id LIMIT ?
+      `).all(bucketSeconds, bucketSeconds, profileId, new Date(Math.min(Date.parse(to) + 1000, Date.parse('9999-12-31T23:59:59.999Z'))).toISOString(), pageFrom, pageFrom, to,
+        after?.timestamp ?? null, after?.timestamp ?? null, after?.timestamp ?? null, after?.sessionId ?? null, limit + 1);
+      const hasMore = rows.length > limit;
+      const samples = rows.slice(0, limit);
+      const last = hasMore ? samples[samples.length - 1] : null;
+      return { samples, nextAfter: last ? { timestamp: last.timestamp, sessionId: last.sessionId } : null };
+    },
     findForProfile(profileId, id) {
       if (!findIntervalSession.get(id, profileId)) return null;
       return readSession(id, profileId);

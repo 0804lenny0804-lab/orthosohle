@@ -192,3 +192,9 @@ Vor API-Start die neue Tabelle für sitzungsgebundene Nachweise über `npm run m
 ### Patientenbedienung
 
 Die Messanzeige öffnet Belastung, Schrittzähler oder letzte Werte einzeln. Geräte bietet eine Auswahl zwischen Sohle und Simulation; laufende Verbindungen und Messaufzeichnung bleiben beim Navigieren erhalten. Im Verlauf werden gespeicherte Messungen und die flüchtige Vorschau getrennt geöffnet. Unter Konto → Meine Ärzte wird entweder Betreuung/Einladungen oder der Therapieplan angezeigt. Ein eingerichtetes Profil benötigt keine dauerhafte Statuskarte. Fehler, echte Einrichtungsbedarfe und die Kennzeichnung synthetischer Werte bleiben sichtbar.
+
+### Zeitraumverlauf
+
+Der Patientenverlauf lädt abgeschlossene, dem eigenen Profil zugeordnete Messdaten für den gewählten Zeitraum direkt aus der API. Mittelwerte werden nach Anzahl der Messwerte gewichtet; Maxima bleiben erhalten. Bei längeren Zeiträumen fasst der Server Sekundenwerte pro Zeitfenster und internem Segment zusammen. Punkte werden nicht durch Linien verbunden; Quelle und Lücken innerhalb der gespeicherten Zeitfenster sind erkennbar. Eine aufklappbare Tabelle zeigt die dargestellten Daten. Bei sehr vielen Abschnitten wird ab 10.000 Punkten eine Teilanzeige ausdrücklich gemeldet. Livewerte erscheinen in der Übersicht; im Verlauf erscheinen nur abgeschlossene, serverbestätigte Abschnitte. Eine zeitabhängige historische Grenzlinie oder Schrittzahl lässt sich aus diesen Daten nicht zuverlässig rekonstruieren.
+
+Die bisherige Grenze von einer Stunde beziehungsweise 3600 Intervallen pro Segment bleibt bestehen. Eine längere BLE-Verbindung wird intern in Folgesegmente aufgeteilt. Da keine gemeinsame Verbindungs-ID gespeichert wird, sind Segmentgrenzen nicht automatisch als durchgehende Verbindung interpretierbar. Nicht bestätigte Daten und begrenzter Übergangspuffer haben die oben beschriebenen Grenzen.

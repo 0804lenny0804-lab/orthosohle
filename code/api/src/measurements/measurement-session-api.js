@@ -77,6 +77,27 @@ function normalizedCheckpoint(body) {
   };
 }
 
+function historyQuery(query) {
+  const allowed = new Set(['from', 'to', 'bucketSeconds', 'limit', 'afterTime', 'afterSessionId']);
+  if (Object.keys(query).some(key => !allowed.has(key)) || !validTime(query.from) || !validTime(query.to)) return null;
+  const from = Date.parse(query.from), to = Date.parse(query.to), duration = to - from;
+  const bucketSeconds = Number(query.bucketSeconds), limit = Number(query.limit ?? '500');
+  if (from < 0 || duration <= 0 || duration > 32 * 86400000 || !['60', '900', '3600'].includes(query.bucketSeconds)
+      || (duration >= 3 * 86400000 && bucketSeconds < 900) || (duration > 7 * 86400000 && bucketSeconds < 3600)
+      || !/^[0-9]{1,3}$/.test(String(query.limit ?? '500')) || limit < 1 || limit > 500) return null;
+  const hasTime = query.afterTime !== undefined, hasSession = query.afterSessionId !== undefined;
+  if (hasTime !== hasSession) return null;
+  let after = null;
+  if (hasTime) {
+    if (!validTime(query.afterTime) || typeof query.afterSessionId !== 'string'
+        || !/^[0-9a-f-]{36}$/i.test(query.afterSessionId)) return null;
+    const time = Date.parse(query.afterTime);
+    if (time % (bucketSeconds * 1000) !== 0 || time < Math.floor(from / (bucketSeconds * 1000)) * bucketSeconds * 1000 || time >= to) return null;
+    after = { timestamp: new Date(time).toISOString(), sessionId: query.afterSessionId };
+  }
+  return { from: new Date(from).toISOString(), to: new Date(to).toISOString(), bucketSeconds, limit, after };
+}
+
 export function createMeasurementSessionRouter(auth, database, webOrigin) {
   const router = express.Router();
   const sessions = createMeasurementSessionRepository(database);
@@ -95,8 +116,8 @@ export function createMeasurementSessionRouter(auth, database, webOrigin) {
     return session;
   }
 
-  function withCurrentPatient(session, operation) {
-    return database.transaction(() => {
+  function withCurrentPatient(session, operation, { readOnly = false } = {}) {
+    const transaction = database.transaction(() => {
       const current = database.prepare(`SELECT u.emailVerified AS emailVerified
         FROM session s JOIN user u ON u.id = s.userId
         WHERE s.id = ? AND s.userId = ? AND s.token = ? AND s.expiresAt > ?`)
@@ -106,7 +127,8 @@ export function createMeasurementSessionRouter(auth, database, webOrigin) {
       const profile = database.prepare('SELECT id FROM patient_profile WHERE account_user_id = ?').get(session.user.id);
       if (!profile) return { kind: 'patient_profile_required' };
       return { kind: 'ok', value: operation(profile.id) };
-    }).immediate();
+    });
+    return readOnly ? transaction.deferred() : transaction.immediate();
   }
 
   function sendAccessError(res, kind) {
@@ -131,6 +153,15 @@ export function createMeasurementSessionRouter(auth, database, webOrigin) {
     const page = pagination(req.query);
     if (!page) return res.status(400).json({ error: 'invalid_pagination' });
     return res.json(sessions.listForProfile(profile.id, page.before, page.limit));
+  });
+  router.get('/history', async (req, res) => {
+    const session = await requestSession(req, res);
+    if (!session) return;
+    const query = historyQuery(req.query);
+    if (!query) return res.status(400).json({ error: 'invalid_history_query' });
+    const result = withCurrentPatient(session, profileId => sessions.historyForProfile(profileId, query), { readOnly: true });
+    if (sendAccessError(res, result.kind)) return;
+    return res.json(result.value);
   });
   router.get('/active', async (req, res) => {
     const session = await requestSession(req, res);
